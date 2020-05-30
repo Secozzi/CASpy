@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import os
-import sys
-from pathlib import Path
 
 from .Worker import CASWorker
 
@@ -717,12 +714,6 @@ class Ui_MainWindow(object):
         MainWindow.setMaximumSize(QtCore.QSize(16777215, 16777215))
         MainWindow.setFont(QFont("Courier New"))
         MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-
-        # I wish I knew how to fix this
-        #icon = QtGui.QIcon()
-        #icon.addPixmap(QtGui.QPixmap("resources/logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        #MainWindow.setWindowIcon(icon)
-        #MainWindow.setIconSize(QtCore.QSize(50, 24))
 
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")

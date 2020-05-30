@@ -12,7 +12,7 @@ def requires():
 
 setup(
     name="CASPy3",
-    version="1.0.1",
+    version="1.0.2",
     description="A program that provides a GUI and a CLI to a symbolic computation and computer algebra system python library, SymPy.",
     long_description=readme(),
     long_description_content_type="text/markdown",
@@ -27,7 +27,7 @@ setup(
     ],
     packages=find_packages(),
     include_package_data=True,
-    package_data={'src.caspy3.resources': ['formulas.json', 'logo.png']},
+    package_data={'src.caspy3.resources': ['formulas.json', 'logo.png', 'logo.ico']},
     install_requires=requires(),
     entry_points={
         "console_scripts": [

@@ -2,6 +2,7 @@ import traceback
 
 from .CAS import Ui_MainWindow
 from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import QIcon
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -10,6 +11,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Setups and install eventFilters on QPlainTextEdit that user types expression into
         """
         super().__init__(*args, **kwargs)
+
+        # This doesn't work, I don't know why
+        #self.setWindowIcon(QIcon("resources/logo.png"))
         self.setupUi(self)
         for i in [self.consoleIn, self.DerivExp, self.IntegExp, self.LimExp, self.EqLeft, self.EqRight, self.SimpExp, self.ExpExp, self.EvalExp, self.PfInput]:
             i.installEventFilter(self)
