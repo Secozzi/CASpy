@@ -1,0 +1,146 @@
+[
+  {
+    "a": "a|Medelacceleration rätlinjig rörelse|m/s^2 (meter per sekundkvadrat)",
+    "B": "B|Magnetisk flödestäthet, kring oändlig lång rak ledare|T (Tesla)",
+    "bk": "k;1.38*10**(-23)|Boltzmanns konstant|J/K (Joule delat på Kelvin)",
+    "c": "c|Specifik värmekapacitet|J",
+    "cl": "c;299792458|Ljusets hastighet|m/s",
+    "f": "f|Friktionstalet|Saknar enhet",
+    "F": "F|Kraft|N (newton)",
+    "g": "g;9.80665|Tyngdacceleration|m/s^2 (meter per sekundkvadrat)",
+    "G": "G;(6.6743015*10^(-11))|Nm^2/kg^2 (Newtonkvadratmeter per kvadratkilogram",
+    "I": "I|Ström|A (Ampere)",
+    "Im": "I|Impuls|Ns (kg*m/s) (Newtonsekund, kilogrammeter per sekund",
+    "k": "k|Fjäderkonstant|N/m (Newton per meter)",
+    "l": "l|Längd|m (meter)",
+    "m": "m|Massa|kg (kilogram)",
+    "N": "N|Normalkraft|N (Newton)",
+    "Nv": "N|Antal varv|st (styck)",
+    "p": "p|Rörelsemängd|kgm/s (kilogrammeter per sekund)",
+    "pt": "p|Tryck|Pa (N/m^2) (Pascal, Newton per kvadratmeter)",
+    "s": "s|Sträcka|m (meter)",
+    "srr": "s|Sträcka - rätlinjig rörelse|m (meter)",
+    "t": "t|Tid|s (sekund)",
+    "r": "r|Radie|m (meter)",
+    "v": "v|Hastighet|m/s (meter per sekund)",
+    "v0": "v0|Starthastighet|m/s (meter per sekund)",
+    "vs": "v|Sluthastighet - rätlinjig rörelse|m/s (meter per sekund)",
+    "vrr": "v|Medelhastighet - rätlinjig rörelse|m/s (meter per sekund)",
+    "W": "W|Arbete|Nm (Newtonmeter)",
+    "μ": "μ|Permeabilitet|H/m (henry per meter)",
+    "ρ": "ρ|Densitet|kg/(m^3) (kilogram per kubikmeter"
+  },
+[
+    ["Fysik",
+        [
+            ["Elektriska och magnetiska fält", [
+                ["B=(μ*I)/(2*pi*r)", ["B", "μ", "I", "r"]],
+                ["B=(μ*N*I)/(2*r)", ["B", "μ", "I", "r", "Nv"]],
+                ["B=(μ*N*I)/l", ["B", "μ", "I", "l", "Nv"]]
+            ]],
+            ["Mekanik - Kinematik", [
+				["v=s/t", ["s", "v", "t"]],
+				["a=v/t", ["a", "v", "t"]],
+				["v=v0+a*t", ["vs", "v0","a", "t"]],
+				["s=v0*t+(a*t**2)/2", ["srr", "v0", "t", "a"]],
+				["s=(v+v0)/2*t", ["srr", "v0", "vs",  "t"]],
+				["v**2-v0**2=2*a*s", ["srr", "v0", "vs", "a"]]
+            ]],
+            ["Mekanik - Dynamik", [
+                ["p=m*v", ["p", "m", "v"]],
+				["F=m*a", ["F", "m", "a"]],
+				["I=F*t", ["Im", "F", "t"]],
+				["I=p1-p2", ["Im"]],
+				["m1*u1+m2*u2=m1*v1+m2*v2", []]
+            ]],
+            ["Mekanik - Krafter", [
+                ["F=m*g", ["F", "m", "g"]],
+				["F=k*l", ["F", "k", "l"]],
+				["F=(G*m1*m2)/(r**2)", ["F", "G", "r"]],
+				["F=f*N", ["F", "f", "N"]]
+            ]],
+            ["Mekanik - Arbete, energi och effekt" , [
+                ["W=F*s", []],
+				["Ek=(m*v**2)/2", []],
+				["P=F*v", []],
+				["P=W/t", []],
+				["η=En/Et", []],
+				["Ep=m*g*h", []],
+				["Ep=(k*x**2)/2", []],
+				["F=(G*M*m)/(r**2)", []],
+				["Ep=-(G*M*m)/r", []]
+            ]],
+            ["Värmelära, tryck och gaser" , [
+                ["ρ=m/V", []],
+				["E=c*m*ΔT", []],
+				["E=c*m", []],
+				["l-l0=αL*l0*(T-T0)", []],
+				["V-V0=αV*V0*(T-T0)", []],
+				["αV=3*αL", []],
+				["p=F/A", []],
+				["p=p0+ρ*g*h", []],
+				["k=(p*V)/T", []],
+				["(p1*V1)/T1=(p2*V2)/T2", []],
+				["F0=ρ*V*g", []],
+				["pV=N*k*T", []],
+				["pV=(N*M*v**2)/3", []],
+				["Ek=(3*k*T)/2", ["bk"]],
+                ["U=R*_i**2*I", []]
+            ]],
+            ["Ellära - Elektrostatik" , [
+                [""]
+            ]],
+            ["Ellära - Likströmskretsar" , [
+                [""]
+            ]],
+			["Ellära -Växelströmskretsar", [
+				[""]
+			]],
+            ["Ellära - magnetfält" , [
+                [""]
+            ]],
+            ["Ellära - Induktion" , [
+                [""]
+            ]],
+            ["Vågrörelselära" , [
+                [""]
+            ]],
+            ["Optik - Stråloptik" , [
+                [""]
+            ]],
+            ["Optik - Vågoptik" , [
+                [""]
+            ]],
+            ["Elektromagnetisk strålning" , [
+                [""]
+            ]],
+            ["Atom-, kärm- och partikelfysik" , [
+                ["E=m*c**2", ["E", "m", "cl"]]
+            ]],
+            ["Relativitetsteori" , [
+                [""]
+            ]],
+            ["Astrofysik" , [
+                [""]
+            ]]
+        ]
+    ],
+    ["Kemi",
+        [
+            ["placeholder", [
+                ["placeholder=placeholder"]
+            ]]
+        ]
+    ]
+],
+    [
+        {"WolframAlpha":  "https://www.wolframalpha.com"},
+        {"Symbolab":  "https://www.symbolab.com"},
+		{"LaTeX to PNG": "http://latex2png.com/"},
+        {"LaTeX formula editor":  "https://www.codecogs.com/latex/eqneditor.php"},
+        {"Desmos":  "desmos"},
+        {"GeoGebra": "https://www.geogebra.org/graphing"},
+        {"GeoGebra 3D": "https://www.geogebra.org/3d?lang=en"},
+        {"CalcPlot3D":  "https://www.monroecc.edu/faculty/paulseeburger/calcnsf/CalcPlot3D/"}
+    ]
+]
