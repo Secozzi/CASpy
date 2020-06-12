@@ -43,8 +43,18 @@ class CASWorker(QRunnable):
 
     @pyqtSlot()
     def to_scientific_notation(self, number, accuracy=5):
-        # Converts number into the string "a*x**b" where a is a float and b is an integer unless it's infinity
-        # For Complex numbers, a+b*i becomes c*10**d + e*10**f*I
+        """
+        Converts number into the string "a*x**b" where a is a float and b is an integer unless it's not a number in the complex plane, such as infinity
+        For Complex numbers, a+b*i becomes c*10**d + e*10**f*I
+
+        :param number: number
+            number to be converted into
+        :param accuracy: int
+            accuracy of scientific notation
+        :return: str
+            scientific notation of number in string
+        """
+
         number = str(number)
         sym_num = sympify(number)
 
@@ -129,10 +139,14 @@ class CASWorker(QRunnable):
         return({"deriv": [self.exact_ans, self.approx_ans]})
 
     @pyqtSlot()
-    def calc_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode, line_wrap, use_scientific):
+    def calc_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
+
         if not input_expression:
             return ({"error": ["Enter an expression"]})
         if not input_variable:
@@ -146,9 +160,9 @@ class CASWorker(QRunnable):
         if input_point:
             calc_deriv_point = str(self.exact_ans).replace(input_variable, f"({input_point})")
             if use_scientific:
-                self.approx_ans = self.to_scientific_notation(str(N(calc_deriv_point)))
+                self.approx_ans = self.to_scientific_notation(str(N(calc_deriv_point, accuracy)), use_scientific)
             else:
-                self.approx_ans = str(N(calc_deriv_point))
+                self.approx_ans = str(N(calc_deriv_point, accuracy))
             if output_type == 1:
                 self.exact_ans = str(pretty(simplify(calc_deriv_point)))
             elif output_type == 2:
@@ -197,10 +211,13 @@ class CASWorker(QRunnable):
         return({"integ": [self.exact_ans, self.approx_ans]})
 
     @pyqtSlot()
-    def calc_integ(self, input_expression, input_variable, input_lower, input_upper, output_type, use_unicode, line_wrap, use_scientific):
+    def calc_integ(self, input_expression, input_variable, input_lower, input_upper, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
 
         if not input_expression:
             return({"error": ["Enter an expression"]})
@@ -214,19 +231,20 @@ class CASWorker(QRunnable):
                 self.exact_ans = integrate(parse_expr(input_expression), (parse_expr(input_variable), input_lower, input_upper))
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
+
             try:
                 if use_scientific:
-                    self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans)))
+                    self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
                 else:
-                    self.approx_ans = str(simplify(self.exact_ans))
+                    self.approx_ans = str(simplify(N(self.exact_ans, accuracy)))
             except Exception:
                 self.approx_ans = 0
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
             else:
                 if use_scientific:
-                    self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans)))
+                    self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
                 else:
-                    self.approx_ans = str(N(self.exact_ans))
+                    self.approx_ans = str(N(self.exact_ans, accuracy))
         else:
             try:
                 self.exact_ans = integrate(parse_expr(input_expression), parse_expr(input_variable))
@@ -268,10 +286,13 @@ class CASWorker(QRunnable):
         return({"limit": [self.exact_ans, self.approx_ans]})
 
     @pyqtSlot()
-    def calc_limit(self, input_expression, input_variable, input_approach, input_side, output_type, use_unicode, line_wrap, use_scientific):
+    def calc_limit(self, input_expression, input_variable, input_approach, input_side, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
 
         if not input_expression:
             return({"error": ["Enter an expression"]})
@@ -286,9 +307,9 @@ class CASWorker(QRunnable):
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
 
         if use_scientific:
-            self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans)), use_scientific)
+            self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
         else:
-            self.approx_ans = str(N(self.exact_ans))
+            self.approx_ans = str(N(self.exact_ans, accuracy))
 
         if output_type == 1:
             self.exact_ans = str(pretty(self.exact_ans))
@@ -356,10 +377,13 @@ class CASWorker(QRunnable):
         return({"eq": [self.exact_ans, self.approx_ans]})
 
     @pyqtSlot()
-    def calc_eq(self, left_expression, right_expression, input_variable, solve_type, output_type, use_unicode, line_wrap, use_scientific):
+    def calc_eq(self, left_expression, right_expression, input_variable, solve_type, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
 
         if not left_expression or not right_expression:
             return ({"error": ["Enter an expression both in left and right side"]})
@@ -378,7 +402,7 @@ class CASWorker(QRunnable):
                 self.exact_ans = solve(Eq(parse_expr(left_expression), parse_expr(right_expression)), parse_expr(input_variable))
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
-            approx_list = [N(i) for i in self.exact_ans]
+            approx_list = [N(i, accuracy) for i in self.exact_ans]
             if use_scientific:
                 approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
 
@@ -513,10 +537,13 @@ class CASWorker(QRunnable):
         return({"eval": [self.exact_ans, self.approx_ans]})
 
     @pyqtSlot()
-    def eval_exp(self, expression, output_type, use_unicode, line_wrap, use_scientific):
+    def eval_exp(self, expression, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
 
         if not expression:
             return({"error": ["Enter an expression"]})
@@ -524,9 +551,9 @@ class CASWorker(QRunnable):
         try:
             self.exact_ans = simplify(parse_expr(expression))
             if use_scientific:
-                self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans)), use_scientific)
+                self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
             else:
-                self.approx_ans = str(N(self.exact_ans))
+                self.approx_ans = str(N(self.exact_ans, accuracy))
         except Exception:
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
 
@@ -652,11 +679,14 @@ class CASWorker(QRunnable):
         return({"formula": [self.exact_ans, self.approx_ans]})
 
     @pyqtSlot()
-    def calc_formula(self, lines, value_string, solve_type, output_type, use_unicode, line_wrap, use_scientific):
+    def calc_formula(self, lines, value_string, solve_type, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         empty_var_list, var_list, values = [], [], []
         self.exact_ans = ""
         self.approx_ans = 0
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
 
         for line in lines:
             if line[0].text() == "":
@@ -690,15 +720,15 @@ class CASWorker(QRunnable):
             except:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
 
-            self.approx_ans = list(map(lambda x: N(x), self.exact_ans))
+            self.approx_ans = list(map(lambda x: N(x, accuracy), self.exact_ans))
             if len(self.approx_ans) == 1:
                 self.approx_ans = self.approx_ans[0]
 
             if use_scientific:
                 if type(self.approx_ans) == 'list':
-                    self.approx_ans = list(map(lambda x: self.to_scientific_notation(str(x)), self.approx_ans))
+                    self.approx_ans = list(map(lambda x: self.to_scientific_notation(str(x), use_scientific), self.approx_ans))
                 else:
-                    self.approx_ans = self.to_scientific_notation(str(self.approx_ans))
+                    self.approx_ans = self.to_scientific_notation(str(self.approx_ans), use_scientific)
 
         else:
             try:

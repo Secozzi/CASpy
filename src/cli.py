@@ -1,11 +1,19 @@
+import os
 import sys
 import traceback
+from pathlib import Path
 
 import click
+from pyperclip import copy
 from PyQt5.QtCore import QObject, QThreadPool
 from PyQt5.QtWidgets import QApplication
-from .Worker import CASWorker
 
+# need to set the correct cwd
+CURRENT_DIR = Path(__file__).parent
+sys.path.insert(0, str(CURRENT_DIR))
+os.chdir(CURRENT_DIR)
+
+from Worker import CASWorker
 
 class Cli(QObject):
     def __init__(self, command, params, parent=None):
@@ -55,7 +63,8 @@ DEFAULT_FLAGS = [
 
 # Default argument(s), these argument(s) are added to a command by using the decorator '@add_options(DEFAULT_ARGUMENTS)'.
 DEFAULT_ARGUMENTS = [
-    click.option("--use-scientific", "-s", type=int, help="Notate approximate answer with scientific notation, argument is accuracy")
+    click.option("--use-scientific", "-s", type=int, help="Notate approximate answer with scientific notation, argument is accuracy"),
+    click.option("--accuracy", "-a", type=int, default=10, help="Accuracy of evaluation ")
 ]
 
 # Flag used only by equation, added to command by using the decorator '@add_options(EQ_FLAGS)'.
@@ -141,7 +150,7 @@ def start():
     """
     Start the GUI
     """
-    from .main import main
+    from qt_gui import main
     main()
 
 @main.command()
@@ -157,7 +166,7 @@ def deriv(params, **kwargs):
         deriv *expression *variable order at_point
         * = required
     Example:
-        deriv sin(1/ok) ok 3 pi
+        caspy deriv sin(1/ok) ok 3 pi
     """
     default_params = ["x", "x", "1", None]
 
@@ -171,7 +180,7 @@ def deriv(params, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = "calc_"
-        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"]]
+        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"], kwargs["accuracy"]]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -182,6 +191,7 @@ def deriv(params, **kwargs):
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("params", nargs=-1)
+#@click.option("-c", "--copy", type=click.IntRange(0,1), help="Copies answers")
 def integ(params, **kwargs):
     """
     Calculate the integral.
@@ -190,7 +200,7 @@ def integ(params, **kwargs):
         integ *expression *variable lower_bound upper_bound
         * = required
     Example:
-        integ 1/sqrt(1-x**2) x -1 1
+        integ 1/sqrt(1-x**2) x (-1) 1
     """
     default_params = ["x", "x", None, None]
 
@@ -204,7 +214,7 @@ def integ(params, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = "calc_"
-        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"]]
+        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"], kwargs["accuracy"]]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -238,7 +248,7 @@ def limit(params, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = "calc_"
-        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"]]
+        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"], kwargs["accuracy"]]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -274,7 +284,7 @@ def eq(params, **kwargs):
         options = [None, kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], True]
     else:
         prefix = "calc_"
-        options = [kwargs["solve_type"], kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"]]
+        options = [kwargs["solve_type"], kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"], kwargs["accuracy"]]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -371,7 +381,7 @@ def eval(expression, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = ""
-        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"]]
+        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"], kwargs["accuracy"]]
 
     params_to_send = list_merge(default_params, list(expression))
     to_send = [prefix + "eval_exp", params_to_send + options]
@@ -390,7 +400,6 @@ def pf(number):
         pf 372
 
     Note: exact_ans stores factors as dict: '{2: 2, 3: 1, 31: 1}' while approx_ans stores factors as string: '(2**2)*(3**1)*(31**1)'
-
     """
     to_send = ["calc_pf", [number]]
     send_to_thread(to_send)
@@ -411,16 +420,10 @@ def web(website_index, list):
         web -l
     """
 
-    try:
-        import importlib.resources as pkg_resources
-    except ImportError:
-        import importlib_resources as pkg_resources
-
-    from . import resources
-
     import json
-    json_file = json.loads(pkg_resources.read_text(resources, 'formulas.json'))
-    web_list = json_file[2]
+    with open("../assets/formulas.json", "r", encoding="utf8") as json_f:
+        json_data = json_f.read()
+        web_list = json.loads(json_data)[2]
 
     if website_index:
         if website_index < 1 or website_index > len(web_list):
@@ -442,7 +445,6 @@ def send_to_thread(input_list):
         print("error catched!:")
         print("error message:\n", tb)
     sys.excepthook = excepthook
-
     app = QApplication(sys.argv)
 
     try:

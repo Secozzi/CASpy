@@ -72,6 +72,7 @@
             ]],
             ["Värmelära, tryck och gaser" , [
                 ["ρ=m/V", []],
+                ["(E-c)**2=E+m", []],
 				["E=c*m*ΔT", []],
 				["E=c*m", []],
 				["l-l0=αL*l0*(T-T0)", []],
@@ -88,40 +89,44 @@
                 ["U=R*_i**2*I", []]
             ]],
             ["Ellära - Elektrostatik" , [
-                [""]
+                ["E=c*m", []]
             ]],
             ["Ellära - Likströmskretsar" , [
-                [""]
+                ["E=c*m", []]
             ]],
-			["Ellära -Växelströmskretsar", [
-				[""]
-			]],
+			["Ellära - Växelströmskretsar", [
+				["E=c*m", []]
+            ]],
             ["Ellära - magnetfält" , [
-                [""]
+                ["E=c*m", []]
             ]],
             ["Ellära - Induktion" , [
-                [""]
+                ["E=c*m", []]
             ]],
             ["Vågrörelselära" , [
-                [""]
+                ["b", []],
+                ["d", []],
+                ["a", []],
+                ["c", []],
+                ["e", []]
             ]],
             ["Optik - Stråloptik" , [
-                [""]
+                ["E=c*m", []]
             ]],
             ["Optik - Vågoptik" , [
-                [""]
+                ["E=c*m", []]
             ]],
             ["Elektromagnetisk strålning" , [
-                [""]
+                ["E=c*m", []]
             ]],
             ["Atom-, kärm- och partikelfysik" , [
                 ["E=m*c**2", ["E", "m", "cl"]]
             ]],
             ["Relativitetsteori" , [
-                [""]
+                ["E=c*m", []]
             ]],
             ["Astrofysik" , [
-                [""]
+                ["E=c*m", []]
             ]]
         ]
     ],

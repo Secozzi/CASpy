@@ -1,13 +1,63 @@
 # -*- coding: utf-8 -*-
 import json
+import os
+import sys
+from pathlib import Path
 
-from .Worker import CASWorker
+CURRENT_DIR = Path(__file__).parent
+sys.path.insert(0, str(CURRENT_DIR))
+os.chdir(CURRENT_DIR)
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
-from PyQt5.QtGui import QFont
-from PyQt5.QtWebEngineWidgets import *
-from PyQt5.QtWidgets import *
+from Worker import CASWorker
+
+from PyQt5.QtCore import (
+    QCoreApplication,
+    QMetaObject,
+    QRect,
+    QRegExp,
+    QSize,
+    Qt,
+    QThreadPool,
+    QUrl
+)
+
+from PyQt5.QtGui import (
+    QCursor,
+    QFont,
+    QRegExpValidator,
+    QTextCursor
+)
+
+from PyQt5.QtWidgets import (
+    QAction,
+    QActionGroup,
+    QButtonGroup,
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMenu,
+    QMenuBar,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QRadioButton,
+    QScrollArea,
+    QSpinBox,
+    QStatusBar,
+    QTabWidget,
+    QTextBrowser,
+    QTextEdit,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QVBoxLayout,
+    QWidget
+)
+
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 from pyperclip import copy
 from sympy import Symbol
@@ -31,6 +81,7 @@ class Ui_MainWindow(object):
         self.use_unicode = False
         self.line_wrap = False
         self.use_scientific = False
+        self.accuracy = 10
 
     def stop_thread(self):
         """
@@ -86,7 +137,7 @@ class Ui_MainWindow(object):
                 self.FormulaApprox.setText(str(self.approx_ans))
             elif first_key == "exec":
                 self.consoleIn.insertPlainText(self.exact_ans + "\n>>> ")
-                self.consoleIn.moveCursor(QtGui.QTextCursor.End)
+                self.consoleIn.moveCursor(QTextCursor.End)
                 self.current_code = self.consoleIn.toPlainText()
 
     def raise_error(self):
@@ -106,6 +157,16 @@ class Ui_MainWindow(object):
         msg.setText(message)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
+
+    def get_scientific_notation(self):
+        number, confirmed = QInputDialog.getInt(self, "Get Scientific Notation", "Enter the accuracy for scientific notation", 5, 1, 999999, 1)
+        if confirmed:
+            self.use_scientific = number
+
+    def get_accuracy(self):
+        number, confirmed = QInputDialog.getInt(self, "Get Accuracy", "Enter the accuracy for evaluation", self.accuracy, 1, 999999, 1)
+        if confirmed:
+            self.accuracy = number
 
     def copy_exact_ans(self):
         # Copies self.exact_ans to clipboard.
@@ -156,10 +217,21 @@ class Ui_MainWindow(object):
 
     def toggle_use_scientific(self, state):
         # Toggles scientific notation, only works when calculating an approximation
+        _translate = QCoreApplication.translate
         if state:
-            self.use_scientific = True
+            self.get_scientific_notation()
+            self.actionScientific.setText(_translate("MainWindow", f"Scientific Notation - {self.use_scientific}"))
         else:
             self.use_scientific = False
+            self.actionScientific.setText(_translate("MainWindow", "Scientific Notation"))
+
+    def change_accuracy(self, state):
+        _translate = QCoreApplication.translate
+        if state:
+            self.get_accuracy()
+            self.actionAccuracy.setText(_translate("MainWindow", f"Accuracy - {self.accuracy}"))
+        else:
+            self.actionAccuracy.setText(_translate("MainWindow", "Accuracy"))
 
     def next_tab(self):
         # Goes to next tab.
@@ -187,7 +259,15 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_deriv", [self.DerivExp.toPlainText(),self.DerivVar.text(),self.DerivOrder.value(),self.DerivPoint.text(),output_type,self.use_unicode,self.line_wrap])
+        self.WorkerCAS = CASWorker("prev_deriv", [
+            self.DerivExp.toPlainText(),
+            self.DerivVar.text(),
+            self.DerivOrder.value(),
+            self.DerivPoint.text(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -205,7 +285,17 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("calc_deriv", [self.DerivExp.toPlainText(), self.DerivVar.text(), self.DerivOrder.value(), self.DerivPoint.text(), output_type, self.use_unicode, self.line_wrap, self.use_scientific])
+        self.WorkerCAS = CASWorker("calc_deriv", [
+            self.DerivExp.toPlainText(),
+            self.DerivVar.text(),
+            self.DerivOrder.value(),
+            self.DerivPoint.text(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap,
+            self.use_scientific,
+            self.accuracy
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -224,7 +314,15 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_integ", [self.IntegExp.toPlainText(), self.IntegVar.text(), self.IntegLower.text(), self.IntegUpper.text(), output_type, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker("prev_integ", [
+            self.IntegExp.toPlainText(),
+            self.IntegVar.text(),
+            self.IntegLower.text(),
+            self.IntegUpper.text(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -242,7 +340,17 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("calc_integ", [self.IntegExp.toPlainText(), self.IntegVar.text(), self.IntegLower.text(), self.IntegUpper.text(), output_type, self.use_unicode, self.line_wrap, self.use_scientific])
+        self.WorkerCAS = CASWorker("calc_integ", [
+            self.IntegExp.toPlainText(),
+            self.IntegVar.text(),
+            self.IntegLower.text(),
+            self.IntegUpper.text(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap,
+            self.use_scientific,
+            self.accuracy
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -262,13 +370,21 @@ class Ui_MainWindow(object):
             output_type = 3
 
         if self.LimSide.currentIndex() == 0:
-            limSide = "+-"
+            limit_side = "+-"
         elif self.LimSide.currentIndex() == 1:
-            limSide = "-"
+            limit_side = "-"
         else:
-            limSide = "+"
+            limit_side = "+"
 
-        self.WorkerCAS = CASWorker("prev_limit", [self.LimExp.toPlainText(), self.LimVar.text(), self.LimApproach.text(), limSide, output_type, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker("prev_limit", [
+            self.LimExp.toPlainText(),
+            self.LimVar.text(),
+            self.LimApproach.text(),
+            limit_side,
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -288,13 +404,23 @@ class Ui_MainWindow(object):
             output_type = 3
 
         if self.LimSide.currentIndex() == 0:
-            limSide = "+-"
+            limit_side = "+-"
         elif self.LimSide.currentIndex() == 1:
-            limSide = "-"
+            limit_side = "-"
         else:
-            limSide = "+"
+            limit_side = "+"
 
-        self.WorkerCAS = CASWorker("calc_limit", [self.LimExp.toPlainText(), self.LimVar.text(), self.LimApproach.text(), limSide, output_type, self.use_unicode, self.line_wrap, self.use_scientific])
+        self.WorkerCAS = CASWorker("calc_limit", [
+            self.LimExp.toPlainText(),
+            self.LimVar.text(),
+            self.LimApproach.text(),
+            limit_side,
+            output_type,
+            self.use_unicode,
+            self.line_wrap,
+            self.use_scientific,
+            self.accuracy
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -313,7 +439,15 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_eq", [self.EqLeft.toPlainText(), self.EqRight.toPlainText(), self.EqVar.text(), self.EqOut.toPlainText(), output_type, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker("prev_eq", [
+            self.EqLeft.toPlainText(),
+            self.EqRight.toPlainText(),
+            self.EqVar.text(),
+            self.EqOut.toPlainText(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -337,7 +471,17 @@ class Ui_MainWindow(object):
         if self.EqSolveSet.isChecked():
             solve_type = 1
 
-        self.WorkerCAS = CASWorker("calc_eq", [self.EqLeft.toPlainText(), self.EqRight.toPlainText(), self.EqVar.text(), solve_type, output_type, self.use_unicode, self.line_wrap, self.use_scientific])
+        self.WorkerCAS = CASWorker("calc_eq", [
+            self.EqLeft.toPlainText(),
+            self.EqRight.toPlainText(),
+            self.EqVar.text(),
+            solve_type,
+            output_type,
+            self.use_unicode,
+            self.line_wrap,
+            self.use_scientific,
+            self.accuracy
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -356,7 +500,12 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_simp_eq", [self.SimpExp.toPlainText(), output_type, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker("prev_simp_eq", [
+            self.SimpExp.toPlainText(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -375,7 +524,12 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("simp_eq", [self.SimpExp.toPlainText(), output_type, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker("simp_eq", [
+            self.SimpExp.toPlainText(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -394,7 +548,12 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_exp_eq", [self.ExpExp.toPlainText(), output_type, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker("prev_exp_eq", [
+            self.ExpExp.toPlainText(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -413,7 +572,12 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("exp_eq", [self.ExpExp.toPlainText(), output_type, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker("exp_eq", [
+            self.ExpExp.toPlainText(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -432,7 +596,12 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_eval_exp", [self.EvalExp.toPlainText(), output_type, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker("prev_eval_exp", [
+            self.EvalExp.toPlainText(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -451,7 +620,14 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("eval_exp", [self.EvalExp.toPlainText(), output_type, self.use_unicode, self.line_wrap, self.use_scientific])
+        self.WorkerCAS = CASWorker("eval_exp", [
+            self.EvalExp.toPlainText(),
+            output_type,
+            self.use_unicode,
+            self.line_wrap,
+            self.use_scientific,
+            self.accuracy
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -485,13 +661,18 @@ class Ui_MainWindow(object):
                 expr = list(map(lambda x: x.replace("_i", "(sqrt(-1))"), expr))
                 self.FormulaSymbolsList = [str(i) for i in list(parse_expr(expr[0], _clash1).atoms(Symbol))]
                 self.FormulaSymbolsList.extend((str(i) for i in list(parse_expr(expr[1], _clash1).atoms(Symbol))))
+                self.FormulaSymbolsList = list(set(self.FormulaSymbolsList))
+                self.FormulaSymbolsList.sort()
                 self.FormulaUpdateVars()
                 self.FormulaInfo = self.FormulaGetInfo(self.selectedTreeItem, self.FormulaTreeData)
                 self.FormulaSetInfoText()
 
     def FormulaSetInfoText(self):
-        _translate = QtCore.QCoreApplication.translate
-        lines = [[self.FormulaScrollArea.findChild(QtWidgets.QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
+        """
+        Sets StatusTip and TootTip to the info given by the json file
+        """
+        _translate = QCoreApplication.translate
+        lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
         for line in lines:
             for i in self.FormulaInfo:
                 FormulaInfoList = self.FormulaInfoDict[i].split("|")
@@ -504,6 +685,9 @@ class Ui_MainWindow(object):
                     line[0].setText(FormulaInfoList[0].split(";")[1])
 
     def FormulaUpdateVars(self):
+        """
+        Initalizes QLineEdits and QLabels based on the vars that is in the selected formula
+        """
         for i in reversed(range(self.FormulaGrid2.count())):
             self.FormulaGrid2.itemAt(i).widget().setParent(None)
         self.FormulaLabelNames = self.FormulaSymbolsList
@@ -552,7 +736,7 @@ class Ui_MainWindow(object):
             outputType = 3
 
         try:
-            lines = [[self.FormulaScrollArea.findChild(QtWidgets.QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
+            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
         except:
             self.show_error_box("Error: select a formula")
 
@@ -564,60 +748,6 @@ class Ui_MainWindow(object):
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
         self.threadpool.start(self.WorkerCAS)
-
-
-        """
-        try:
-            # Retrieves list of lines based on objectName which is 'symbol + "line"'
-            lines = [[self.FormulaScrollArea.findChild(QtWidgets.QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
-        except:
-            self.show_error_box("Select a formula")
-        else:
-            emptyVarList, varVarList, values = [], [], []
-            for line in lines:
-                if line[0].text() == "":
-                    emptyVarList.append(line[1])
-                elif line[0].text() == "var":
-                    varVarList.append(line[1])
-                else:
-                    values.append([line[0].text(), line[1]])
-
-            if len(emptyVarList) > 1 and len(varVarList) != 1:
-                self.show_error_box("Solve for only one variable, if multiple empty lines type 'var' to solve for the variable")
-                return 0
-            if len(varVarList) == 1:
-                var = varVarList[0]
-            else:
-                var = emptyVarList[0]
-
-            valuesString = self.selectedTreeItem.split("=")
-            leftSide = valuesString[0]
-            rightSide = valuesString[1]
-            self.exact_ans = solve(Eq(parse_expr(leftSide, _clash1), parse_expr(rightSide, _clash1)), parse_expr(var, _clash1))
-            self.approx_ans = 0
-            if self.FormulaPP.isChecked():
-                if self.FormulaExact.toPlainText() == "" or self.FormulaExact.toPlainText()[0:10] == "Right side":
-                    self.FormulaToOut = "Left side, click again for right side\n"
-                    self.FormulaToOut += str(pretty(parse_expr(var, _clash1)))
-                    self.exact_ans = str(pretty(parse_expr(var, _clash1)))
-                    self.FormulaExact.setText(self.FormulaToOut)
-                else:
-                    self.FormulaToOut = "Right side, click again for left side\n"
-                    self.FormulaToOut += str(pretty(self.exact_ans))
-                    self.exact_ans = str(pretty(self.exact_ans))
-                    self.FormulaExact.setText(self.FormulaToOut)
-            elif self.FormulaLatex.isChecked():
-                try:
-                    self.exact_ans = str(latex(parse_expr(str(var[0])))) + " = " + str(latex(parse_expr(str(self.exact_ans[0]))))
-                except TypeError as e:
-                    self.show_error_box(f"Error: \n{e}\nUnable to preview formulas with multiple answers")
-                    return 0
-                self.FormulaExact.setText(self.exact_ans)
-            else:
-                self.exact_ans = str(var[0]) + " = " + str(self.exact_ans)
-                self.FormulaExact.setText(self.exact_ans)
-            self.FormulaApprox.setText(str(self.approx_ans))
-        """
 
     def calc_formula(self):
         """
@@ -636,13 +766,22 @@ class Ui_MainWindow(object):
             solve_type = 1
 
         try:
-            lines = [[self.FormulaScrollArea.findChild(QtWidgets.QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
+            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
         except:
             self.show_error_box("Error: select a formula")
 
         values_string = self.selectedTreeItem.split("=")
 
-        self.WorkerCAS = CASWorker("calc_formula", [lines, values_string, solve_type, output_type, self.use_unicode, self.line_wrap, self.use_scientific])
+        self.WorkerCAS = CASWorker("calc_formula", [
+            lines,
+            values_string,
+            solve_type,
+            output_type,
+            self.use_unicode,
+            self.line_wrap,
+            self.use_scientific,
+            self.accuracy
+        ])
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -654,7 +793,7 @@ class Ui_MainWindow(object):
         """
 
         self.new_code = self.consoleIn.toPlainText().replace(self.current_code, "")
-        self.consoleIn.moveCursor(QtGui.QTextCursor.End)
+        self.consoleIn.moveCursor(QTextCursor.End)
 
         self.WorkerCAS = CASWorker("execute_code", [self.new_code])
         self.WorkerCAS.signals.output.connect(self.update_ui)
@@ -694,497 +833,492 @@ class Ui_MainWindow(object):
             Stores websites and html files information
         """
 
-        try:
-            import importlib.resources as pkg_resources
-        except ImportError:
-            import importlib_resources as pkg_resources
+        with open("../assets/formulas.json", "r", encoding="utf8") as json_f:
+            self.json_data = json_f.read()
+            self.json_file = json.loads(self.json_data)
 
-        from . import resources
-
-        self.json_file = json.loads(pkg_resources.read_text(resources, 'formulas.json'))
-
-        lowerReg = QtCore.QRegExp("[a-z]+")
-        lowerVal = QtGui.QRegExpValidator(lowerReg)
-        textReg = QtCore.QRegExp("[A-Za-z]+")
-        textVal = QtGui.QRegExpValidator(textReg)
+        lowerReg = QRegExp("[a-z]+")
+        lowerVal = QRegExpValidator(lowerReg)
+        textReg = QRegExp("[A-Za-z]+")
+        textVal = QRegExpValidator(textReg)
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1278, 806)
-        MainWindow.setMinimumSize(QtCore.QSize(400, 350))
-        MainWindow.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        MainWindow.setMinimumSize(QSize(400, 350))
+        MainWindow.setMaximumSize(QSize(16777215, 16777215))
         MainWindow.setFont(QFont("Courier New"))
-        MainWindow.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        MainWindow.setCursor(QCursor(Qt.ArrowCursor))
 
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
-        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
 
-        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
-        self.tabWidget.setMinimumSize(QtCore.QSize(400, 25))
-        self.tabWidget.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.tabWidget = QTabWidget(self.centralwidget)
+        self.tabWidget.setMinimumSize(QSize(400, 25))
+        self.tabWidget.setMaximumSize(QSize(16777215, 16777215))
         self.tabWidget.setObjectName("tabWidget")
 
-        self.Deriv = QtWidgets.QWidget()
+        self.Deriv = QWidget()
         self.Deriv.setObjectName("Deriv")
-        self.gridLayout_2 = QtWidgets.QGridLayout(self.Deriv)
+        self.gridLayout_2 = QGridLayout(self.Deriv)
         self.gridLayout_2.setObjectName("gridLayout_2")
-        self.DerivPrev = QtWidgets.QPushButton(self.Deriv)
+        self.DerivPrev = QPushButton(self.Deriv)
         self.DerivPrev.setObjectName("DerivPrev")
         self.DerivPrev.clicked.connect(self.prev_deriv)
         self.gridLayout_2.addWidget(self.DerivPrev, 6, 0, 1, 2)
-        self.DerivCalc = QtWidgets.QPushButton(self.Deriv)
+        self.DerivCalc = QPushButton(self.Deriv)
         self.DerivCalc.setObjectName("DerivCalc")
         self.DerivCalc.clicked.connect(self.calc_deriv)
         self.gridLayout_2.addWidget(self.DerivCalc, 7, 0, 1, 2)
-        self.label_9 = QtWidgets.QLabel(self.Deriv)
+        self.label_9 = QLabel(self.Deriv)
         self.label_9.setObjectName("label_9")
         self.gridLayout_2.addWidget(self.label_9, 4, 0, 1, 1)
-        self.DerivExp = QtWidgets.QTextEdit(self.Deriv)
-        self.DerivExp.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.DerivExp.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.DerivExp = QTextEdit(self.Deriv)
+        self.DerivExp.setMaximumSize(QSize(16777215, 16777215))
+        self.DerivExp.setLineWrapMode(QTextEdit.NoWrap)
         self.DerivExp.setObjectName("DerivExp")
         self.gridLayout_2.addWidget(self.DerivExp, 0, 0, 3, 2)
-        self.label = QtWidgets.QLabel(self.Deriv)
-        self.label.setMaximumSize(QtCore.QSize(40, 16777215))
+        self.label = QLabel(self.Deriv)
+        self.label.setMaximumSize(QSize(40, 16777215))
         self.label.setObjectName("label")
         self.gridLayout_2.addWidget(self.label, 3, 0, 1, 1)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.DerivOutType = QtWidgets.QLabel(self.Deriv)
+        self.DerivOutType = QLabel(self.Deriv)
         self.DerivOutType.setObjectName("DerivOutType")
         self.horizontalLayout.addWidget(self.DerivOutType)
-        self.DerivPP = QtWidgets.QRadioButton(self.Deriv)
+        self.DerivPP = QRadioButton(self.Deriv)
         self.DerivPP.setChecked(True)
         self.DerivPP.setObjectName("DerivPP")
         self.horizontalLayout.addWidget(self.DerivPP)
-        self.DerivLatex = QtWidgets.QRadioButton(self.Deriv)
+        self.DerivLatex = QRadioButton(self.Deriv)
         self.DerivLatex.setObjectName("DerivLatex")
         self.horizontalLayout.addWidget(self.DerivLatex)
-        self.DerivNormal = QtWidgets.QRadioButton(self.Deriv)
+        self.DerivNormal = QRadioButton(self.Deriv)
         self.DerivNormal.setObjectName("DerivNormal")
         self.horizontalLayout.addWidget(self.DerivNormal)
         self.gridLayout_2.addLayout(self.horizontalLayout, 8, 0, 1, 2)
-        self.DerivOrder = QtWidgets.QSpinBox(self.Deriv)
-        self.DerivOrder.setMinimumSize(QtCore.QSize(0, 25))
-        self.DerivOrder.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.DerivOrder = QSpinBox(self.Deriv)
+        self.DerivOrder.setMinimumSize(QSize(0, 25))
+        self.DerivOrder.setMaximumSize(QSize(16777215, 25))
         self.DerivOrder.setMinimum(1)
         self.DerivOrder.setMaximum(999)
         self.DerivOrder.setObjectName("DerivOrder")
         self.gridLayout_2.addWidget(self.DerivOrder, 3, 1, 1, 1)
-        self.DerivVar = QtWidgets.QLineEdit(self.Deriv)
-        self.DerivVar.setMinimumSize(QtCore.QSize(0, 25))
-        self.DerivVar.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.DerivVar = QLineEdit(self.Deriv)
+        self.DerivVar.setMinimumSize(QSize(0, 25))
+        self.DerivVar.setMaximumSize(QSize(16777215, 25))
         self.DerivVar.setObjectName("DerivVar")
         self.DerivVar.setValidator(lowerVal)
         self.DerivVar.setText("x")
         self.gridLayout_2.addWidget(self.DerivVar, 5, 1, 1, 1)
-        self.DerivPoint = QtWidgets.QLineEdit(self.Deriv)
-        self.DerivPoint.setMinimumSize(QtCore.QSize(0, 25))
-        self.DerivPoint.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.DerivPoint = QLineEdit(self.Deriv)
+        self.DerivPoint.setMinimumSize(QSize(0, 25))
+        self.DerivPoint.setMaximumSize(QSize(16777215, 25))
         self.DerivPoint.setPlaceholderText("")
         self.DerivPoint.setObjectName("DerivPoint")
         self.gridLayout_2.addWidget(self.DerivPoint, 4, 1, 1, 1)
-        self.label_3 = QtWidgets.QLabel(self.Deriv)
+        self.label_3 = QLabel(self.Deriv)
         self.label_3.setObjectName("label_3")
         self.gridLayout_2.addWidget(self.label_3, 5, 0, 1, 1)
-        self.DerivOut = QtWidgets.QTextBrowser(self.Deriv)
-        self.DerivOut.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.DerivOut.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.DerivOut = QTextBrowser(self.Deriv)
+        self.DerivOut.setMaximumSize(QSize(16777215, 16777215))
+        self.DerivOut.setLineWrapMode(QTextEdit.NoWrap)
         self.DerivOut.setObjectName("DerivOut")
         self.gridLayout_2.addWidget(self.DerivOut, 0, 3, 8, 1)
-        self.DerivApprox = QtWidgets.QLineEdit(self.Deriv)
+        self.DerivApprox = QLineEdit(self.Deriv)
         self.DerivApprox.setReadOnly(True)
-        self.DerivApprox.setMinimumSize(QtCore.QSize(0, 25))
-        self.DerivApprox.setMaximumSize(QtCore.QSize(16777215, 25))
-        font = QtGui.QFont()
+        self.DerivApprox.setMinimumSize(QSize(0, 25))
+        self.DerivApprox.setMaximumSize(QSize(16777215, 25))
+        font = QFont()
         font.setPointSize(8)
         self.DerivApprox.setFont(font)
         self.DerivApprox.setObjectName("DerivApprox")
         self.gridLayout_2.addWidget(self.DerivApprox, 8, 3, 1, 1)
         self.tabWidget.addTab(self.Deriv, "")
 
-        self.Integ = QtWidgets.QWidget()
+        self.Integ = QWidget()
         self.Integ.setObjectName("Integ")
-        self.gridLayout_3 = QtWidgets.QGridLayout(self.Integ)
+        self.gridLayout_3 = QGridLayout(self.Integ)
         self.gridLayout_3.setObjectName("gridLayout_3")
-        self.IntegExp = QtWidgets.QTextEdit(self.Integ)
-        self.IntegExp.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.IntegExp.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.IntegExp = QTextEdit(self.Integ)
+        self.IntegExp.setMaximumSize(QSize(16777215, 16777215))
+        self.IntegExp.setLineWrapMode(QTextEdit.NoWrap)
         self.IntegExp.setObjectName("IntegExp")
         self.gridLayout_3.addWidget(self.IntegExp, 0, 0, 1, 2)
-        self.IntegOut = QtWidgets.QTextBrowser(self.Integ)
-        self.IntegOut.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.IntegOut.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.IntegOut = QTextBrowser(self.Integ)
+        self.IntegOut.setMaximumSize(QSize(16777215, 16777215))
+        self.IntegOut.setLineWrapMode(QTextEdit.NoWrap)
         self.IntegOut.setObjectName("IntegOut")
         self.gridLayout_3.addWidget(self.IntegOut, 0, 2, 6, 1)
-        self.label_2 = QtWidgets.QLabel(self.Integ)
-        self.label_2.setMaximumSize(QtCore.QSize(40, 16777215))
+        self.label_2 = QLabel(self.Integ)
+        self.label_2.setMaximumSize(QSize(40, 16777215))
         self.label_2.setObjectName("label_2")
         self.gridLayout_3.addWidget(self.label_2, 1, 0, 1, 1)
-        self.IntegLower = QtWidgets.QLineEdit(self.Integ)
-        self.IntegLower.setMinimumSize(QtCore.QSize(0, 25))
-        self.IntegLower.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.IntegLower = QLineEdit(self.Integ)
+        self.IntegLower.setMinimumSize(QSize(0, 25))
+        self.IntegLower.setMaximumSize(QSize(16777215, 25))
         self.IntegLower.setPlaceholderText("")
         self.IntegLower.setObjectName("IntegLower")
         self.gridLayout_3.addWidget(self.IntegLower, 1, 1, 1, 1)
-        self.label_5 = QtWidgets.QLabel(self.Integ)
+        self.label_5 = QLabel(self.Integ)
         self.label_5.setObjectName("label_5")
         self.gridLayout_3.addWidget(self.label_5, 2, 0, 1, 1)
-        self.IntegUpper = QtWidgets.QLineEdit(self.Integ)
-        self.IntegUpper.setMinimumSize(QtCore.QSize(0, 25))
-        self.IntegUpper.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.IntegUpper = QLineEdit(self.Integ)
+        self.IntegUpper.setMinimumSize(QSize(0, 25))
+        self.IntegUpper.setMaximumSize(QSize(16777215, 25))
         self.IntegUpper.setObjectName("IntegUpper")
         self.gridLayout_3.addWidget(self.IntegUpper, 2, 1, 1, 1)
-        self.label_4 = QtWidgets.QLabel(self.Integ)
+        self.label_4 = QLabel(self.Integ)
         self.label_4.setObjectName("label_4")
         self.gridLayout_3.addWidget(self.label_4, 3, 0, 1, 1)
-        self.IntegVar = QtWidgets.QLineEdit(self.Integ)
-        self.IntegVar.setMinimumSize(QtCore.QSize(0, 25))
-        self.IntegVar.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.IntegVar = QLineEdit(self.Integ)
+        self.IntegVar.setMinimumSize(QSize(0, 25))
+        self.IntegVar.setMaximumSize(QSize(16777215, 25))
         self.IntegVar.setObjectName("IntegVar")
         self.IntegVar.setValidator(lowerVal)
         self.IntegVar.setText("x")
         self.gridLayout_3.addWidget(self.IntegVar, 3, 1, 1, 1)
-        self.IntegPrev = QtWidgets.QPushButton(self.Integ)
+        self.IntegPrev = QPushButton(self.Integ)
         self.IntegPrev.setObjectName("IntegPrev")
         self.IntegPrev.clicked.connect(self.prev_integ)
         self.gridLayout_3.addWidget(self.IntegPrev, 4, 0, 1, 2)
-        self.IntegCalc = QtWidgets.QPushButton(self.Integ)
+        self.IntegCalc = QPushButton(self.Integ)
         self.IntegCalc.setObjectName("IntegCalc")
         self.IntegCalc.clicked.connect(self.calc_integ)
         self.gridLayout_3.addWidget(self.IntegCalc, 5, 0, 1, 2)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.IntegOutType = QtWidgets.QLabel(self.Integ)
+        self.IntegOutType = QLabel(self.Integ)
         self.IntegOutType.setObjectName("IntegOutType")
         self.horizontalLayout_2.addWidget(self.IntegOutType)
-        self.IntegPP = QtWidgets.QRadioButton(self.Integ)
+        self.IntegPP = QRadioButton(self.Integ)
         self.IntegPP.setChecked(True)
         self.IntegPP.setObjectName("IntegPP")
         self.horizontalLayout_2.addWidget(self.IntegPP)
-        self.IntegLatex = QtWidgets.QRadioButton(self.Integ)
+        self.IntegLatex = QRadioButton(self.Integ)
         self.IntegLatex.setObjectName("IntegLatex")
         self.horizontalLayout_2.addWidget(self.IntegLatex)
-        self.IntegNormal = QtWidgets.QRadioButton(self.Integ)
+        self.IntegNormal = QRadioButton(self.Integ)
         self.IntegNormal.setObjectName("IntegNormal")
         self.horizontalLayout_2.addWidget(self.IntegNormal)
         self.gridLayout_3.addLayout(self.horizontalLayout_2, 6, 0, 1, 2)
-        self.IntegApprox = QtWidgets.QLineEdit(self.Integ)
+        self.IntegApprox = QLineEdit(self.Integ)
         self.IntegApprox.setReadOnly(True)
-        self.IntegApprox.setMinimumSize(QtCore.QSize(0, 25))
-        self.IntegApprox.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.IntegApprox.setMinimumSize(QSize(0, 25))
+        self.IntegApprox.setMaximumSize(QSize(16777215, 25))
         self.IntegApprox.setObjectName("IntegApprox")
         self.gridLayout_3.addWidget(self.IntegApprox, 6, 2, 1, 1)
         self.tabWidget.addTab(self.Integ, "")
 
-        self.Lim = QtWidgets.QWidget()
+        self.Lim = QWidget()
         self.Lim.setObjectName("Lim")
-        self.gridLayout_4 = QtWidgets.QGridLayout(self.Lim)
+        self.gridLayout_4 = QGridLayout(self.Lim)
         self.gridLayout_4.setObjectName("gridLayout_4")
-        self.LimExp = QtWidgets.QTextEdit(self.Lim)
-        self.LimExp.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.LimExp.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.LimExp = QTextEdit(self.Lim)
+        self.LimExp.setMaximumSize(QSize(16777215, 16777215))
+        self.LimExp.setLineWrapMode(QTextEdit.NoWrap)
         self.LimExp.setObjectName("LimExp")
         self.gridLayout_4.addWidget(self.LimExp, 0, 0, 1, 2)
-        self.LimOut = QtWidgets.QTextBrowser(self.Lim)
-        self.LimOut.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.LimOut.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.LimOut = QTextBrowser(self.Lim)
+        self.LimOut.setMaximumSize(QSize(16777215, 16777215))
+        self.LimOut.setLineWrapMode(QTextEdit.NoWrap)
         self.LimOut.setObjectName("LimOut")
         self.gridLayout_4.addWidget(self.LimOut, 0, 2, 6, 1)
-        self.label_6 = QtWidgets.QLabel(self.Lim)
-        self.label_6.setMaximumSize(QtCore.QSize(40, 16777215))
+        self.label_6 = QLabel(self.Lim)
+        self.label_6.setMaximumSize(QSize(40, 16777215))
         self.label_6.setObjectName("label_6")
         self.gridLayout_4.addWidget(self.label_6, 1, 0, 1, 1)
-        self.LimSide = QtWidgets.QComboBox(self.Lim)
-        self.LimSide.setMinimumSize(QtCore.QSize(0, 25))
-        self.LimSide.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.LimSide = QComboBox(self.Lim)
+        self.LimSide.setMinimumSize(QSize(0, 25))
+        self.LimSide.setMaximumSize(QSize(16777215, 25))
         self.LimSide.setEditable(False)
         self.LimSide.setObjectName("LimSide")
         self.LimSide.addItem("")
         self.LimSide.addItem("")
         self.LimSide.addItem("")
         self.gridLayout_4.addWidget(self.LimSide, 1, 1, 1, 1)
-        self.label_7 = QtWidgets.QLabel(self.Lim)
+        self.label_7 = QLabel(self.Lim)
         self.label_7.setObjectName("label_7")
         self.gridLayout_4.addWidget(self.label_7, 2, 0, 1, 1)
-        self.LimVar = QtWidgets.QLineEdit(self.Lim)
-        self.LimVar.setMinimumSize(QtCore.QSize(0, 25))
-        self.LimVar.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.LimVar = QLineEdit(self.Lim)
+        self.LimVar.setMinimumSize(QSize(0, 25))
+        self.LimVar.setMaximumSize(QSize(16777215, 25))
         self.LimVar.setObjectName("LimVar")
         self.LimVar.setText("x")
         self.LimVar.setValidator(lowerVal)
         self.gridLayout_4.addWidget(self.LimVar, 2, 1, 1, 1)
-        self.label_8 = QtWidgets.QLabel(self.Lim)
+        self.label_8 = QLabel(self.Lim)
         self.label_8.setObjectName("label_8")
         self.gridLayout_4.addWidget(self.label_8, 3, 0, 1, 1)
-        self.LimApproach = QtWidgets.QLineEdit(self.Lim)
-        self.LimApproach.setMinimumSize(QtCore.QSize(0, 25))
-        self.LimApproach.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.LimApproach = QLineEdit(self.Lim)
+        self.LimApproach.setMinimumSize(QSize(0, 25))
+        self.LimApproach.setMaximumSize(QSize(16777215, 25))
         self.LimApproach.setObjectName("LimApproach")
         self.LimApproach.setText("0")
         self.gridLayout_4.addWidget(self.LimApproach, 3, 1, 1, 1)
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.LimOutType = QtWidgets.QLabel(self.Lim)
+        self.LimOutType = QLabel(self.Lim)
         self.LimOutType.setObjectName("LimOutType")
         self.horizontalLayout_3.addWidget(self.LimOutType)
-        self.LimPP = QtWidgets.QRadioButton(self.Lim)
+        self.LimPP = QRadioButton(self.Lim)
         self.LimPP.setChecked(True)
         self.LimPP.setObjectName("LimPP")
         self.horizontalLayout_3.addWidget(self.LimPP)
-        self.LimLatex = QtWidgets.QRadioButton(self.Lim)
+        self.LimLatex = QRadioButton(self.Lim)
         self.LimLatex.setObjectName("LimLatex")
         self.horizontalLayout_3.addWidget(self.LimLatex)
-        self.LimNormal = QtWidgets.QRadioButton(self.Lim)
+        self.LimNormal = QRadioButton(self.Lim)
         self.LimNormal.setObjectName("LimNormal")
         self.horizontalLayout_3.addWidget(self.LimNormal)
         self.gridLayout_4.addLayout(self.horizontalLayout_3, 6, 0, 1, 2)
-        self.LimApprox = QtWidgets.QLineEdit(self.Lim)
+        self.LimApprox = QLineEdit(self.Lim)
         self.LimApprox.setReadOnly(True)
-        self.LimApprox.setMinimumSize(QtCore.QSize(0, 25))
-        self.LimApprox.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.LimApprox.setMinimumSize(QSize(0, 25))
+        self.LimApprox.setMaximumSize(QSize(16777215, 25))
         self.LimApprox.setObjectName("LimApprox")
         self.gridLayout_4.addWidget(self.LimApprox, 6, 2, 1, 1)
-        self.LimPrev = QtWidgets.QPushButton(self.Lim)
+        self.LimPrev = QPushButton(self.Lim)
         self.LimPrev.setObjectName("LimPrev")
         self.LimPrev.clicked.connect(self.prev_limit)
         self.gridLayout_4.addWidget(self.LimPrev, 4, 0, 1, 2)
-        self.LimCalc = QtWidgets.QPushButton(self.Lim)
+        self.LimCalc = QPushButton(self.Lim)
         self.LimCalc.setObjectName("LimCalc")
         self.LimCalc.clicked.connect(self.calc_limit)
         self.gridLayout_4.addWidget(self.LimCalc, 5, 0, 1, 2)
         self.tabWidget.addTab(self.Lim, "")
 
-        self.Eq = QtWidgets.QWidget()
+        self.Eq = QWidget()
         self.Eq.setObjectName("Eq")
-        self.gridLayout_5 = QtWidgets.QGridLayout(self.Eq)
+        self.gridLayout_5 = QGridLayout(self.Eq)
         self.gridLayout_5.setObjectName("gridLayout_5")
-        self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.EqOutType = QtWidgets.QLabel(self.Eq)
+        self.EqOutType = QLabel(self.Eq)
         self.EqOutType.setObjectName("EqOutType")
         self.horizontalLayout_4.addWidget(self.EqOutType)
-        self.EqPP = QtWidgets.QRadioButton(self.Eq)
+        self.EqPP = QRadioButton(self.Eq)
         self.EqPP.setChecked(True)
         self.EqPP.setObjectName("EqPP")
-        self.OutTypeGroup = QtWidgets.QButtonGroup(MainWindow)
+        self.OutTypeGroup = QButtonGroup(MainWindow)
         self.OutTypeGroup.setObjectName("OutTypeGroup")
         self.OutTypeGroup.addButton(self.EqPP)
         self.horizontalLayout_4.addWidget(self.EqPP)
-        self.EqLatex = QtWidgets.QRadioButton(self.Eq)
+        self.EqLatex = QRadioButton(self.Eq)
         self.EqLatex.setObjectName("EqLatex")
         self.OutTypeGroup.addButton(self.EqLatex)
         self.horizontalLayout_4.addWidget(self.EqLatex)
-        self.EqNormal = QtWidgets.QRadioButton(self.Eq)
+        self.EqNormal = QRadioButton(self.Eq)
         self.EqNormal.setObjectName("EqNormal")
         self.OutTypeGroup.addButton(self.EqNormal)
         self.horizontalLayout_4.addWidget(self.EqNormal)
         self.gridLayout_5.addLayout(self.horizontalLayout_4, 6, 0, 1, 2)
-        self.EqApprox = QtWidgets.QTextBrowser(self.Eq)
-        self.EqApprox.setMinimumSize(QtCore.QSize(0, 25))
-        self.EqApprox.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.EqApprox = QTextBrowser(self.Eq)
+        self.EqApprox.setMinimumSize(QSize(0, 25))
+        self.EqApprox.setMaximumSize(QSize(16777215, 25))
         self.EqApprox.setObjectName("EqApprox")
         self.gridLayout_5.addWidget(self.EqApprox, 6, 2, 1, 1)
-        self.EqLeft = QtWidgets.QTextEdit(self.Eq)
-        self.EqLeft.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.EqLeft.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.EqLeft = QTextEdit(self.Eq)
+        self.EqLeft.setMaximumSize(QSize(16777215, 16777215))
+        self.EqLeft.setLineWrapMode(QTextEdit.NoWrap)
         self.EqLeft.setObjectName("EqLeft")
         self.gridLayout_5.addWidget(self.EqLeft, 0, 0, 1, 2)
-        self.EqCalc = QtWidgets.QPushButton(self.Eq)
+        self.EqCalc = QPushButton(self.Eq)
         self.EqCalc.setObjectName("EqCalc")
         self.EqCalc.clicked.connect(self.calc_eq)
         self.gridLayout_5.addWidget(self.EqCalc, 5, 0, 1, 2)
-        self.EqRight = QtWidgets.QTextEdit(self.Eq)
-        self.EqRight.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.EqRight = QTextEdit(self.Eq)
+        self.EqRight.setLineWrapMode(QTextEdit.NoWrap)
         self.EqRight.setObjectName("EqRight")
         self.gridLayout_5.addWidget(self.EqRight, 1, 0, 1, 2)
-        self.EqPrev = QtWidgets.QPushButton(self.Eq)
+        self.EqPrev = QPushButton(self.Eq)
         self.EqPrev.setObjectName("EqPrev")
         self.EqPrev.clicked.connect(self.prev_eq)
         self.gridLayout_5.addWidget(self.EqPrev, 4, 0, 1, 2)
-        self.EqOut = QtWidgets.QTextBrowser(self.Eq)
-        self.EqOut.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.EqOut.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.EqOut = QTextBrowser(self.Eq)
+        self.EqOut.setMaximumSize(QSize(16777215, 16777215))
+        self.EqOut.setLineWrapMode(QTextEdit.NoWrap)
         self.EqOut.setObjectName("EqOut")
         self.gridLayout_5.addWidget(self.EqOut, 0, 2, 6, 1)
-        self.horizontalLayoutEq = QtWidgets.QHBoxLayout()
+        self.horizontalLayoutEq = QHBoxLayout()
         self.horizontalLayoutEq.setObjectName("horizontalLayoutEq")
-        self.EqSolve = QtWidgets.QRadioButton(self.Eq)
+        self.EqSolve = QRadioButton(self.Eq)
         self.EqSolve.setChecked(True)
         self.EqSolve.setObjectName("EqSolve")
         self.horizontalLayoutEq.addWidget(self.EqSolve)
-        self.EqSolveSet = QtWidgets.QRadioButton(self.Eq)
+        self.EqSolveSet = QRadioButton(self.Eq)
         self.EqSolveSet.setObjectName("EqSolveSet")
         self.horizontalLayoutEq.addWidget(self.EqSolveSet)
         self.gridLayout_5.addLayout(self.horizontalLayoutEq, 3, 0, 1, 1)
-        self.EqVar = QtWidgets.QLineEdit(self.Eq)
+        self.EqVar = QLineEdit(self.Eq)
         self.EqVar.setObjectName("EqVar")
         self.EqVar.setText("x")
         self.EqVar.setValidator(textVal)
         self.gridLayout_5.addWidget(self.EqVar, 2, 0, 1, 1)
         self.tabWidget.addTab(self.Eq, "")
 
-        self.Simp = QtWidgets.QWidget()
+        self.Simp = QWidget()
         self.Simp.setObjectName("Simp")
-        self.gridLayout_6 = QtWidgets.QGridLayout(self.Simp)
+        self.gridLayout_6 = QGridLayout(self.Simp)
         self.gridLayout_6.setObjectName("gridLayout_6")
-        self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.SimpOutType = QtWidgets.QLabel(self.Simp)
-        self.SimpOutType.setMinimumSize(QtCore.QSize(0, 25))
-        self.SimpOutType.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.SimpOutType = QLabel(self.Simp)
+        self.SimpOutType.setMinimumSize(QSize(0, 25))
+        self.SimpOutType.setMaximumSize(QSize(16777215, 25))
         self.SimpOutType.setObjectName("SimpOutType")
         self.horizontalLayout_5.addWidget(self.SimpOutType)
-        self.SimpPP = QtWidgets.QRadioButton(self.Simp)
+        self.SimpPP = QRadioButton(self.Simp)
         self.SimpPP.setChecked(True)
         self.SimpPP.setObjectName("SimpPP")
         self.horizontalLayout_5.addWidget(self.SimpPP)
-        self.SimpLatex = QtWidgets.QRadioButton(self.Simp)
+        self.SimpLatex = QRadioButton(self.Simp)
         self.SimpLatex.setObjectName("SimpLatex")
         self.horizontalLayout_5.addWidget(self.SimpLatex)
-        self.SimpNormal = QtWidgets.QRadioButton(self.Simp)
+        self.SimpNormal = QRadioButton(self.Simp)
         self.SimpNormal.setObjectName("SimpNormal")
         self.horizontalLayout_5.addWidget(self.SimpNormal)
         self.gridLayout_6.addLayout(self.horizontalLayout_5, 3, 0, 1, 1)
-        self.SimpCalc = QtWidgets.QPushButton(self.Simp)
+        self.SimpCalc = QPushButton(self.Simp)
         self.SimpCalc.setObjectName("SimpCalc")
         self.SimpCalc.clicked.connect(self.simp_eq)
         self.gridLayout_6.addWidget(self.SimpCalc, 2, 0, 1, 1)
-        self.SimpExp = QtWidgets.QTextEdit(self.Simp)
-        self.SimpExp.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.SimpExp.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.SimpExp = QTextEdit(self.Simp)
+        self.SimpExp.setMaximumSize(QSize(16777215, 16777215))
+        self.SimpExp.setLineWrapMode(QTextEdit.NoWrap)
         self.SimpExp.setObjectName("SimpExp")
         self.gridLayout_6.addWidget(self.SimpExp, 0, 0, 1, 1)
-        self.SimpPrev = QtWidgets.QPushButton(self.Simp)
+        self.SimpPrev = QPushButton(self.Simp)
         self.SimpPrev.setObjectName("SimpPrev")
         self.SimpPrev.clicked.connect(self.prev_simp_eq)
         self.gridLayout_6.addWidget(self.SimpPrev, 1, 0, 1, 1)
-        self.SimpOut = QtWidgets.QTextBrowser(self.Simp)
+        self.SimpOut = QTextBrowser(self.Simp)
         self.SimpOut.setEnabled(True)
-        self.SimpOut.setMinimumSize(QtCore.QSize(0, 0))
-        self.SimpOut.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.SimpOut.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.SimpOut.setMinimumSize(QSize(0, 0))
+        self.SimpOut.setMaximumSize(QSize(16777215, 16777215))
+        self.SimpOut.setLineWrapMode(QTextEdit.NoWrap)
         self.SimpOut.setObjectName("SimpOut")
         self.gridLayout_6.addWidget(self.SimpOut, 0, 1, 4, 1)
         self.tabWidget.addTab(self.Simp, "")
 
-        self.Exp = QtWidgets.QWidget()
+        self.Exp = QWidget()
         self.Exp.setObjectName("Exp")
-        self.gridLayout_13 = QtWidgets.QGridLayout(self.Exp)
+        self.gridLayout_13 = QGridLayout(self.Exp)
         self.gridLayout_13.setObjectName("gridLayout_13")
-        self.ExpExp = QtWidgets.QTextEdit(self.Exp)
-        self.ExpExp.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.ExpExp.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.ExpExp = QTextEdit(self.Exp)
+        self.ExpExp.setMaximumSize(QSize(16777215, 16777215))
+        self.ExpExp.setLineWrapMode(QTextEdit.NoWrap)
         self.ExpExp.setObjectName("ExpExp")
         self.gridLayout_13.addWidget(self.ExpExp, 0, 0, 1, 1)
-        self.ExpOut = QtWidgets.QTextBrowser(self.Exp)
+        self.ExpOut = QTextBrowser(self.Exp)
         self.ExpOut.setEnabled(True)
-        self.ExpOut.setMinimumSize(QtCore.QSize(0, 0))
-        self.ExpOut.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.ExpOut.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.ExpOut.setMinimumSize(QSize(0, 0))
+        self.ExpOut.setMaximumSize(QSize(16777215, 16777215))
+        self.ExpOut.setLineWrapMode(QTextEdit.NoWrap)
         self.ExpOut.setObjectName("ExpOut")
         self.gridLayout_13.addWidget(self.ExpOut, 0, 1, 4, 1)
-        self.ExpPrev = QtWidgets.QPushButton(self.Exp)
+        self.ExpPrev = QPushButton(self.Exp)
         self.ExpPrev.setObjectName("ExpPrev")
         self.ExpPrev.clicked.connect(self.prev_exp_eq)
         self.gridLayout_13.addWidget(self.ExpPrev, 1, 0, 1, 1)
-        self.ExpCalc = QtWidgets.QPushButton(self.Exp)
+        self.ExpCalc = QPushButton(self.Exp)
         self.ExpCalc.setObjectName("ExpCalc")
         self.ExpCalc.clicked.connect(self.exp_eq)
         self.gridLayout_13.addWidget(self.ExpCalc, 2, 0, 1, 1)
-        self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_11 = QHBoxLayout()
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
-        self.ExpOutType = QtWidgets.QLabel(self.Exp)
-        self.ExpOutType.setMinimumSize(QtCore.QSize(0, 25))
-        self.ExpOutType.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.ExpOutType = QLabel(self.Exp)
+        self.ExpOutType.setMinimumSize(QSize(0, 25))
+        self.ExpOutType.setMaximumSize(QSize(16777215, 25))
         self.ExpOutType.setObjectName("ExpOutType")
         self.horizontalLayout_11.addWidget(self.ExpOutType)
-        self.ExpPP = QtWidgets.QRadioButton(self.Exp)
+        self.ExpPP = QRadioButton(self.Exp)
         self.ExpPP.setChecked(True)
         self.ExpPP.setObjectName("ExpPP")
         self.horizontalLayout_11.addWidget(self.ExpPP)
-        self.ExpLatex = QtWidgets.QRadioButton(self.Exp)
+        self.ExpLatex = QRadioButton(self.Exp)
         self.ExpLatex.setObjectName("ExpLatex")
         self.horizontalLayout_11.addWidget(self.ExpLatex)
-        self.ExpNormal = QtWidgets.QRadioButton(self.Exp)
+        self.ExpNormal = QRadioButton(self.Exp)
         self.ExpNormal.setObjectName("ExpNormal")
         self.horizontalLayout_11.addWidget(self.ExpNormal)
         self.gridLayout_13.addLayout(self.horizontalLayout_11, 3, 0, 1, 1)
         self.tabWidget.addTab(self.Exp, "")
 
-        self.Eval = QtWidgets.QWidget()
+        self.Eval = QWidget()
         self.Eval.setObjectName("Eval")
-        self.gridLayout_14 = QtWidgets.QGridLayout(self.Eval)
+        self.gridLayout_14 = QGridLayout(self.Eval)
         self.gridLayout_14.setObjectName("gridLayout_14")
-        self.EvalExp = QtWidgets.QTextEdit(self.Eval)
-        self.EvalExp.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.EvalExp.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.EvalExp = QTextEdit(self.Eval)
+        self.EvalExp.setMaximumSize(QSize(16777215, 16777215))
+        self.EvalExp.setLineWrapMode(QTextEdit.NoWrap)
         self.EvalExp.setObjectName("EvalExp")
         self.gridLayout_14.addWidget(self.EvalExp, 0, 0, 1, 1)
-        self.EvalOut = QtWidgets.QTextBrowser(self.Eval)
+        self.EvalOut = QTextBrowser(self.Eval)
         self.EvalOut.setEnabled(True)
-        self.EvalOut.setMinimumSize(QtCore.QSize(0, 0))
-        self.EvalOut.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.EvalOut.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.EvalOut.setMinimumSize(QSize(0, 0))
+        self.EvalOut.setMaximumSize(QSize(16777215, 16777215))
+        self.EvalOut.setLineWrapMode(QTextEdit.NoWrap)
         self.EvalOut.setObjectName("EvalOut")
         self.gridLayout_14.addWidget(self.EvalOut, 0, 1, 4, 1)
-        self.EvalPrev = QtWidgets.QPushButton(self.Eval)
+        self.EvalPrev = QPushButton(self.Eval)
         self.EvalPrev.setObjectName("EvalPrev")
         self.EvalPrev.clicked.connect(self.prev_eval_exp)
         self.gridLayout_14.addWidget(self.EvalPrev, 1, 0, 1, 1)
-        self.EvalCalc = QtWidgets.QPushButton(self.Eval)
+        self.EvalCalc = QPushButton(self.Eval)
         self.EvalCalc.setObjectName("EvalCalc")
         self.EvalCalc.clicked.connect(self.eval_exp)
         self.gridLayout_14.addWidget(self.EvalCalc, 2, 0, 1, 1)
-        self.horizontalLayout_13 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_13 = QHBoxLayout()
         self.horizontalLayout_13.setObjectName("horizontalLayout_13")
-        self.EvalOutType = QtWidgets.QLabel(self.Eval)
+        self.EvalOutType = QLabel(self.Eval)
         self.EvalOutType.setObjectName("EvalOutType")
         self.horizontalLayout_13.addWidget(self.EvalOutType)
-        self.EvalPP = QtWidgets.QRadioButton(self.Eval)
+        self.EvalPP = QRadioButton(self.Eval)
         self.EvalPP.setChecked(True)
         self.EvalPP.setObjectName("EvalPP")
         self.horizontalLayout_13.addWidget(self.EvalPP)
-        self.EvalLatex = QtWidgets.QRadioButton(self.Eval)
+        self.EvalLatex = QRadioButton(self.Eval)
         self.EvalLatex.setObjectName("EvalLatex")
         self.horizontalLayout_13.addWidget(self.EvalLatex)
-        self.EvalNormal = QtWidgets.QRadioButton(self.Eval)
+        self.EvalNormal = QRadioButton(self.Eval)
         self.EvalNormal.setObjectName("EvalNormal")
         self.horizontalLayout_13.addWidget(self.EvalNormal)
         self.gridLayout_14.addLayout(self.horizontalLayout_13, 4, 0, 1, 1)
-        self.EvalApprox = QtWidgets.QTextBrowser(self.Eval)
-        self.EvalApprox.setMinimumSize(QtCore.QSize(0, 25))
-        self.EvalApprox.setMaximumSize(QtCore.QSize(16777215, 25))
+        self.EvalApprox = QTextBrowser(self.Eval)
+        self.EvalApprox.setMinimumSize(QSize(0, 25))
+        self.EvalApprox.setMaximumSize(QSize(16777215, 25))
         self.EvalApprox.setObjectName("EvalApprox")
         self.gridLayout_14.addWidget(self.EvalApprox, 4, 1, 1, 1)
         self.tabWidget.addTab(self.Eval, "")
 
-        self.Pf = QtWidgets.QWidget()
+        self.Pf = QWidget()
         self.Pf.setObjectName("Pf")
-        self.gridLayout_15 = QtWidgets.QGridLayout(self.Pf)
+        self.gridLayout_15 = QGridLayout(self.Pf)
         self.gridLayout_15.setObjectName("gridLayout_15")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayout_14 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_14 = QHBoxLayout()
         self.horizontalLayout_14.setObjectName("horizontalLayout_14")
-        self.label_32 = QtWidgets.QLabel(self.Pf)
-        self.label_32.setMinimumSize(QtCore.QSize(40, 0))
-        self.label_32.setMaximumSize(QtCore.QSize(40, 16777215))
+        self.label_32 = QLabel(self.Pf)
+        self.label_32.setMinimumSize(QSize(40, 0))
+        self.label_32.setMaximumSize(QSize(40, 16777215))
         self.label_32.setObjectName("label_32")
         self.horizontalLayout_14.addWidget(self.label_32)
-        self.PfInput = QtWidgets.QSpinBox(self.Pf)
+        self.PfInput = QSpinBox(self.Pf)
         self.PfInput.setMinimum(1)
         self.PfInput.setMaximum(999999999)
         self.PfInput.setObjectName("PfInput")
         self.horizontalLayout_14.addWidget(self.PfInput)
         self.verticalLayout.addLayout(self.horizontalLayout_14)
-        self.PfCalc = QtWidgets.QPushButton(self.Pf)
+        self.PfCalc = QPushButton(self.Pf)
         self.PfCalc.setObjectName("PfCalc")
         self.PfCalc.clicked.connect(self.calc_pf)
         self.verticalLayout.addWidget(self.PfCalc)
-        self.PfOut = QtWidgets.QTextBrowser(self.Pf)
+        self.PfOut = QTextBrowser(self.Pf)
         self.PfOut.setPlaceholderText("")
         self.PfOut.setObjectName("PfOut")
         self.verticalLayout.addWidget(self.PfOut)
@@ -1192,9 +1326,9 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.Pf, "")
         self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 1)
 
-        self.Web = QtWidgets.QWidget()
+        self.Web = QWidget()
         self.Web.setObjectName("Web")
-        self.gridWeb = QtWidgets.QGridLayout(self.Web)
+        self.gridWeb = QGridLayout(self.Web)
         self.gridWeb.setObjectName("gridWeb")
         self.web = QWebEngineView()
 
@@ -1202,7 +1336,7 @@ class Ui_MainWindow(object):
         self.gridWeb.addWidget(self.web, 0, 0, 1, 1)
         self.tabWidget.addTab(self.Web, "")
 
-        self.Formula = QtWidgets.QWidget()
+        self.Formula = QWidget()
         self.Formula.setObjectName("Formula")
         self.FormulaGrid = QGridLayout(self.Formula)
         self.FormulaGrid.setObjectName("FormulaGrid")
@@ -1260,9 +1394,9 @@ class Ui_MainWindow(object):
         self.FormulaTree.setObjectName("FormulaTree")
         self.FormulaTree.itemDoubleClicked.connect(self.FormulaTreeSelected)
         self.FormulaTreeData = self.json_file
-        #self.FormulaTreeData = json.loads(Path('formulas.json').read_text())
         self.FormulaInfoDict = self.FormulaTreeData[0]
         self.FormulaTreeData = self.FormulaTreeData[1]
+
         for branch in self.FormulaTreeData:
             parent = QTreeWidgetItem(self.FormulaTree)
             parent.setText(0, str(branch[0]))
@@ -1272,6 +1406,7 @@ class Ui_MainWindow(object):
                 for formula in subBranch[1]:
                     formulaChild = QTreeWidgetItem(child)
                     formulaChild.setText(0, formula[0])
+
         self.FormulaViewerLayout.addWidget(self.FormulaTree)
         self.FormulaLine = QFrame(self.Formula)
         self.FormulaLine.setFrameShape(QFrame.HLine)
@@ -1292,7 +1427,7 @@ class Ui_MainWindow(object):
         self.FormulaGrid.addLayout(self.FormulaViewerLayout, 0, 0, 1, 1)
         self.tabWidget.addTab(self.Formula, "")
 
-        self.Shell = QtWidgets.QWidget()
+        self.Shell = QWidget()
         self.Shell.setObjectName("Shell")
         """
         Setups variables and information.
@@ -1323,16 +1458,16 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.Shell, "")
 
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 678, 21))
+        self.menubar = QMenuBar(MainWindow)
+        self.menubar.setGeometry(QRect(0, 0, 678, 21))
         self.menubar.setObjectName("menubar")
-        self.menuCopy = QtWidgets.QMenu(self.menubar)
+        self.menuCopy = QMenu(self.menubar)
         self.menuCopy.setObjectName("menuCopy")
-        self.menuTab = QtWidgets.QMenu(self.menubar)
+        self.menuTab = QMenu(self.menubar)
         self.menuTab.setObjectName("menuTab")
-        self.menuSettings = QtWidgets.QMenu(self.menubar)
+        self.menuSettings = QMenu(self.menubar)
         self.menuSettings.setObjectName("menuSettings")
-        self.menuWeb = QtWidgets.QMenu(self.menubar)
+        self.menuWeb = QMenu(self.menubar)
         self.menuWeb.setObjectName("menuWeb")
 
         self.WebList = self.json_file[2]
@@ -1347,31 +1482,35 @@ class Ui_MainWindow(object):
         webGroup.setExclusive(True)
         webGroup.triggered.connect(self.updateWeb)
         MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-        self.actionCopy_exact_answer = QtWidgets.QAction(MainWindow)
+        self.actionCopy_exact_answer = QAction(MainWindow)
         self.actionCopy_exact_answer.setObjectName("actionCopy_exact_answer")
-        self.actionCopy_approximate_answer = QtWidgets.QAction(MainWindow)
+        self.actionCopy_approximate_answer = QAction(MainWindow)
         self.actionCopy_approximate_answer.setObjectName("actionCopy_approximate_answer")
-        self.actionNext_Tab = QtWidgets.QAction(MainWindow)
+        self.actionNext_Tab = QAction(MainWindow)
         self.actionNext_Tab.setObjectName("actionNext_Tab")
-        self.actionPrevious_Tab = QtWidgets.QAction(MainWindow)
+        self.actionPrevious_Tab = QAction(MainWindow)
         self.actionPrevious_Tab.setObjectName("actionPrevious_Tab")
-        self.actionUse_Unicode = QtWidgets.QAction(MainWindow)
+        self.actionUse_Unicode = QAction(MainWindow)
         self.actionUse_Unicode.setCheckable(True)
         self.actionUse_Unicode.setObjectName("actionUse_Unicode")
-        self.actionLine_Wrap = QtWidgets.QAction(MainWindow)
+        self.actionLine_Wrap = QAction(MainWindow)
         self.actionLine_Wrap.setCheckable(True)
         self.actionLine_Wrap.setObjectName("actionLine-Wrap")
-        self.actionScientific = QtWidgets.QAction(MainWindow)
+        self.actionScientific = QAction(MainWindow)
         self.actionScientific.setCheckable(True)
         self.actionScientific.setObjectName("actionScientific")
-        self.clearShell = QtWidgets.QAction(MainWindow)
+        self.actionAccuracy = QAction(MainWindow)
+        self.actionAccuracy.setCheckable(True)
+        self.actionAccuracy.setObjectName("actionAccuracy")
+        self.clearShell = QAction(MainWindow)
         self.clearShell.setObjectName("clearShell")
         self.menuSettings.addAction(self.actionUse_Unicode)
         self.menuSettings.addAction(self.actionLine_Wrap)
         self.menuSettings.addAction(self.actionScientific)
+        self.menuSettings.addAction(self.actionAccuracy)
         self.menuSettings.addAction(self.clearShell)
         self.menubar.addAction(self.menuSettings.menuAction())
         self.menuCopy.addAction(self.actionCopy_exact_answer)
@@ -1383,13 +1522,13 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuWeb.menuAction())
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         """
         Code generated by QtDesigner
         """
-        _translate = QtCore.QCoreApplication.translate
+        _translate = QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Calculus"))
         self.tabWidget.setToolTip(_translate("MainWindow", "Tabs"))
         self.tabWidget.setStatusTip(_translate("MainWindow", "Tabs for actions"))
@@ -1665,6 +1804,7 @@ class Ui_MainWindow(object):
         self.FormulaNormal.setText(_translate("MainWindow", "Normal"))
         self.FormulaTree.headerItem().setText(0, _translate("MainWindow", "Formulas"))
         self.FormulaTree.setSortingEnabled(True)
+        self.FormulaTree.sortByColumn(0, Qt.AscendingOrder)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Eval), _translate("MainWindow", "Evaluate"))
         self.label_32.setText(_translate("MainWindow", "Number"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Pf), _translate("MainWindow", "Prime Factors"))
@@ -1696,6 +1836,10 @@ class Ui_MainWindow(object):
         self.actionScientific.setText(_translate("MainWindow", "Scientific Notation"))
         self.actionScientific.setShortcut(_translate("MainWindow", "Ctrl+N"))
         self.actionScientific.triggered.connect(self.toggle_use_scientific)
+        self.actionAccuracy.setText(_translate("MainWindow", "Accuracy"))
+        self.actionAccuracy.setShortcut(_translate("MainWindow", "Ctrl+Shift+A"))
+        self.actionAccuracy.triggered.connect(self.change_accuracy)
+
         self.clearShell.setText(_translate("MainWindow", "Clear shell"))
         self.clearShell.setStatusTip(_translate("MainWIndow", "Ctrl+Shift+C"))
         self.clearShell.triggered.connect(self.clear_shell)
@@ -1707,12 +1851,12 @@ if __name__ == "__main__":
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         print("error catched!:")
         print("error message:\n", tb)
-        QtWidgets.QApplication.quit()
+        QApplication.quit()
     sys.excepthook = excepthook
     e = Ui_MainWindow()
     print("Debug mode")
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
+    app = QApplication(sys.argv)
+    MainWindow = QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()

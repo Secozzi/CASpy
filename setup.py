@@ -12,14 +12,14 @@ def requires():
 
 setup(
     name="CASPy3",
-    version="1.0.2",
+    version="1.1",
     description="A program that provides a GUI and a CLI to a symbolic computation and computer algebra system python library, SymPy.",
     long_description=readme(),
     long_description_content_type="text/markdown",
     url="https://github.com/Secozzi/CASPy",
     author="Folke Ishii",
     author_email="folke.ishii@gmail.com",
-    license="MIT",
+    license="GPLv3+",
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
@@ -27,11 +27,11 @@ setup(
     ],
     packages=find_packages(),
     include_package_data=True,
-    package_data={'src.caspy3.resources': ['formulas.json', 'logo.png', 'logo.ico']},
+    package_data={'assets': ['formulas.json', 'logo.png', 'logo.ico']},
     install_requires=requires(),
     entry_points={
         "console_scripts": [
-            "caspy = src.caspy3.cli:main",
+            "caspy = src.cli:main",
         ]
     }
 )
