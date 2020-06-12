@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
 # CASPy
-_A program that provides a GUI and a CLI to a symbolic computation and computer algebra system python library, SymPy._
+_A program that provides a GUI and a CLI to SymPy, a symbolic computation and computer algebra system Python library._
 
 <p align="center">
   <img src="https://i.imgur.com/F7wfzQt.png" alt="CASPY logo">
