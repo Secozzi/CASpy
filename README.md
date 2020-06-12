@@ -54,6 +54,16 @@ Commands:
   web    Choose a number from a list of usable maths websites.
 ```
 
+#### Flags
+`-p, --preview`, Preview instead of calculating
+`-o, --output-type`, Select output type, 1 for pretty; 2 for latex and 3 for normal
+`-u, --use-unicode`, Use unicode for symbols
+`-l, --line-wrap`, Use line wrap on answer
+
+#### Arguments
+`-s, --use-scientific`, Notate approximate answer with scientific notation, argument is accuracy
+`-a --accuracy`, Accuracy of evaluation
+
 #### deriv
 ```
 Calculate the derivative.
