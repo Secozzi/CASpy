@@ -55,14 +55,14 @@ Commands:
 ```
 
 #### Flags
-`-p, --preview`, Preview instead of calculating
-`-o, --output-type`, Select output type, 1 for pretty; 2 for latex and 3 for normal
-`-u, --use-unicode`, Use unicode for symbols
-`-l, --line-wrap`, Use line wrap on answer
+`-p, --preview`, Preview instead of calculating <br>
+`-o, --output-type`, Select output type, 1 for pretty; 2 for latex and 3 for normal <br>
+`-u, --use-unicode`, Use unicode for symbols <br>
+`-l, --line-wrap`, Use line wrap on answer <br>
 
 #### Arguments
-`-s, --use-scientific`, Notate approximate answer with scientific notation, argument is accuracy
-`-a --accuracy`, Accuracy of evaluation
+`-s, --use-scientific`, Notate approximate answer with scientific notation, argument is accuracy <br>
+`-a --accuracy`, Accuracy of evaluation <br>
 
 #### deriv
 ```
