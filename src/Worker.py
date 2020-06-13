@@ -38,7 +38,6 @@ class CASWorker(QRunnable):
             return({"error": f"Error calling function from worker thread: \n{traceback.format_exc()}"})
 
         output = list(result.values())[0]
-        print(self.copy)
         if self.copy == 1:
             exact_ans = output[0]
             if type(exact_ans) == list:

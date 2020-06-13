@@ -12,7 +12,7 @@ def requires():
 
 setup(
     name="CASPy3",
-    version="1.2",
+    version="1.2.1",
     description="A program that provides a GUI and a CLI to a symbolic computation and computer algebra system python library, SymPy.",
     long_description=readme(),
     long_description_content_type="text/markdown",
