@@ -4,6 +4,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QRunnable
 from sympy import *
 from sympy.abc import _clash1
 from sympy.parsing.sympy_parser import parse_expr
+from pyperclip import copy
 
 x, y, z, t = symbols('x y z t')
 k, m, n = symbols('k m n', integer=True)
@@ -17,11 +18,12 @@ class WorkerSignals(QObject):
     output = pyqtSignal(dict)
 
 class CASWorker(QRunnable):
-    def __init__(self, type, params):
+    def __init__(self, type, params, copy=None):
         super(CASWorker, self).__init__()
 
         self.type = type
         self.params = params
+        self.copy = copy
 
         self.signals = WorkerSignals()
 
@@ -34,6 +36,27 @@ class CASWorker(QRunnable):
             result = getattr(self, self.type)(*self.params)
         except:
             return({"error": f"Error calling function from worker thread: \n{traceback.format_exc()}"})
+
+        output = list(result.values())[0]
+        print(self.copy)
+        if self.copy == 1:
+            exact_ans = output[0]
+            if type(exact_ans) == list:
+                if len(exact_ans) == 1:
+                    copy(str(exact_ans[0]))
+            else:
+                copy(str(exact_ans))
+        elif self.copy == 2:
+            approx_ans = output[1]
+            if type(approx_ans) == list:
+                if len(approx_ans) == 1:
+                    copy(str(approx_ans[0]))
+            else:
+                copy(str(approx_ans))
+        elif self.copy == 3:
+            copy(str(output))
+        else:
+            pass
 
         self.signals.output.emit(result)
         self.signals.finished.emit()

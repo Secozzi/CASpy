@@ -16,11 +16,13 @@ os.chdir(CURRENT_DIR)
 from Worker import CASWorker
 
 class Cli(QObject):
-    def __init__(self, command, params, parent=None):
+    def __init__(self, command, params, copy, parent=None):
         super(Cli, self).__init__(parent)
 
         self.command = command
         self.params = params
+        self.copy = copy
+
 
     def stop_thread(self):
         pass
@@ -32,7 +34,7 @@ class Cli(QObject):
         """
         Call worker, send command and params, and then start thread
         """
-        self.WorkerCAS = CASWorker(self.command, self.params)
+        self.WorkerCAS = CASWorker(self.command, self.params, self.copy)
         self.WorkerCAS.signals.output.connect(self.print_output)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -56,7 +58,7 @@ class Cli(QObject):
 # Default flags, these flags are added to a command by using the decorator '@add_options(DEFAULT_FLAGS)'.
 DEFAULT_FLAGS = [
     click.option("--preview", "-p", is_flag=True, default=False, help="Preview instead of calculating"),
-    click.option("--output-type", "-o", default = 1, help="Select output type, 1 for pretty; 2 for latex and 3 for normal"),
+    click.option("--output-type", "-o", default = 1,type=click.IntRange(1,3), help="Select output type, 1 for pretty; 2 for latex and 3 for normal"),
     click.option("--use-unicode", "-u", is_flag=True, default=False, help="Use unicode for symbols"),
     click.option("--line-wrap", "-l", is_flag=True, default=False, help="Use line wrap on answer")
 ]
@@ -64,7 +66,7 @@ DEFAULT_FLAGS = [
 # Default argument(s), these argument(s) are added to a command by using the decorator '@add_options(DEFAULT_ARGUMENTS)'.
 DEFAULT_ARGUMENTS = [
     click.option("--use-scientific", "-s", type=int, help="Notate approximate answer with scientific notation, argument is accuracy"),
-    click.option("--accuracy", "-a", type=int, default=10, help="Accuracy of evaluation ")
+    click.option("--accuracy", "-a", type=int, default=10, help="Accuracy of evaluation")
 ]
 
 # Flag used only by equation, added to command by using the decorator '@add_options(EQ_FLAGS)'.
@@ -157,6 +159,7 @@ def start():
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("params", nargs=-1)
+@click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
 def deriv(params, **kwargs):
 
     """
@@ -184,14 +187,14 @@ def deriv(params, **kwargs):
 
     params_to_send = list_merge(default_params, list(params))
 
-    to_send = [prefix+"deriv", params_to_send+options]
+    to_send = [prefix+"deriv", params_to_send+options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("params", nargs=-1)
-#@click.option("-c", "--copy", type=click.IntRange(0,1), help="Copies answers")
+@click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
 def integ(params, **kwargs):
     """
     Calculate the integral.
@@ -218,13 +221,14 @@ def integ(params, **kwargs):
 
     params_to_send = list_merge(default_params, list(params))
 
-    to_send = [prefix + "integ", params_to_send + options]
+    to_send = [prefix + "integ", params_to_send + options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("params", nargs=-1)
+@click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
 def limit(params, **kwargs):
     """
     Calculate the limit of an expression.
@@ -252,7 +256,7 @@ def limit(params, **kwargs):
 
     params_to_send = list_merge(default_params, list(params))
 
-    to_send = [prefix + "limit", params_to_send + options]
+    to_send = [prefix + "limit", params_to_send + options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()
@@ -260,6 +264,7 @@ def limit(params, **kwargs):
 @add_options(DEFAULT_ARGUMENTS)
 @add_options(EQ_FLAGS)
 @click.argument("params", nargs=-1)
+@click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
 def eq(params, **kwargs):
     """
     Solve an equation.
@@ -288,12 +293,13 @@ def eq(params, **kwargs):
 
     params_to_send = list_merge(default_params, list(params))
 
-    to_send = [prefix + "eq", params_to_send + options]
+    to_send = [prefix + "eq", params_to_send + options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()
 @add_options(DEFAULT_FLAGS)
 @click.argument("expression")
+@click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
 def simp(expression, **kwargs):
     """
     Simplifies an expression.
@@ -321,12 +327,13 @@ def simp(expression, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
 
     params_to_send = list_merge(default_params, list(expression))
-    to_send = [prefix + "simp_eq", params_to_send + options]
+    to_send = [prefix + "simp_eq", params_to_send + options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()
 @add_options(DEFAULT_FLAGS)
 @click.argument("expression")
+@click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
 def exp(expression, **kwargs):
     """
     Expandes an expression.
@@ -352,13 +359,14 @@ def exp(expression, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
 
     params_to_send = list_merge(default_params, list(expression))
-    to_send = [prefix + "exp_eq", params_to_send + options]
+    to_send = [prefix + "exp_eq", params_to_send + options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("expression")
+@click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
 def eval(expression, **kwargs):
     """
     Evaluates an expression.
@@ -384,12 +392,13 @@ def eval(expression, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"], kwargs["accuracy"]]
 
     params_to_send = list_merge(default_params, list(expression))
-    to_send = [prefix + "eval_exp", params_to_send + options]
+    to_send = [prefix + "eval_exp", params_to_send + options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()
 @click.argument("number")
-def pf(number):
+@click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
+def pf(number, **kwargs):
     """
     Retreives the prime factors of an positive integer.
 
@@ -401,7 +410,7 @@ def pf(number):
 
     Note: exact_ans stores factors as dict: '{2: 2, 3: 1, 31: 1}' while approx_ans stores factors as string: '(2**2)*(3**1)*(31**1)'
     """
-    to_send = ["calc_pf", [number]]
+    to_send = ["calc_pf", [number], kwargs["copy"]]
     send_to_thread(to_send)
 
     click.echo(f"calculating limit with {number}")
@@ -448,7 +457,7 @@ def send_to_thread(input_list):
     app = QApplication(sys.argv)
 
     try:
-        worker_thread = Cli(input_list[0], input_list[1])
+        worker_thread = Cli(input_list[0], input_list[1], input_list[2])
         worker_thread.start_thread()
         worker_thread.call_worker()
     except KeyError:
