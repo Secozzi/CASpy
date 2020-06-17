@@ -15,6 +15,9 @@ os.chdir(CURRENT_DIR)
 
 from Worker import CASWorker
 
+def test():
+    return 50
+
 class Cli(QObject):
     def __init__(self, command, params, copy, parent=None):
         super(Cli, self).__init__(parent)
@@ -22,7 +25,6 @@ class Cli(QObject):
         self.command = command
         self.params = params
         self.copy = copy
-
 
     def stop_thread(self):
         pass

@@ -20,7 +20,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         super().__init__(*args, **kwargs)
 
-        self.setWindowIcon(QIcon("../assets/logo.png"))
+        self.setWindowIcon(QIcon("assets/logo.png"))
         self.setupUi(self)
         for i in [self.consoleIn, self.DerivExp, self.IntegExp, self.LimExp, self.EqLeft, self.EqRight, self.SimpExp, self.ExpExp, self.EvalExp, self.PfInput]:
             i.installEventFilter(self)

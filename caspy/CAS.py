@@ -833,7 +833,7 @@ class Ui_MainWindow(object):
             Stores websites and html files information
         """
 
-        with open("../assets/formulas.json", "r", encoding="utf8") as json_f:
+        with open("assets/formulas.json", "r", encoding="utf8") as json_f:
             self.json_data = json_f.read()
             self.json_file = json.loads(self.json_data)
 
