@@ -4,6 +4,8 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QRunnable
 from sympy import *
 from sympy.abc import _clash1
 from sympy.parsing.sympy_parser import parse_expr
+import math as m
+import cmath as cm
 from pyperclip import copy
 
 x, y, z, t = symbols('x y z t')
@@ -26,9 +28,6 @@ class CASWorker(QRunnable):
         self.copy = copy
 
         self.signals = WorkerSignals()
-
-    def create_code_list(self):
-        self.previous_code_list = []
 
     @pyqtSlot()
     def run(self):
@@ -84,7 +83,7 @@ class CASWorker(QRunnable):
             return number
 
         if accuracy < 1 or type(accuracy) != int:
-            print("Accuracy must be integer over 1, defaulting to 5")
+            print("Accuracy must be an integer over 1, defaulting to 5")
             accuracy = 5
 
         if sym_num.is_real:
@@ -151,7 +150,7 @@ class CASWorker(QRunnable):
         except Exception:
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
         if input_point:
-            self.exact_ans = f"At x = {input_point}\n"
+            self.exact_ans = f"At {input_variable} = {input_point}\n"
         if output_type == 1:
             self.exact_ans += str(pretty(derivative))
         elif output_type == 2:
@@ -611,12 +610,7 @@ class CASWorker(QRunnable):
         return({"pf": [self.exact_ans, self.approx_ans[0:-1]]})
 
     @pyqtSlot()
-    def clear_shell(self):
-        self.previous_code_list = []
-        self.signals.finished.emit()
-
-    @pyqtSlot()
-    def execute_code(self, new_code):
+    def execute_code(self, new_code, previous_code_list):
         self.approx_ans = 0
         self.output_code = ""
         if new_code:
@@ -626,7 +620,7 @@ class CASWorker(QRunnable):
                 new_code = new_code[4:]
         new_code = new_code.replace("... ", "")
         to_execute = ""
-        for i in self.previous_code_list:
+        for i in previous_code_list:
             to_execute += f"{i}\n"
         to_execute += new_code
         to_execute = to_execute.replace("\n\t", "|")
@@ -641,14 +635,14 @@ class CASWorker(QRunnable):
                     self.output_code += f"\nError: {traceback.format_exc()}"
                     return({"exec": [self.output_code, 0]})
                 else:
-                    if new_to_exec not in self.previous_code_list:
-                        self.previous_code_list.append(new_to_exec)
+                    if new_to_exec not in previous_code_list:
+                        previous_code_list.append(new_to_exec)
             else:
                 self.output_code += "\n"
                 exec(f"self.output_code += str({new_to_exec})")
                 exec(f"self.exact_ans = str({new_to_exec})")
 
-        return({"exec": [self.output_code, 0]})
+        return({"exec": [self.output_code, 0], "list": previous_code_list})
 
     @pyqtSlot()
     def formula_get_info(self, text, data):

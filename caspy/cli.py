@@ -15,9 +15,6 @@ os.chdir(CURRENT_DIR)
 
 from Worker import CASWorker
 
-def test():
-    return 50
-
 class Cli(QObject):
     def __init__(self, command, params, copy, parent=None):
         super(Cli, self).__init__(parent)
@@ -163,7 +160,6 @@ def start():
 @click.argument("params", nargs=-1)
 @click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
 def deriv(params, **kwargs):
-
     """
     Calculate the derivative.
 
@@ -368,8 +364,9 @@ def exp(expression, **kwargs):
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("expression")
+@click.argument("vars", required=False, nargs=-1)
 @click.option("-c", "--copy", type=click.IntRange(1,3), help="Copies the answer. 0 for exact_ans and 1 for approx_ans and 2 for a list of [exact_ans, approx_ans].")
-def eval(expression, **kwargs):
+def eval(expression, vars, **kwargs):
     """
     Evaluates an expression.
 
