@@ -6,6 +6,10 @@ All changes will be documented in this file
 
 ### Added
 
+- Added 'Equation' and 'Formulas' tab
+- Added windows to remove and add websites
+- Added splitters in each tab
+- Added 'view' to view the exact  or approximate answer in a separate window
 - Added CHANGELOG.md
 - Added support for differential equations and system of equations
 - Added option to substitute variables for values in evaluate
@@ -13,6 +17,7 @@ All changes will be documented in this file
 ### Changed
 
 - Massive overhaul of structure. Each tab is defined as a separate class that loads its ui from a .ui file. This makes it much easier to add, remove or change individual tabs. The class of each tab handles everything from adding special menu bar actions to eventfilters
+- Output type is now located in the menu instead of a group of radiobuttons in each tab
 - CAS.py has been removed and is replaced by qt_assets/main.py
 - qt_gui.py's only purpose is now to call the launch_app() function imported from qt_assets/main.py
 - The textbrowser that holds the approximate answer has been enlarged vertically.

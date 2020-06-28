@@ -18,106 +18,73 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
+  <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="3" column="0">
-      <widget class="QPushButton" name="ExpCalc">
-       <property name="toolTip">
-        <string>Expand the expression - Shift + Enter</string>
-       </property>
-       <property name="text">
-        <string>Expand</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QPushButton" name="ExpPrev">
-       <property name="toolTip">
-        <string>Preview the expression</string>
-       </property>
-       <property name="text">
-        <string>Preview</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <widget class="QSplitter" name="splitter">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
+     </property>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QLabel" name="ExpOutType">
-         <property name="toolTip">
-          <string>Format of output</string>
+        <widget class="QTextEdit" name="ExpExp">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="text">
-          <string>Output Type</string>
+         <property name="toolTip">
+          <string>Expression</string>
+         </property>
+         <property name="lineWrapMode">
+          <enum>QTextEdit::NoWrap</enum>
+         </property>
+         <property name="placeholderText">
+          <string>Expression</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="ExpPP">
+        <widget class="QPushButton" name="ExpPrev">
          <property name="toolTip">
-          <string>Pretty print</string>
+          <string>Preview the expression</string>
          </property>
          <property name="text">
-          <string>Pretty</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
+          <string>Preview</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="ExpLatex">
+        <widget class="QPushButton" name="ExpCalc">
          <property name="toolTip">
-          <string>Latex</string>
+          <string>Expand the expression - Shift + Enter</string>
          </property>
          <property name="text">
-          <string>Latex</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="ExpNormal">
-         <property name="toolTip">
-          <string>Normal - no special format</string>
-         </property>
-         <property name="text">
-          <string>Normal</string>
+          <string>Expand</string>
          </property>
         </widget>
        </item>
       </layout>
-     </item>
-     <item row="0" column="1" rowspan="5">
-      <widget class="QTextBrowser" name="ExpOut">
-       <property name="toolTip">
-        <string>Expanded Answer</string>
-       </property>
-       <property name="placeholderText">
-        <string>Output</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" rowspan="2">
-      <widget class="QTextEdit" name="ExpExp">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="toolTip">
-        <string>Expression</string>
-       </property>
-       <property name="lineWrapMode">
-        <enum>QTextEdit::NoWrap</enum>
-       </property>
-       <property name="placeholderText">
-        <string>Expression</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+     </widget>
+     <widget class="QTextBrowser" name="ExpOut">
+      <property name="toolTip">
+       <string>Expanded Answer</string>
+      </property>
+      <property name="placeholderText">
+       <string>Output</string>
+      </property>
+     </widget>
+    </widget>
    </item>
   </layout>
  </widget>

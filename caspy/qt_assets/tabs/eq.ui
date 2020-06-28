@@ -12,7 +12,7 @@
   </property>
   <property name="font">
    <font>
-    <family>Courier New</family>
+    <family>Cooper Black</family>
    </font>
   </property>
   <property name="windowTitle">
@@ -95,53 +95,6 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QLabel" name="LimOutType">
-         <property name="toolTip">
-          <string>Format of output</string>
-         </property>
-         <property name="text">
-          <string>Output Type</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="LimPP">
-         <property name="toolTip">
-          <string>Pretty print</string>
-         </property>
-         <property name="text">
-          <string>Pretty</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="LimLatex">
-         <property name="toolTip">
-          <string>Latex</string>
-         </property>
-         <property name="text">
-          <string>Latex</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="LimNormal">
-         <property name="toolTip">
-          <string>Normal - no special format</string>
-         </property>
-         <property name="text">
-          <string>Normal</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
      <item row="0" column="0">
       <widget class="QTextEdit" name="LimExp">
        <property name="toolTip">
@@ -207,22 +160,6 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="1" rowspan="3">
-      <widget class="QTextBrowser" name="LimApprox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="toolTip">
-        <string>Approximate answer of calculation</string>
-       </property>
-       <property name="placeholderText">
-        <string>Approximate Answer</string>
-       </property>
-      </widget>
-     </item>
      <item row="4" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_7">
        <item>
@@ -276,6 +213,22 @@
      </item>
      <item row="1" column="0">
       <widget class="QTextEdit" name="textEdit"/>
+     </item>
+     <item row="5" column="1" rowspan="2">
+      <widget class="QTextBrowser" name="LimApprox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Approximate answer of calculation</string>
+       </property>
+       <property name="placeholderText">
+        <string>Approximate Answer</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

@@ -1,3 +1,7 @@
+import json
+
+# Everything that my IDE says aren't used doesn't need to be imported, and I have no idea why but im keeping it here anyways.
+# I'm not importing it from anywhere else, so it should raise an error but it doesn't.
 from PyQt5.QtCore import (
     QCoreApplication,
     QEvent,
@@ -18,19 +22,20 @@ from PyQt5.QtGui import (
     QTextCursor
 )
 
-# Everything that my IDE says aren't used doesn't need to be imported, and I have no idea why but im keeping it here anyways.
 from PyQt5.QtWidgets import (
     QAction,
     QActionGroup,
     QApplication,
     QButtonGroup,
     QComboBox,
+    QDialog,
     QFrame,
     QGridLayout,
     QHBoxLayout,
     QInputDialog,
     QLabel,
     QLineEdit,
+    QMainWindow,
     QMenu,
     QMenuBar,
     QMessageBox,
@@ -69,6 +74,9 @@ class DerivativeTab(QWidget):
         self.DerivExp.installEventFilter(self)
 
     def eventFilter(self, obj, event):
+        """
+        Add modifiers and if shift + enter or shift + return is pressed, run calc_deriv()
+        """
         QModifiers = QApplication.keyboardModifiers()
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
@@ -102,19 +110,12 @@ class DerivativeTab(QWidget):
             self.DerivApprox.setText(str(self.main_window.approx_ans))
 
     def prev_deriv(self):
-        if self.DerivPP.isChecked():
-            output_type = 1
-        elif self.DerivLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("prev_deriv", [
             self.DerivExp.toPlainText(),
             self.DerivVar.text(),
             self.DerivOrder.value(),
             self.DerivPoint.text(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
@@ -124,23 +125,12 @@ class DerivativeTab(QWidget):
         self.main_window.threadpool.start(self.WorkerCAS)
 
     def calc_deriv(self):
-        """
-        Function to call the worker thread to calculate the expression as a derivative.
-        It checks what output type is selected.
-        """
-        if self.DerivPP.isChecked():
-            output_type = 1
-        elif self.DerivLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("calc_deriv", [
             self.DerivExp.toPlainText(),
             self.DerivVar.text(),
             self.DerivOrder.value(),
             self.DerivPoint.text(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap,
             self.main_window.use_scientific,
@@ -199,19 +189,12 @@ class IntegralTab(QWidget):
             self.IntegApprox.setText(str(self.main_window.approx_ans))
 
     def prev_integ(self):
-        if self.IntegPP.isChecked():
-            output_type = 1
-        elif self.IntegLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("prev_integ", [
             self.IntegExp.toPlainText(),
             self.IntegVar.text(),
             self.IntegOrder.value(),
             self.IntegPoint.text(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
@@ -221,23 +204,12 @@ class IntegralTab(QWidget):
         self.main_window.threadpool.start(self.WorkerCAS)
 
     def calc_integ(self):
-        """
-        Function to call the worker thread to calculate the expression as a integative.
-        It checks what output type is selected.
-        """
-        if self.IntegPP.isChecked():
-            output_type = 1
-        elif self.IntegLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("calc_integ", [
             self.IntegExp.toPlainText(),
             self.IntegVar.text(),
             self.IntegLower.text(),
             self.IntegUpper.text(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap,
             self.main_window.use_scientific,
@@ -296,13 +268,6 @@ class LimitTab(QWidget):
             self.LimApprox.setText(str(self.main_window.approx_ans))
 
     def prev_limit(self):
-        if self.LimPP.isChecked():
-            output_type = 1
-        elif self.LimLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         if self.LimSide.currentIndex() == 0:
             limit_side = "+-"
         elif self.LimSide.currentIndex() == 1:
@@ -315,7 +280,7 @@ class LimitTab(QWidget):
             self.LimVar.text(),
             self.LimApproach.text(),
             limit_side,
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
@@ -325,17 +290,6 @@ class LimitTab(QWidget):
         self.main_window.threadpool.start(self.WorkerCAS)
 
     def calc_limit(self):
-        """
-        Function to call the worker thread to calculate the expression as a limative.
-        It checks what output type is selected.
-        """
-        if self.LimPP.isChecked():
-            output_type = 1
-        elif self.LimLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         if self.LimSide.currentIndex() == 0:
             limit_side = "+-"
         elif self.LimSide.currentIndex() == 1:
@@ -348,7 +302,7 @@ class LimitTab(QWidget):
             self.LimVar.text(),
             self.LimApproach.text(),
             limit_side,
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap,
             self.main_window.use_scientific,
@@ -405,16 +359,9 @@ class SimplifyTab(QWidget):
             self.SimpOut.setText(self.main_window.exact_ans)
 
     def prev_simp_exp(self):
-        if self.SimpPP.isChecked():
-            output_type = 1
-        elif self.SimpLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("prev_simp_eq", [
             self.SimpExp.toPlainText(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
@@ -424,16 +371,9 @@ class SimplifyTab(QWidget):
         self.main_window.threadpool.start(self.WorkerCAS)
 
     def simp_exp(self):
-        if self.SimpPP.isChecked():
-            output_type = 1
-        elif self.SimpLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("prev_simp_eq", [
             self.SimpExp.toPlainText(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
@@ -488,16 +428,9 @@ class ExpandTab(QWidget):
             self.ExpOut.setText(self.main_window.exact_ans)
 
     def prev_exp_exp(self):
-        if self.ExpPP.isChecked():
-            output_type = 1
-        elif self.ExpLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("prev_exp_eq", [
             self.ExpExp.toPlainText(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
@@ -507,16 +440,9 @@ class ExpandTab(QWidget):
         self.main_window.threadpool.start(self.WorkerCAS)
 
     def exp_exp(self):
-        if self.ExpPP.isChecked():
-            output_type = 1
-        elif self.ExpLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("prev_exp_eq", [
             self.ExpExp.toPlainText(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
@@ -572,16 +498,9 @@ class EvaluateTab(QWidget):
             self.EvalApprox.setText(self.main_window.approx_ans)
 
     def prev_eval_exp(self):
-        if self.EvalPP.isChecked():
-            output_type = 1
-        elif self.EvalLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("prev_eval_exp", [
             self.EvalExp.toPlainText(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
@@ -591,16 +510,9 @@ class EvaluateTab(QWidget):
         self.main_window.threadpool.start(self.WorkerCAS)
 
     def eval_exp(self):
-        if self.EvalPP.isChecked():
-            output_type = 1
-        elif self.EvalLatex.isChecked():
-            output_type = 2
-        else:
-            output_type = 3
-
         self.WorkerCAS = CASWorker("eval_exp", [
             self.EvalExp.toPlainText(),
-            output_type,
+            self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap,
             self.main_window.use_scientific,
@@ -657,18 +569,32 @@ class WebTab(QWidget):
 
     def init_web_menu(self):
         self.menuWeb = self.main_window.menubar.addMenu("Web")
-        self.WebList = self.main_window.json_file[2]
-        webGroup = QActionGroup(self.menuWeb)
-        for i in self.WebList:
+        self.set_actions()
+
+    def set_actions(self):
+        self.menuWeb.clear()
+        self.web_list = self.main_window.json_file[2]
+        self.web_menu_action_group = QActionGroup(self.menuWeb)
+
+        for i in self.web_list:
             for key in i:
                 webAction = QAction(key, self.menuWeb, checkable=True)
                 if webAction.text() == "Desmos":
                     webAction.setChecked(True)
                 self.menuWeb.addAction(webAction)
-                webGroup.addAction(webAction)
+                self.web_menu_action_group.addAction(webAction)
 
-        webGroup.setExclusive(True)
-        webGroup.triggered.connect(self.updateWeb)
+        self.web_menu_action_group.setExclusive(True)
+
+        self.add_website = QAction("Add Website", self)
+        self.remove_website = QAction("Remove Website", self)
+        self.menuWeb.addSeparator()
+        self.menuWeb.addAction(self.add_website)
+        self.menuWeb.addAction(self.remove_website)
+        self.add_website.triggered.connect(self.add_website_window)
+        self.remove_website.triggered.connect(self.remove_website_window)
+
+        self.web_menu_action_group.triggered.connect(self.updateWeb)
 
     def updateWeb(self, action):
         """
@@ -679,13 +605,315 @@ class WebTab(QWidget):
         action: QAction
             action.text() shows text of selected radiobutton
         """
-
-        self.main_window.exact_ans = 0
-        self.main_window.approx_ans = 0
-        for i in self.WebList:
+        for i in self.web_list:
             for key in i:
                 if action.text() == key:
                     self.web.load(QUrl(i[key]))
+
+    def add_website_window(self):
+        self.website_window_add = Add_Website(self.main_window, self)
+
+    def remove_website_window(self):
+        self.website_window_remove = Remove_Website(self.main_window, self)
+
+class Add_Website(QDialog):
+    def __init__(self, main_window, web_tab ,parent=None):
+        super(Add_Website, self).__init__(parent=None)
+        self.main_window = main_window
+        self.web_list = self.main_window.json_file[2]
+        self.web_tab = web_tab
+
+        loadUi("qt_assets/tabs/web_add.ui", self)
+
+        self.add_button_box.accepted.connect(self.add_website)
+        self.add_button_box.rejected.connect(self.close)
+
+        self.show()
+
+    def add_website(self):
+        self.main_window.json_file[2].append({self.display_line.text(): self.url_line.text()})
+
+        with open("assets/formulas.json", "w", encoding="utf-8") as json_f:
+            json.dump(self.main_window.json_file, json_f, ensure_ascii=False, indent=4, sort_keys=True)
+
+        # Reload json file reading
+        self.main_window.load_json()
+        self.web_tab.set_actions()
+
+        self.close()
+
+class Remove_Website(QDialog):
+    def __init__(self, main_window, web_tab, parent=None):
+        super(Remove_Website, self).__init__(parent=None)
+        self.main_window = main_window
+        self.web_list = self.main_window.json_file[2]
+        self.web_tab = web_tab
+
+        loadUi("qt_assets/tabs/web_remove.ui", self)
+        for i in self.web_list:
+            self.remove_combo.addItem(list(i.keys())[0])
+
+        self.remove_button_box.accepted.connect(self.remove_website)
+        self.remove_button_box.rejected.connect(self.close)
+
+        self.show()
+
+    def remove_website(self):
+        """
+        Gets selected item, removes it from the list of websites and writes it to the file.
+        """
+        selected_key = self.web_list[self.remove_combo.currentIndex()]
+        self.main_window.json_file[2].remove(selected_key)
+        with open("assets/formulas.json", "w", encoding="utf-8") as json_f:
+            json.dump(self.main_window.json_file, json_f, ensure_ascii=False, indent=4, sort_keys=True)
+
+        # Reload json file reading
+        self.main_window.load_json()
+        self.web_tab.set_actions()
+
+        self.close()
+
+
+class FormulaTab(QWidget):
+
+    from sympy import Symbol, S
+    from sympy.abc import _clash1
+
+    display_name = "Formulas"
+
+    def __init__(self, main_window):
+        super().__init__()
+        loadUi("qt_assets/tabs/formulas.ui", self)
+        self.init_ui()
+        self.main_window = main_window
+
+        self.install_event_filter()
+        self.init_bindings()
+        self.add_formulas()
+
+    def init_ui(self):
+        self.FormulaTree.sortByColumn(0, Qt.AscendingOrder)
+        self.grid_scroll_area = QGridLayout(self.FormulaScrollArea)
+        self.grid_scroll_area.setObjectName("grid_scroll_area")
+
+    def install_event_filter(self):
+        self.FormulaScrollArea.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        QModifiers = QApplication.keyboardModifiers()
+        modifiers = []
+        if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
+            modifiers.append('shift')
+
+        if event.type() == QEvent.KeyPress:
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                if modifiers:
+                    if modifiers[0] == "shift":
+                        self.calc_formula()
+                        return True
+
+        return super(FormulaTab, self).eventFilter(obj, event)
+
+    def init_bindings(self):
+        self.FormulaTree.itemDoubleClicked.connect(self.formula_tree_selected)
+        self.FormulaPreview.clicked.connect(self.prev_formula)
+        self.FormulaCalculate.clicked.connect(self.calc_formula)
+
+    def add_formulas(self):
+        self.formula_info_dict = self.main_window.json_file[0]
+        self.formula_tree_data = self.main_window.json_file[1]
+
+        for branch in self.formula_tree_data:
+            parent = QTreeWidgetItem(self.FormulaTree)
+            branch_name = str(list(branch.keys())[0])
+            parent.setText(0, branch_name)
+
+            for sub_branch in list(branch[branch_name].keys()):
+                child = QTreeWidgetItem(parent)
+                child.setText(0, sub_branch)
+
+                for formula in branch[branch_name][sub_branch]:
+                    formula_child = QTreeWidgetItem(child)
+                    formula_child.setText(0, formula)
+
+        #for branch in self.formula_tree_data:
+        #    parent = QTreeWidgetItem(self.FormulaTree)
+        #    parent.setText(0, str(branch[0]))
+        #
+        #    for sub_branch in branch[1]:
+        #        child = QTreeWidgetItem(parent)
+        #        child.setText(0, str(sub_branch[0]))
+        #
+        #        for formula in sub_branch[1]:
+        #            formula_child = QTreeWidgetItem(child)
+        #            formula_child.setText(0, formula[0])
+
+    def formula_tree_selected(self):
+        """
+        Retrieves formula and information about formula that user double clicked.
+        Splits equation into left side of equals symbol and right side.
+        Uses _i as imaginary unit instead of I and removes other similar functions/variables so they can be used as variables in formula.
+        """
+
+        get_selected = self.FormulaTree.selectedItems()
+        if get_selected:
+            base_node = get_selected[0]
+            self.selected_tree_item = base_node.text(0)
+            if "=" in self.selected_tree_item:
+                expr = self.selected_tree_item.split("=")
+                expr = list(map(lambda x: x.replace("_i", "(sqrt(-1))"), expr))
+                self.formula_symbols_list = [str(i) for i in list(self.S(expr[0], locals=self._clash1).atoms(self.Symbol))]
+                self.formula_symbols_list.extend((str(i) for i in list(self.S(expr[1], locals=self._clash1).atoms(self.Symbol))))
+                self.formula_symbols_list = list(set(self.formula_symbols_list))
+                self.formula_symbols_list.sort()
+
+                self.formula_update_vars()
+                self.formula_info = self.formula_get_info(self.selected_tree_item, self.formula_tree_data)
+                print(self.formula_info)
+                #self.formula_set_tool_tip()
+
+    def formula_update_vars(self):
+        for i in reversed(range(self.grid_scroll_area.count())):
+            self.grid_scroll_area.itemAt(i).widget().setParent(None)
+        self.formula_label_names = self.formula_symbols_list
+        self.formula_label_pos = [[i, 0] for i in range(len(self.formula_label_names))]
+        self.formula_line_pos = [[i, 1] for i in range(len(self.formula_label_names))]
+        for self.formula_name_label, formula_pos_label, formula_pos_line in zip(self.formula_label_names, self.formula_label_pos, self.formula_line_pos):
+            self.formula_label = QLabel(self.FormulaScrollArea)
+            self.formula_label.setText(self.formula_name_label)
+            self.formula_label.setObjectName(self.formula_name_label + "line")
+            self.grid_scroll_area.addWidget(self.formula_label, *formula_pos_label)
+            self.formula_QLine = QLineEdit(self.FormulaScrollArea)
+            self.formula_QLine.setObjectName(self.formula_name_label + "line")
+            self.grid_scroll_area.addWidget(self.formula_QLine, *formula_pos_line)
+
+    def formula_set_tool_tip(self):
+        _translate = QCoreApplication.translate
+
+        lines = []
+        for name in self.formula_label_names:
+            lines.append([self.FormulaScrollArea.findChild(QLineEdit, str(name) + "line"), name])
+
+        info_dict_keys = list(self.formula_info_dict.keys())
+
+
+        print(self.formula_info)
+
+    # def formula_set_tool_tip(self):
+    #     """
+    #     Sets ToolTip to the info given by the json file.
+    #     """
+    #     _translate = QCoreApplication.translate
+    #     lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.formula_label_names]
+    #     labels = [[self.FormulaScrollArea.findChild(QLabel, str(i) + "line"), i] for i in self.formula_label_names]
+    #     for line, label in zip(lines, labels):
+    #         for i in self.formula_info:
+    #             if i in list(self.formula_info_dict.keys()):
+    #                 FormulaInfoList = self.formula_info_dict[i].split("|")
+    #             else:
+    #                 FormulaInfoList = [i, "No info", "No info"]
+    #
+    #             if FormulaInfoList[0] == line[1]:
+    #                 # This is in Swedish, change 'mäts i' to 'measured in' for english
+    #                 line[0].setToolTip(_translate("MainWindow", f"{FormulaInfoList[1]}, mäts i {FormulaInfoList[2]}"))
+    #                 label[0].setToolTip(_translate("MainWindow", f"{FormulaInfoList[1]}, mäts i {FormulaInfoList[2]}"))
+    #             elif FormulaInfoList[0].split(";")[0] == line[1]:
+    #                 line[0].setToolTip(_translate("MainWindow", f"{FormulaInfoList[1]}, mäts i {FormulaInfoList[2]}"))
+    #                 label[0].setToolTip(_translate("MainWindow", f"{FormulaInfoList[1]}, mäts i {FormulaInfoList[2]}"))
+    #                 line[0].setText(FormulaInfoList[0].split(";")[1])
+
+    def formula_get_info(self, text, data):
+        """
+        Retrieves info that's correlated with given formula
+
+        Parameters
+        -------------
+        text: string
+            Formula whose information is requested.
+        data: JSON file
+            Data that stores formulas and respective information.
+
+        Returns
+        ------------
+        formula[1]: string
+            Information correlated to formula.
+        """
+
+        for branch in data:
+            branch_name = str(list(branch.keys())[0])
+            for sub_branch in list(branch[branch_name].keys()):
+                if text in list(branch[branch_name][sub_branch].keys()):
+                    return branch[branch_name][sub_branch][text]
+
+        #for branch in data:
+        #    for subBranch in branch[1]:
+        #        for formula in subBranch[1]:
+        #            if formula[0] == text:
+        #                return formula[1]
+
+    def stop_thread(self):
+        pass
+
+    def update_ui(self, input_dict):
+        first_key = list(input_dict.keys())[0]
+        if first_key == "error":
+            self.main_window.show_error_box(input_dict[first_key][0])
+        else:
+            self.main_window.exact_ans = str(input_dict[first_key][0])
+            self.main_window.approx_ans = input_dict[first_key][1]
+
+            self.FormulaExact.setText(str(self.main_window.exact_ans))
+            self.FormulaApprox.setText(str(self.main_window.approx_ans))
+
+    def prev_formula(self):
+        try:
+            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.formula_label_names]
+        except:
+            self.main_window.show_error_box("Error: select a formula")
+
+        values_string = self.selected_tree_item.split("=")
+
+        self.WorkerCAS = CASWorker("prev_formula", [
+            lines,
+            values_string,
+            self.FormulaExact.toPlainText(),
+            self.main_window.output_type,
+            self.main_window.use_unicode,
+            self.main_window.line_wrap
+        ])
+        self.WorkerCAS.signals.output.connect(self.update_ui)
+        self.WorkerCAS.signals.finished.connect(self.stop_thread)
+
+        self.main_window.threadpool.start(self.WorkerCAS)
+
+    def calc_formula(self):
+        if self.FormulaSolveSolve.isChecked():
+            solve_type = 2
+        if self.FormulaSolveSolveSet.isChecked():
+            solve_type = 1
+
+        try:
+            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.formula_label_names]
+        except:
+            self.main_window.show_error_box("Error: select a formula")
+
+        values_string = self.selected_tree_item.split("=")
+
+        self.WorkerCAS = CASWorker("calc_formula", [
+            lines,
+            values_string,
+            solve_type,
+            self.main_window.output_type,
+            self.main_window.use_unicode,
+            self.main_window.line_wrap,
+            self.main_window.use_scientific,
+            self.main_window.accuracy
+        ])
+        self.WorkerCAS.signals.output.connect(self.update_ui)
+        self.WorkerCAS.signals.finished.connect(self.stop_thread)
+
+        self.main_window.threadpool.start(self.WorkerCAS)
+
 
 class ShellTab(QWidget):
     display_name = "Shell"

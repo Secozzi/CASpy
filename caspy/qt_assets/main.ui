@@ -49,8 +49,14 @@
   <property name="autoFillBackground">
    <bool>false</bool>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QSplitter::handle {background: white}</string>
+  </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
+  </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>false</bool>
@@ -61,6 +67,11 @@
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="font">
+    <font>
+     <family>Courier New</family>
+    </font>
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
@@ -76,6 +87,11 @@
         <width>0</width>
         <height>0</height>
        </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Courier New</family>
+       </font>
       </property>
       <property name="currentIndex">
        <number>-1</number>
@@ -111,15 +127,35 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <widget class="QMenu" name="menuOutput_Type">
+     <property name="toolTip">
+      <string>What format will the output be displayed</string>
+     </property>
+     <property name="title">
+      <string>Output Type</string>
+     </property>
+     <addaction name="actionPretty"/>
+     <addaction name="actionLatex"/>
+     <addaction name="actionNormal"/>
+    </widget>
     <addaction name="actionUnicode"/>
     <addaction name="actionLinewrap"/>
+    <addaction name="menuOutput_Type"/>
     <addaction name="separator"/>
     <addaction name="actionScientific_Notation"/>
     <addaction name="actionAccuracy"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionExact_Answer"/>
+    <addaction name="actionApproximate_Answer"/>
+   </widget>
    <addaction name="menuSettings"/>
    <addaction name="menuCopy"/>
    <addaction name="menuTab"/>
+   <addaction name="menuView"/>
   </widget>
   <action name="actionCopy_Exact_Answer">
    <property name="enabled">
@@ -225,6 +261,49 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionPretty">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Pretty</string>
+   </property>
+   <property name="toolTip">
+    <string>Pretty Print</string>
+   </property>
+  </action>
+  <action name="actionLatex">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Latex</string>
+   </property>
+  </action>
+  <action name="actionNormal">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Normal</string>
+   </property>
+   <property name="toolTip">
+    <string>Normal - No special format</string>
+   </property>
+  </action>
+  <action name="actionExact_Answer">
+   <property name="text">
+    <string>Exact Answer</string>
+   </property>
+  </action>
+  <action name="actionApproximate_Answer">
+   <property name="text">
+    <string>Approximate Answer</string>
    </property>
   </action>
  </widget>

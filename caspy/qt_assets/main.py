@@ -12,6 +12,7 @@ from qt_assets.tabs import (
     EvaluateTab,
     PfTab,
     WebTab,
+    FormulaTab,
     ShellTab
 )
 
@@ -21,25 +22,27 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtWidgets import (
+    QActionGroup,
     QApplication,
     QInputDialog,
     QMainWindow,
-    QMessageBox
+    QMessageBox,
+    QTextBrowser
 )
 
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.uic import loadUi
 
 class CASpyGUI(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        with open("assets/formulas.json", "r", encoding="utf8") as json_f:
-            self.json_data = json_f.read()
-            self.json_file = json.loads(self.json_data)
+        self.load_json()
 
         self.exact_ans = ""
         self.approx_ans = ""
 
+        self.output_type = 1
         self.use_unicode = False
         self.line_wrap = False
         self.use_scientific = False
@@ -47,9 +50,14 @@ class CASpyGUI(QMainWindow):
 
         self.threadpool = QThreadPool()
 
-        self.TABS = [DerivativeTab, IntegralTab, LimitTab, SimplifyTab, ExpandTab, EvaluateTab, PfTab, WebTab, ShellTab]
+        self.TABS = [DerivativeTab, IntegralTab, LimitTab, SimplifyTab, ExpandTab, EvaluateTab, PfTab, WebTab, FormulaTab, ShellTab]
 
         self.init_ui()
+
+    def load_json(self):
+        with open("assets/formulas.json", "r", encoding="utf8") as json_f:
+            self.json_data = json_f.read()
+            self.json_file = json.loads(self.json_data)
 
     def init_ui(self):
         loadUi('qt_assets/main.ui', self)
@@ -58,6 +66,14 @@ class CASpyGUI(QMainWindow):
         self.show()
 
     def init_menu(self):
+        # For Output Type -> Pretty - Latex - Normal. This couldn't be done in Qt Designer.
+        self.output_type_group = QActionGroup(self.menuOutput_Type)
+        self.output_type_group.addAction(self.actionPretty)
+        self.output_type_group.addAction(self.actionLatex)
+        self.output_type_group.addAction(self.actionNormal)
+        self.output_type_group.setExclusive(True)
+        self.output_type_group.triggered.connect(self.change_output_type)
+
         action_bindings = {
             'actionUnicode': self.toggle_unicode,
             'actionLinewrap': self.toggle_line_wrap,
@@ -66,10 +82,12 @@ class CASpyGUI(QMainWindow):
             'actionCopy_Exact_Answer': self.copy_exact_ans,
             'actionCopy_Approximate_Answer': self.copy_approx_ans,
             'actionNext_Tab': self.next_tab,
-            'actionPrevious_Tab': self.previous_tab
+            'actionPrevious_Tab': self.previous_tab,
+            'actionExact_Answer': self.view_exact_ans,
+            'actionApproximate_Answer': self.view_approx_ans
         }
 
-        for action in self.menuSettings.actions() + self.menuCopy.actions() + self.menuTab.actions():
+        for action in self.menuSettings.actions() + self.menuCopy.actions() + self.menuTab.actions() + self.menuView.actions():
             if action.objectName() in action_bindings.keys():
                 action.triggered.connect(action_bindings[action.objectName()])
 
@@ -90,6 +108,11 @@ class CASpyGUI(QMainWindow):
         msg.setText(message)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
+
+    def change_output_type(self, action):
+        # Pretty is represented as a 1, Latex 2, and Normal 3
+        types = ["Pretty", "Latex", "Normal"]
+        self.output_type = types.index(action.text()) + 1
 
     def get_scientific_notation(self):
         number, confirmed = QInputDialog.getInt(self, "Get Scientific Notation", "Enter the accuracy for scientific notation", 5, 1, 999999, 1)
@@ -162,6 +185,25 @@ class CASpyGUI(QMainWindow):
             self.tab_manager.setCurrentIndex(10)
         else:
             self.tab_manager.setCurrentIndex(self.tab_manager.currentIndex() - 1)
+
+    def view_exact_ans(self):
+        self.v = View(str(self.exact_ans))
+
+    def view_approx_ans(self):
+        self.v = View(str(self.approx_ans))
+
+class View(QTextBrowser):
+    def __init__(self, text, parent=None):
+        super(View, self).__init__(parent=None)
+        self.setWindowIcon(QIcon("assets/logo.png"))
+        self.setWindowTitle("Exact Answer")
+        self.setLineWrapMode(QTextBrowser.NoWrap)
+        self.horizontalScrollBar().setValue(0)
+        self.resize(1000, 500)
+
+        self.setFont(QFont("Courier New"))
+        self.setText(text)
+        self.show()
 
 def launch_app():
     import sys
