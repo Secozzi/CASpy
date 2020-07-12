@@ -13,7 +13,7 @@ CURRENT_DIR = Path(__file__).parent
 sys.path.insert(0, str(CURRENT_DIR))
 os.chdir(CURRENT_DIR)
 
-from Worker import CASWorker
+from worker import CASWorker
 
 class Cli(QObject):
     def __init__(self, command, params, copy, parent=None):
@@ -325,7 +325,7 @@ def simp(expression, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
 
     params_to_send = list_merge(default_params, list(expression))
-    to_send = [prefix + "simp_eq", params_to_send + options, kwargs["copy"]]
+    to_send = [prefix + "simp_exp", params_to_send + options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()
@@ -357,7 +357,7 @@ def exp(expression, **kwargs):
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
 
     params_to_send = list_merge(default_params, list(expression))
-    to_send = [prefix + "exp_eq", params_to_send + options, kwargs["copy"]]
+    to_send = [prefix + "expand_exp", params_to_send + options, kwargs["copy"]]
     send_to_thread(to_send)
 
 @main.command()

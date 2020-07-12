@@ -7,7 +7,7 @@ os.chdir(CURRENT_DIR)
 
 from qt_assets.main import launch_app
 
-if __name__ == '__main__':
+def main():
     import sys
     sys._excepthook = sys.excepthook
 
@@ -18,3 +18,6 @@ if __name__ == '__main__':
 
     sys.excepthook = exception_hook
     launch_app()
+
+if __name__ == '__main__':
+    main()

@@ -131,6 +131,9 @@
             <bool>false</bool>
            </property>
            <widget class="QTextBrowser" name="FormulaExact">
+            <property name="lineWrapMode">
+             <enum>QTextEdit::NoWrap</enum>
+            </property>
             <property name="placeholderText">
              <string>Exact Answer</string>
             </property>

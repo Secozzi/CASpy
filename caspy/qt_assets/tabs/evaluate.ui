@@ -87,6 +87,9 @@
        <property name="toolTip">
         <string>Simplified Answer</string>
        </property>
+       <property name="lineWrapMode">
+        <enum>QTextEdit::NoWrap</enum>
+       </property>
        <property name="placeholderText">
         <string>Output</string>
        </property>

@@ -44,7 +44,7 @@
                 "Ellära": {
                     "E=m*c**2": {
                         "E": "E",
-                        "c": "c",
+                        "c": "cl",
                         "m": "m"
                     }
                 },
@@ -80,32 +80,6 @@
                     }
                 }
             }
-        }
-    ],
-    [
-        {
-            "WolframAlpha": "https://www.wolframalpha.com"
-        },
-        {
-            "Symbolab": "https://www.symbolab.com"
-        },
-        {
-            "LaTeX to PNG": "http://latex2png.com/"
-        },
-        {
-            "LaTeX formula editor": "https://www.codecogs.com/latex/eqneditor.php"
-        },
-        {
-            "Desmos": "https://www.desmos.com/calculator"
-        },
-        {
-            "GeoGebra": "https://www.geogebra.org/graphing"
-        },
-        {
-            "GeoGebra 3D": "https://www.geogebra.org/3d?lang=en"
-        },
-        {
-            "CalcPlot3D": "https://www.monroecc.edu/faculty/paulseeburger/calcnsf/CalcPlot3D/"
         }
     ]
 ]

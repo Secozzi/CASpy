@@ -1144,7 +1144,7 @@ class Ui_MainWindow(object):
         self.EqOut.setObjectName("EqOut")
         self.gridLayout_5.addWidget(self.EqOut, 0, 2, 6, 1)
         self.horizontalLayoutEq = QHBoxLayout()
-        self.horizontalLayoutEq.setObjectName("horizontalLayoutEq")
+        self.horizontalLayoutEq.setObjectName("horizontalLayoutEq")l
         self.EqSolve = QRadioButton(self.Eq)
         self.EqSolve.setChecked(True)
         self.EqSolve.setObjectName("EqSolve")

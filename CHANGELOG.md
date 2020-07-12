@@ -6,13 +6,11 @@ All changes will be documented in this file
 
 ### Added
 
-- Added 'Equation' and 'Formulas' tab
 - Added windows to remove and add websites
 - Added splitters in each tab
 - Added 'view' to view the exact  or approximate answer in a separate window
 - Added CHANGELOG.md
-- Added support for differential equations and system of equations
-- Added option to substitute variables for values in evaluate
+- Added option to type in equation with equals sign in left expression
 
 ### Changed
 
@@ -21,12 +19,17 @@ All changes will be documented in this file
 - CAS.py has been removed and is replaced by qt_assets/main.py
 - qt_gui.py's only purpose is now to call the launch_app() function imported from qt_assets/main.py
 - The textbrowser that holds the approximate answer has been enlarged vertically.
-- Prime Factor tab has now two textbrowsers. One for displaying as a dict and for displaying as a string
+- Prime Factor tab has now two text browsers. One for displaying as a dict and for displaying as a string
+- Wordwrap on the text browser that displays the exact answer has been disabled and is instead enabled on view -> view exact answer
+- Settings -> Accuracy is no longer checkable and always displays accuracy
+- Each tab is now split into a separate .py file. This adds around 11 ms to start but it makes it way easier to manage
+- Eventfilters are now installed on the tab, not on the QPlainTextEdit
 
 ### Fixed
 
 - Inconsistencies in the ui has been fixed
 - Fixed a bug where shell clear wouldn't remove the list of previously executed commands
+- Fixed bug where application would detect, but still crash when trying to preview or calculate even though a formulas wasn't selected
 
 ## [1.2.1] - 2020-06-12
 

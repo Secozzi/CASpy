@@ -50,7 +50,7 @@ f, g, h = symbols('f g h', cls=Function)
    <item row="1" column="0">
     <widget class="QPushButton" name="ShellRun">
      <property name="text">
-      <string>Run</string>
+      <string>Run (Enter)</string>
      </property>
     </widget>
    </item>

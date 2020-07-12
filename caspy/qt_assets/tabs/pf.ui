@@ -74,6 +74,9 @@
       <property name="toolTip">
        <string>Output as dict; base as key and exponent as value</string>
       </property>
+      <property name="lineWrapMode">
+       <enum>QTextEdit::NoWrap</enum>
+      </property>
       <property name="placeholderText">
        <string>Output as dict</string>
       </property>
@@ -81,6 +84,9 @@
      <widget class="QTextBrowser" name="PfApprox">
       <property name="toolTip">
        <string>Output as string; (a**b)</string>
+      </property>
+      <property name="lineWrapMode">
+       <enum>QTextEdit::NoWrap</enum>
       </property>
       <property name="placeholderText">
        <string>Output as string</string>

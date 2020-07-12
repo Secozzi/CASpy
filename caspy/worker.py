@@ -6,11 +6,8 @@ from sympy.abc import _clash1
 from sympy.parsing.sympy_parser import parse_expr
 import math as m
 import cmath as cm
+import re
 from pyperclip import copy
-
-x, y, z, t = symbols('x y z t')
-k, m, n = symbols('k m n', integer=True)
-f, g, h = symbols('f g h', cls=Function)
 
 import traceback
 
@@ -140,6 +137,8 @@ class CASWorker(QRunnable):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
+
         if not input_expression:
             return({"error": ["Enter an expression"]})
         if not input_variable:
@@ -149,21 +148,27 @@ class CASWorker(QRunnable):
             derivative = Derivative(str(input_expression), input_variable, input_order)
         except Exception:
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
+        self.latex_answer = str(latex(derivative))
+
         if input_point:
             self.exact_ans = f"At {input_variable} = {input_point}\n"
+
         if output_type == 1:
             self.exact_ans += str(pretty(derivative))
         elif output_type == 2:
             self.exact_ans += str(latex(derivative))
         else:
             self.exact_ans += str(derivative)
-        return({"deriv": [self.exact_ans, self.approx_ans]})
+
+        return({"deriv": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def calc_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
+
         if use_scientific:
             if use_scientific > accuracy:
                 accuracy = use_scientific
@@ -177,6 +182,7 @@ class CASWorker(QRunnable):
             self.exact_ans = diff(parse_expr(input_expression), parse_expr(input_variable), input_order)
         except Exception:
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
+        self.latex_answer = str(latex(self.exact_ans))
 
         if input_point:
             calc_deriv_point = str(self.exact_ans).replace(input_variable, f"({input_point})")
@@ -184,6 +190,8 @@ class CASWorker(QRunnable):
                 self.approx_ans = self.to_scientific_notation(str(N(calc_deriv_point, accuracy)), use_scientific)
             else:
                 self.approx_ans = str(N(calc_deriv_point, accuracy))
+
+            self.latex_answer = str(latex(simplify(calc_deriv_point)))
             if output_type == 1:
                 self.exact_ans = str(pretty(simplify(calc_deriv_point)))
             elif output_type == 2:
@@ -197,13 +205,16 @@ class CASWorker(QRunnable):
                 self.exact_ans = str(latex(self.exact_ans))
             else:
                 self.exact_ans = str(self.exact_ans)
-        return({"deriv": [self.exact_ans, self.approx_ans]})
+
+        return({"deriv": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def prev_integ(self, input_expression, input_variable, input_lower, input_upper, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
+
         if not input_expression:
             return({"error": ["Enter an expression"]})
         if not input_variable:
@@ -213,8 +224,7 @@ class CASWorker(QRunnable):
 
         if input_lower:
             try:
-                self.exact_ans = Integral(parse_expr(input_expression), (
-                parse_expr(input_variable), input_lower, input_upper))
+                self.exact_ans = Integral(parse_expr(input_expression), (parse_expr(input_variable), input_lower, input_upper))
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
         else:
@@ -223,19 +233,23 @@ class CASWorker(QRunnable):
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
 
+        self.latex_answer = str(latex(self.exact_ans))
         if output_type == 1:
             self.exact_ans = str(pretty(self.exact_ans))
         elif output_type == 2:
             self.exact_ans = str(latex(self.exact_ans))
         else:
             self.exact_ans = str(self.exact_ans)
-        return({"integ": [self.exact_ans, self.approx_ans]})
+
+        return({"integ": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def calc_integ(self, input_expression, input_variable, input_lower, input_upper, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
+
         if use_scientific:
             if use_scientific > accuracy:
                 accuracy = use_scientific
@@ -252,6 +266,7 @@ class CASWorker(QRunnable):
                 self.exact_ans = integrate(parse_expr(input_expression), (parse_expr(input_variable), input_lower, input_upper))
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
+            self.latex_answer = str(latex(self.exact_ans))
 
             try:
                 if use_scientific:
@@ -271,6 +286,7 @@ class CASWorker(QRunnable):
                 self.exact_ans = integrate(parse_expr(input_expression), parse_expr(input_variable))
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
+            self.latex_answer = str(latex(self.exact_ans))
 
         if output_type == 1:
             self.exact_ans = str(pretty(self.exact_ans))
@@ -278,13 +294,16 @@ class CASWorker(QRunnable):
             self.exact_ans = str(latex(self.exact_ans))
         else:
             self.exact_ans = str(self.exact_ans)
-        return({"integ": [self.exact_ans, self.approx_ans]})
+
+        return({"integ": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def prev_limit(self, input_expression, input_variable, input_approach, input_side, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
+
         if not input_expression:
             return({"error": ["Enter an expression"]})
         if not input_approach:
@@ -296,6 +315,7 @@ class CASWorker(QRunnable):
             self.exact_ans = Limit(parse_expr(input_expression), parse_expr(input_variable), input_approach, input_side)
         except Exception:
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
+        self.latex_answer = str(latex(self.exact_ans))
 
         if output_type == 1:
             self.exact_ans = str(pretty(self.exact_ans))
@@ -304,13 +324,16 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(self.exact_ans)
 
-        return({"limit": [self.exact_ans, self.approx_ans]})
+
+        return({"limit": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def calc_limit(self, input_expression, input_variable, input_approach, input_side, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
+
         if use_scientific:
             if use_scientific > accuracy:
                 accuracy = use_scientific
@@ -326,6 +349,7 @@ class CASWorker(QRunnable):
             self.exact_ans = limit(parse_expr(input_expression), parse_expr(input_variable), input_approach, input_side)
         except Exception:
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
+        self.latex_answer = str(latex(self.exact_ans))
 
         if use_scientific:
             self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
@@ -339,13 +363,267 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(self.exact_ans)
 
-        return({"limit": [self.exact_ans, self.approx_ans]})
+        return({"limit": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
+
+    @pyqtSlot()
+    def prev_normal_eq(self, left_expression, right_expression, input_variable, domain, output_type, use_unicode, line_wrap):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+        self.approx_ans = 0
+        self.exact_ans = ""
+        self.latex_answer = ""
+
+        if "=" in left_expression:
+            if left_expression.count("=") > 1:
+                return ({"error": ["Enter only one equals sign"]})
+            else:
+                eq = left_expression.split("=")
+                left_expression = eq[0]
+                right_expression = eq[1]
+        else:
+            if not left_expression or not right_expression:
+                return ({"error": ["Enter an expression both in left and right side"]})
+
+        if not input_variable:
+            return ({"error": ["Enter a variable"]})
+
+        try:
+            full_equation = Eq(parse_expr(left_expression), parse_expr(right_expression))
+        except Exception:
+            return ({"error": [f"Error: \n{traceback.format_exc()}"]})
+
+        self.latex_answer = str(latex(full_equation))
+
+        if output_type == 1:
+            self.exact_ans = str(pretty(full_equation))
+        elif output_type == 2:
+            self.exact_ans = self.latex_answer
+        else:
+            self.exact_ans = str(full_equation)
+
+        self.exact_ans += f"\nDomain: {domain}"
+
+        return ({"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
+
+    @pyqtSlot()
+    def prev_diff_eq(self, left_expression, right_expression, function_solve, output_type, use_unicode, line_wrap):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+
+        self.approx_ans = 0
+        self.exact_ans = ""
+        self.latex_answer = ""
+
+        if "=" in left_expression:
+            if left_expression.count("=") > 1:
+                return ({"error": ["Enter only one equals sign"]})
+            else:
+                eq = left_expression.split("=")
+                try:
+                    left_side = parse_expr(self.parse_diff_text(eq[0]))
+                    right_side = parse_expr(self.parse_diff_text(eq[1]))
+                except Exception:
+                    return ({"error": [f"Error: \n{traceback.format_exc()}"]})
+        else:
+            if not left_expression or not right_expression:
+                return ({"error": ["Enter an expression both in left and right side"]})
+
+            try:
+                left_side = parse_expr(self.parse_diff_text(left_expression))
+                right_side = parse_expr(self.parse_diff_text(right_expression))
+            except Exception:
+                return ({"error": [f"Error: \n{traceback.format_exc()}"]})
+
+        if not function_solve:
+            return ({"error": ["Enter a function to solve for"]})
+
+        try:
+            full_equation = Eq(left_side, right_side)
+        except Exception:
+            return ({"error": [f"Error: \n{traceback.format_exc()}"]})
+
+        self.latex_answer = str(latex(full_equation))
+
+        if output_type == 1:
+            self.exact_ans = str(pretty(full_equation))
+        elif output_type == 2:
+            self.exact_ans = self.latex_answer
+        else:
+            self.exact_ans = str(full_equation)
+
+        try:
+            self.exact_ans += f"\nClassification: {str(classify_ode(full_equation))}"
+        except Exception:
+            return ({"error": [f"Error: \n{traceback.format_exc()}"]})
+
+        return ({"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
+
+    @pyqtSlot()
+    def prev_system_eq(self):
+        pass
+
+    @pyqtSlot()
+    def calc_normal_eq(self, left_expression, right_expression, input_variable, solve_type, domain, output_type, use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+        self.approx_ans = 0
+        self.exact_ans = ""
+        self.latex_answer = ""
+        domain = parse_expr(domain)
+
+        if "=" in left_expression:
+            if left_expression.count("=") > 1:
+                return ({"error": ["Enter only one equals sign"]})
+            else:
+                eq = left_expression.split("=")
+                left_expression = eq[0]
+                right_expression = eq[1]
+        else:
+            if not left_expression or not right_expression:
+                return ({"error": ["Enter an expression both in left and right side"]})
+
+        if not input_variable:
+            return ({"error": ["Enter a variable"]})
+
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
+
+        if solve_type == 1: # 1: solveset, 2: solve
+            try:
+                self.exact_ans = solveset(Eq(parse_expr(left_expression), parse_expr(right_expression)), parse_expr(input_variable), domain=domain)
+            except Exception:
+                return ({"error": [f"Error: \n{traceback.format_exc()}"]})
+
+        else:
+            try:
+                self.exact_ans = solve(Eq(parse_expr(left_expression), parse_expr(right_expression)), parse_expr(input_variable), domain=domain)
+            except Exception:
+                return ({"error": [f"Error: \n{traceback.format_exc()}"]})
+
+            if verify_domain:
+                verified_list = []
+                for solution in self.exact_ans:
+                    if solution in domain:
+                        verified_list.append(solution)
+                self.exact_ans = verified_list
+
+            approx_list = [N(i, accuracy) for i in self.exact_ans]
+            if use_scientific:
+                approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
+
+            self.approx_ans = approx_list[0] if len(approx_list) == 1 else approx_list
+
+        self.latex_answer = str(latex(self.exact_ans))
+        if output_type == 1:
+            self.exact_ans = str(pretty(self.exact_ans))
+        elif output_type == 2:
+            self.exact_ans = str(latex(self.exact_ans))
+        else:
+            self.exact_ans = str(self.exact_ans)
+
+        return({"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
+
+    @pyqtSlot()
+    def calc_diff_eq(self, left_expression, right_expression, hint, function_solve, output_type, use_unicode, line_wrap, use_scientific, accuracy):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+        self.approx_ans = 0
+        self.exact_ans = ""
+        self.latex_answer = ""
+
+        if "=" in left_expression:
+            if left_expression.count("=") > 1:
+                return ({"error": ["Enter only one equals sign"]})
+            else:
+                eq = left_expression.split("=")
+                left_side = parse_expr(self.parse_diff_text(eq[0]))
+                right_side = parse_expr(self.parse_diff_text(eq[1]))
+        else:
+            if not left_expression or not right_expression:
+                return ({"error": ["Enter an expression both in left and right side"]})
+
+            left_side = parse_expr(self.parse_diff_text(left_expression))
+            right_side = parse_expr(self.parse_diff_text(right_expression))
+
+        if not function_solve:
+            return ({"error": ["Enter a function"]})
+
+        if not hint:
+            hint = 'default'
+
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
+
+        diffeq = Eq(left_side, right_side)
+        self.exact_ans = dsolve(diffeq, parse_expr(function_solve), hint=hint)
+        self.latex_answer = str(latex(self.exact_ans))
+
+        approx_list = [N(i, accuracy) for i in self.exact_ans]
+        if use_scientific:
+            approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
+
+        self.approx_ans = approx_list[0] if len(approx_list) == 1 else approx_list
+
+        if output_type == 1:
+            self.exact_ans = str(pretty(self.exact_ans))
+            self.approx_ans = str(pretty(self.approx_ans))
+        elif output_type == 2:
+            self.exact_ans = str(latex(self.exact_ans))
+            self.approx_ans = str(latex(self.approx_ans))
+        else:
+            pass
+
+        return({"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
+
+    @pyqtSlot()
+    def parse_diff_text(self, text):
+        """
+        Catches all derivatives and transforms it so SymPy can read it.
+        No nested functions because no.
+        Examples (Not what function will return, just how it transforms functions)
+            f'''(x)
+            => f(x).diff(x,3)
+
+            f''(x, y, z)
+            => f(x, y, z).diff(x,2,y,2,z,2)
+
+        :param text: str
+
+        :return: str
+            String
+        """
+
+        diff_functions = re.compile(r"(?:[a-zA-Z])+('+)\(.*?\)")
+        inside_params = re.compile(r"(?<=\().+?(?=\))")
+        quotations = re.compile(r"'+(?=\()")
+
+        functions = diff_functions.finditer(text)
+
+        for function in functions:
+            output = ""
+            func_str = function.group(0)
+            inside_param = inside_params.search(func_str).group(0)
+            order = len(function.group(1))
+            function_no_order = quotations.sub("", func_str)
+
+            inside_param = inside_param.strip(" ")
+            vars = [i.strip() for i in inside_param.split(",")]
+
+            output += f"{function_no_order}.diff("
+            for var in vars:
+                output += f"{var},{order},"
+
+            output = output[:-1]
+            output += ")"
+
+            text = text.replace(func_str, output)
+
+        return text
 
     @pyqtSlot()
     def prev_eq(self, left_expression, right_expression, input_variable, outputText, output_type, use_unicode, line_wrap, cli=False):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = "\\text{LaTeX support not yet implemented for equation}"
 
         if not left_expression or not right_expression:
             return ({"error": ["Enter an expression both in left and right side"]})
@@ -395,13 +673,15 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(left_expression) + " = " + str(right_expression)
 
-        return({"eq": [self.exact_ans, self.approx_ans]})
+        return({"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def calc_eq(self, left_expression, right_expression, input_variable, solve_type, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = "\\text{LaTeX support not yet implemented for equation}"
+
         if use_scientific:
             if use_scientific > accuracy:
                 accuracy = use_scientific
@@ -436,13 +716,14 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(self.exact_ans)
 
-        return({"eq": [self.exact_ans, self.approx_ans]})
+        return({"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
-    def prev_simp_eq(self, expression, output_type, use_unicode, line_wrap):
+    def prev_simp_exp(self, expression, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
 
         if not expression:
             return({"error": ["Enter an expression"]})
@@ -457,16 +738,19 @@ class CASWorker(QRunnable):
                 self.exact_ans = str(latex(parse_expr(expression, evaluate=False)))
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
+            self.latex_answer = str(latex(self.exact_ans))
         else:
             self.exact_ans = str(expression)
+        self.latex_answer = str(latex(parse_expr(expression, evaluate=False)))
 
-        return({"simp": [self.exact_ans, self.approx_ans]})
+        return({"simp": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
-    def simp_eq(self, expression, output_type, use_unicode, line_wrap):
+    def simp_exp(self, expression, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
 
         if not expression:
             return({"error": ["Enter an expression"]})
@@ -483,13 +767,14 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(self.exact_ans)
 
-        return({"simp": [self.exact_ans, self.approx_ans]})
+        return({"simp": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
-    def prev_exp_eq(self, expression, output_type, use_unicode, line_wrap):
+    def prev_expand_exp(self, expression, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
 
         if not expression:
             return({"error": ["Enter an expression"]})
@@ -504,16 +789,19 @@ class CASWorker(QRunnable):
                 self.exact_ans = str(latex(parse_expr(expression, evaluate=False)))
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
+            self.latex_answer = str(latex(self.exact_ans))
         else:
             self.exact_ans = str(expression)
+        self.latex_answer = str(latex(parse_expr(expression, evaluate=False)))
 
-        return({"exp": [self.exact_ans, self.approx_ans]})
+        return({"exp": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
-    def exp_eq(self, expression, output_type, use_unicode, line_wrap):
+    def expand_exp(self, expression, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
 
         if not expression:
             return({"error": ["Enter an expressiobn"]})
@@ -522,6 +810,7 @@ class CASWorker(QRunnable):
             self.exact_ans = expand(expression)
         except Exception:
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
+        self.latex_answer = str(latex(self.exact_ans))
 
         if output_type == 1:
             self.exact_ans = str(pretty(self.exact_ans))
@@ -530,13 +819,14 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(self.exact_ans)
 
-        return({"exp": [self.exact_ans, self.approx_ans]})
+        return({"exp": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def prev_eval_exp(self, expression, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
 
         if not expression:
             return({"error": ["Enter an expression"]})
@@ -545,23 +835,27 @@ class CASWorker(QRunnable):
             try:
                 self.exact_ans = str(pretty(parse_expr(expression, evaluate=False)))
             except Exception:
-
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
+            self.latex_answer = str(latex(self.exact_ans))
         elif output_type == 2:
             try:
                 self.exact_ans = str(latex(parse_expr(expression, evaluate=False)))
             except Exception:
                 return({"error": [f"Error: \n{traceback.format_exc()}"]})
+            self.latex_answer = str(latex(self.exact_ans))
         else:
             self.exact_ans = str(expression)
+            self.latex_answer = str(latex(self.exact_ans))
 
-        return({"eval": [self.exact_ans, self.approx_ans]})
+        return({"eval": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def eval_exp(self, expression, output_type, use_unicode, line_wrap, use_scientific, accuracy):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
+        self.latex_answer = ""
+
         if use_scientific:
             if use_scientific > accuracy:
                 accuracy = use_scientific
@@ -577,6 +871,7 @@ class CASWorker(QRunnable):
                 self.approx_ans = str(N(self.exact_ans, accuracy))
         except Exception:
             return({"error": [f"Error: \n{traceback.format_exc()}"]})
+        self.latex_answer = str(latex(self.exact_ans))
 
         if output_type == 1:
             self.exact_ans = str(pretty(self.exact_ans))
@@ -585,11 +880,12 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(self.exact_ans)
 
-        return({"eval": [self.exact_ans, self.approx_ans]})
+        return({"eval": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def calc_pf(self, input_number):
         self.approx_ans = ""
+        self.latex_answer = "\\text{LaTeX not supported for prime factorization}"
 
         try:
             input_number = int(input_number)
@@ -607,12 +903,18 @@ class CASWorker(QRunnable):
         for base in self.exact_ans:
             self.approx_ans += f"({base}**{self.exact_ans[base]})*"
 
-        return({"pf": [self.exact_ans, self.approx_ans[0:-1]]})
+        return({"pf": [self.exact_ans, self.approx_ans[0:-1]], "latex": self.latex_answer})
 
     @pyqtSlot()
     def execute_code(self, new_code, previous_code_list):
         self.approx_ans = 0
         self.output_code = ""
+        self.latex_answer = "LaTeX not supported for shell"
+
+        x, y, z, t = symbols('x y z t')
+        k, m, n = symbols('k m n', integer=True)
+        f, g, h = symbols('f g h', cls=Function)
+
         if new_code:
             if new_code[0] == "\n":
                 new_code = new_code[1:]
@@ -642,20 +944,15 @@ class CASWorker(QRunnable):
                 exec(f"self.output_code += str({new_to_exec})")
                 exec(f"self.exact_ans = str({new_to_exec})")
 
-        return({"exec": [self.output_code, 0], "list": previous_code_list})
+        return({"exec": [self.output_code, 0], "list": previous_code_list, "latex": self.latex_answer})
 
     @pyqtSlot()
-    def formula_get_info(self, text, data):
-        for branch in data:
-            for sub_branch in branch[1]:
-                for formula in sub_branch[1]:
-                    if formula[0] == text:
-                        return({"formula_info", [formula[1]]})
-
-    @pyqtSlot()
-    def prev_formula(self, lines, value_string, output_text, output_type, use_unicode, line_wrap):
+    def prev_formula(self, lines, value_string, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         empty_var_list, var_list, values = [], [], []
+        self.exact_ans = ""
+        self.approx_ans = 0
+        self.latex_answer = ""
 
         for line in lines:
             if line[0].text() == "":
@@ -668,31 +965,20 @@ class CASWorker(QRunnable):
         if len(empty_var_list) > 1 and len(var_list) != 1:
             return({"error": ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]})
 
-        if len(var_list) == 1:
-            final_var = var_list[0]
-        else:
-            final_var = empty_var_list[0]
-
         left_side = value_string[0]
         right_side = value_string[1]
 
-        self.exact_ans = solve(Eq(parse_expr(left_side, _clash1), parse_expr(right_side, _clash1)),parse_expr(final_var, _clash1))
-        self.approx_ans = 0
+        self.exact_ans = Eq(parse_expr(left_side, _clash1), parse_expr(right_side, _clash1))
+        self.latex_answer = str(latex(self.exact_ans))
 
         if output_type == 1:
-            if output_text == "" or output_text[0:10] == "Right side":
-                self.exact_ans = "Left side, click again for right side\n" + str(pretty(parse_expr(final_var, _clash1)))
-            else:
-                self.exact_ans = "Right side, click again for left side\n" + str(pretty(self.exact_ans))
+            self.exact_ans = str(pretty(self.exact_ans))
         elif output_type == 2:
-            try:
-                self.exact_ans = str(latex(parse_expr(final_var, _clash1))) + " = " + str(latex(parse_expr(self.exact_ans)))
-            except TypeError as e:
-                return({"error": [f"Error: \n{e}\nUnable to preview formulas with multiple answers"]})
+            self.exact_ans = str(latex(self.exact_ans))
         else:
-            self.exact_ans = str(final_var) + " = " + str(self.exact_ans)
+            self.exact_ans = str(self.exact_ans)
 
-        return({"formula": [self.exact_ans, self.approx_ans]})
+        return({"formula": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})
 
     @pyqtSlot()
     def calc_formula(self, lines, value_string, solve_type, output_type, use_unicode, line_wrap, use_scientific, accuracy):
@@ -700,6 +986,8 @@ class CASWorker(QRunnable):
         empty_var_list, var_list, values = [], [], []
         self.exact_ans = ""
         self.approx_ans = 0
+        self.latex_answer = "\\text{LaTeX support not yet implemented for formula}"
+
         if use_scientific:
             if use_scientific > accuracy:
                 accuracy = use_scientific
@@ -761,4 +1049,4 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(self.exact_ans)
 
-        return({"formula": [self.exact_ans, self.approx_ans]})
+        return({"formula": [self.exact_ans, self.approx_ans], "latex": self.latex_answer})

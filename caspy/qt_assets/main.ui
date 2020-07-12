@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>800</height>
+    <width>1500</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -105,9 +105,17 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1500</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Segoe UI</family>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
    </property>
    <widget class="QMenu" name="menuCopy">
     <property name="title">
@@ -238,7 +246,7 @@
   </action>
   <action name="actionAccuracy">
    <property name="checkable">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Accuracy</string>
@@ -300,10 +308,16 @@
    <property name="text">
     <string>Exact Answer</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+E</string>
+   </property>
   </action>
   <action name="actionApproximate_Answer">
    <property name="text">
     <string>Approximate Answer</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+A</string>
    </property>
   </action>
  </widget>
