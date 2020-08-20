@@ -1,9 +1,121 @@
-from PyQt5.QtCore import QEvent, Qt
+from PyQt5.QtCore import pyqtSlot, QEvent, Qt
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QCursor
 from PyQt5.uic import loadUi
 
-from worker import CASWorker
+from sympy import *
+from sympy.abc import _clash1
+from sympy.parsing.sympy_parser import parse_expr
+
+import traceback
+
+#from worker import CASWorker
+from worker import BaseWorker
+
+def catch_thread(func):
+    """Decorator to catch any errors of a slot. This decorator shouldn't be called under normal circumstances"""
+
+    def wrapper(*s, **gs):
+        try:
+            result = func(*s, **gs)
+            return result
+        except Exception:
+            return {"error": [f"ERROR IN SOURCE CODE: \n\n{traceback.format_exc()}"]}
+
+    return wrapper
+
+
+class DerivativeWorker(BaseWorker):
+    def __init__(self, command, params, copy=None):
+        super().__init__(command, params, copy)
+
+    @pyqtSlot()
+    def prev_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode,
+                   line_wrap):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+        self.approx_ans = 0
+        self.exact_ans = ""
+        self.latex_answer = ""
+
+        if not input_expression:
+            return {"error": ["Enter an expression"]}
+        if not input_variable:
+            return {"error": ["Enter a variable"]}
+
+        try:
+            derivative = Derivative(str(input_expression), input_variable, input_order)
+        except Exception:
+            return {"error": [f"Error: \n{traceback.format_exc()}"]}
+        self.latex_answer = str(latex(derivative))
+
+        if input_point:
+            self.exact_ans = f"At {input_variable} = {input_point}\n"
+
+        if output_type == 1:
+            self.exact_ans += str(pretty(derivative))
+        elif output_type == 2:
+            self.exact_ans += str(latex(derivative))
+        else:
+            self.exact_ans += str(derivative)
+
+        return {"deriv": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
+
+    @BaseWorker.debug_output
+    @pyqtSlot()
+    def calc_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode,
+                   line_wrap, use_scientific, accuracy):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+
+        self.approx_ans = 0
+        self.exact_ans = ""
+        self.latex_answer = ""
+
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
+
+        if not input_expression:
+            return {"error": ["Enter an expression"]}
+        if not input_variable:
+            return {"error": ["Enter a variable"]}
+
+        try:
+            self.exact_ans = diff(parse_expr(input_expression), parse_expr(input_variable), input_order)
+        except Exception:
+            return {"error": [f"Error: \n{traceback.format_exc()}"]}
+        self.latex_answer = str(latex(self.exact_ans))
+
+        if input_point:
+            calc_deriv_point = str(self.exact_ans).replace(input_variable, f"({input_point})")
+
+            if use_scientific:
+                try:
+                    self.approx_ans = self.to_scientific_notation(str(N(calc_deriv_point, accuracy)), use_scientific)
+                except Exception:
+                    return {"error": [f"Failed to parse {input_point}"]}
+            else:
+                try:
+                    self.approx_ans = str(N(calc_deriv_point, accuracy))
+                except Exception:
+                    return {"error": [f"Failed to parse {input_point}"]}
+
+            self.latex_answer = str(latex(simplify(calc_deriv_point)))
+            if output_type == 1:
+                self.exact_ans = str(pretty(simplify(calc_deriv_point)))
+            elif output_type == 2:
+                self.exact_ans = str(latex(simplify(calc_deriv_point)))
+            else:
+                self.exact_ans = str(simplify(calc_deriv_point))
+        else:
+            if output_type == 1:
+                self.exact_ans = str(pretty(self.exact_ans))
+            elif output_type == 2:
+                self.exact_ans = str(latex(self.exact_ans))
+            else:
+                self.exact_ans = str(self.exact_ans)
+
+        return {"deriv": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
+
 
 class DerivativeTab(QWidget):
 
@@ -87,7 +199,7 @@ class DerivativeTab(QWidget):
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        self.WorkerCAS = CASWorker("prev_deriv", [
+        self.WorkerCAS = DerivativeWorker("prev_deriv", [
             self.DerivExp.toPlainText(),
             self.DerivVar.text(),
             self.DerivOrder.value(),
@@ -101,11 +213,20 @@ class DerivativeTab(QWidget):
 
         self.main_window.threadpool.start(self.WorkerCAS)
 
+    def calc_deriv_new(self):
+        self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
+        self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
+
+        worker = DerivativeWorker()
+
+        worker.signals.output.connect(self.update_ui)
+        worker.signals.finished.connect(self.stop_thread)
+
     def calc_deriv(self):
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        self.WorkerCAS = CASWorker("calc_deriv", [
+        self.WorkerCAS = DerivativeWorker("calc_deriv", [
             self.DerivExp.toPlainText(),
             self.DerivVar.text(),
             self.DerivOrder.value(),

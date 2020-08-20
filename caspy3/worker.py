@@ -32,6 +32,127 @@ class WorkerSignals(QObject):
     output = pyqtSignal(dict)
 
 
+class BaseWorker(QRunnable):
+    def __init__(self, command, params, copy_output=None):
+        super(BaseWorker, self).__init__()
+
+        self.command = command
+        self.params = params
+        self.copy_output=None
+
+        self.signals = WorkerSignals()
+
+    @staticmethod
+    def debug_output(func):
+        """Decorator for debugging. It will print params and copy result"""
+
+        def wrapper(self, *args, **kwargs):
+            print(f"PARAMS: {self.params}")
+            try:
+                func(self, *args, **kwargs)
+            except Exception:
+                return {"error": [f"ERROR IN SOURCE CODE: \n\n{traceback.format_exc()}"]}
+        return wrapper
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            self.result = getattr(self, self.command)(*self.params)
+        except Exception:
+            return {"error": f"Error calling function from worker thread: \n{traceback.format_exc()}"}
+
+        self.signals.output.emit(self.result)
+        self.signals.finished.emit()
+
+    @pyqtSlot()
+    def is_running(self, to_run):
+        return ["running", to_run]
+
+    @catch_thread
+    @pyqtSlot()
+    def to_scientific_notation(self, number, accuracy=5):
+        """
+        Converts number into the string "a*x**b" where a is a float and b is an integer unless it's not a number in the
+        complex plane, such as infinity.
+        For Complex numbers, a+b*i becomes c*10**d + e*10**f*I
+
+        :param number: str
+            number to be converted into
+        :param accuracy: int
+            accuracy of scientific notation
+        :return: str
+            scientific notation of number in string
+        """
+
+        # Is "a+b*i -> c*10**d + e*10**f*I" even a thing?
+        # Can't find anything on internet but I'm implementing it like this for now
+
+        number = str(number)
+        sym_num = sympify(number)
+
+        if not sym_num.is_complex:
+            return number
+
+        if type(accuracy) != int:
+            print("Accuracy must be an integer over 1, defaulting to 5")
+            accuracy = 5
+
+        if accuracy < 1:
+            print("Accuracy must be an integer over 1, defaulting to 5")
+            accuracy = 5
+
+        if sym_num.is_real:
+
+            if sym_num < 0:
+                negative = "-"
+                number = number[1:]
+                sym_num = sympify(number)
+            else:
+                negative = ""
+
+            int_part = number.split(".")[0]
+            no_decimal = number.replace(".", "")
+
+            # convert it into 0.number, round it then convert it back into number
+            output = str(sympify("0." + no_decimal).round(accuracy))[2:]
+            if accuracy != 1:
+                output = output[:2] + "." + output[2:]
+
+            if sym_num < 1:
+                zero_count = 0
+                while zero_count < len(no_decimal) and no_decimal[zero_count] == "0":
+                    zero_count += 1
+
+                output = no_decimal[zero_count:]
+                output = str(sympify("0." + output).round(accuracy))[2:]
+
+                if accuracy != 1:
+                    output = output[:1] + "." + output[1:]
+
+                output += f"*10**(-{zero_count})"
+                return negative + output
+            else:
+                output = str(sympify("0." + no_decimal).round(accuracy))[2:]
+                if accuracy != 1:
+                    output = output[:1] + "." + output[1:]
+
+                output += "*10**" + str(len(int_part.replace("-", "")) - 1)
+                return negative + output
+        else:
+            real = re(sym_num)
+            imag = im(sym_num)
+
+            real = self.to_scientific_notation(real, accuracy)
+            imag = self.to_scientific_notation(imag, accuracy)
+
+            output = real
+            if sympify(imag) < 0:
+                output += f" - {imag[1:]}*I"
+            else:
+                output += f" + {imag}*I"
+            return output
+
+
 class CASWorker(QRunnable):
     def __init__(self, type, params, copy=None):
         super(CASWorker, self).__init__()

@@ -2,6 +2,17 @@
 
 All changes will be documented in this file
 
+## [2.1] - TBA - not released yet
+
+### Added
+
+- Added summation tab
+- System of Equation has now option to solve system of differential equations
+
+### Changed
+
+- Each tab has now their own worker
+
 ## [2.0] - 2020-08-20
 
 ### Added
