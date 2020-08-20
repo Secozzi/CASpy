@@ -1,0 +1,91 @@
+[
+    {
+        "A": "A|Area|m^2 (kvadratmeter)",
+        "B": "B|Magnetisk flödestäthet, kring oändlig lång rak ledare|T (Tesla)",
+        "E": "E|Energi|J (Joule)",
+        "E_k": "E_k|Rörelseenergi|J (Joule)",
+        "F": "F|Kraft|N (newton)",
+        "G": "G;(6.6743015*10^(-11))|Allmäna gravitationskonstant|Nm^2/kg^2 (Newtonkvadratmeter per kvadratkilogram",
+        "I": "I|Ström|A (Ampere)",
+        "Im": "I|Impuls|Ns (kg*m/s) (Newtonsekund, kilogrammeter per sekund",
+        "M_km": "M|Kraftmoment|Nm (Newtonemeter)",
+        "N": "N|Normalkraft|N (Newton)",
+        "Nv": "N|Antal varv|st (styck)",
+        "T": "T|Omloppstid| s(sekund)",
+        "W": "W|Arbete|Nm (Newtonmeter)",
+        "a": "a|Medelacceleration rätlinjig rörelse|m/s^2 (meter per sekundkvadrat)",
+        "bk": "k;1.38*10**(-23)|Boltzmanns konstant|J/K (Joule delat på Kelvin)",
+        "c": "c|Specifik värmekapacitet|J",
+        "cl": "c;299792458|Ljusets hastighet|m/s",
+        "f": "f|Friktionstalet|Saknar enhet",
+        "g": "g;9.80665|Tyngdacceleration|m/s^2 (meter per sekundkvadrat)",
+        "k": "k|Fjäderkonstant|N/m (Newton per meter)",
+        "l": "l|Längd|m (meter)",
+        "m": "m|Massa|kg (kilogram)",
+        "p": "p|Rörelsemängd|kgm/s (kilogrammeter per sekund)",
+        "pt": "p|Tryck|Pa (N/m^2) (Pascal, Newton per kvadratmeter)",
+        "r": "r|Radie|m (meter)",
+        "s": "s|Sträcka|m (meter)",
+        "s_lk": "s|Lägeskoordinat, väg|m (meter)",
+        "srr": "s|Sträcka - rätlinjig rörelse|m (meter)",
+        "t": "t|Tid|s (sekund)",
+        "u_h": "u|Hastighet|m/s (meter per sekund)",
+        "v": "v|Hastighet|m/s (meter per sekund)",
+        "v0": "v0|Starthastighet|m/s (meter per sekund)",
+        "v_h": "v|Hastighet|m/s (meter per sekund)",
+        "vrr": "v|Medelhastighet - rätlinjig rörelse|m/s (meter per sekund)",
+        "vs": "v|Sluthastighet - rätlinjig rörelse|m/s (meter per sekund)",
+        "μ": "μ|Permeabilitet|H/m (henry per meter)",
+        "ρ": "ρ|Densitet|kg/(m^3) (kilogram per kubikmeter",
+        "ω": "ω|Vinkelhastighet|rad/s (radianer per sekund)"
+    },
+    [
+        {
+            "Fysik": {
+                "Ellära": {
+                    "E=m*c**2": {
+                        "E": "E",
+                        "c": "cl",
+                        "m": "m"
+                    }
+                },
+                "Mekanik - Dynamik": {
+                    "F=m*a": {
+                        "F": "F",
+                        "a": "a",
+                        "m": "m"
+                    },
+                    "I=F*t": {
+                        "F": "F",
+                        "I": "Im",
+                        "t": "t"
+                    },
+                    "I=p1-p2": {
+                        "I": "I",
+                        "p1": "p",
+                        "p2": "p"
+                    },
+                    "p=m*v": {
+                        "m": "m",
+                        "p": "p",
+                        "v": "v"
+                    },
+                    "Ek=0.5*m*v**2": {
+                        "Ek": "E_k",
+                        "m": "m",
+                        "v": "v"
+                    }
+                }
+            }
+        },
+        {
+            "Kemi": {
+                "Placeholder subbranch": {
+                    "Placerholder formula1": {
+                        "Place": "Holder"
+                    }
+                }
+            }
+        }
+    ]
+]

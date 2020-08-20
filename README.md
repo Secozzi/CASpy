@@ -7,13 +7,9 @@ _A program that provides a GUI and a CLI to SymPy, a symbolic computation and co
   <img src="https://i.imgur.com/F7wfzQt.png" alt="CASPY logo">
 </p>
 
-## CASpy
-
-A Computer Algebra System built using mainly PyQt5 and Sympy
-
 ## Installing
 
-Install with `pip` .
+Install with `pip`.
 
 ```
 pip install caspy3
@@ -27,13 +23,7 @@ To start the GUI
 caspy start
 ```
 
-### Requirements
-Make sure you install all dependencies inside `requirements.txt`.
-
 ### Command-line tool
-
-Notes:
-Put any negative numbers inside parentheses so the command line tool doesn't think it's an argument. Example: `caspy eval (-1)**2`
 
 ```
 Usage: caspy [OPTIONS] COMMAND [ARGS]...
@@ -42,20 +32,22 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  deriv  Calculate the derivative.
-  eq     Solve an equation.
-  eval   Evaluates an expression.
-  exp    Expandes an expression.
-  integ  Calculate the integral.
-  limit  Calculate the limit of an expression.
-  pf     Retreives the prime factors of an positive integer.
-  simp   Simplifies an expression.
-  start  Start the GUI
-  web    Choose a number from a list of usable maths websites.
+  deriv    Derive a function Usage: caspy deriv EXPRESSION VARIABLE [ORDER]...
+  diff-eq  Solves a differential equation equation.
+  eq       Solves a normal equation.
+  eval     Evaluates an expression.
+  exp      Expandes an expression.
+  integ    Calculate definite and indefinite integrals of expressions.
+  limit    Calculate the limit of an expression.
+  pf       Retreives the prime factors of an positive integer.
+  simp     Simplifies an expression.
+  start    Start the GUI
+  sys-eq   Solves a system of equations.
+  web      Choose a number from a list of usable maths websites and open it...
 ```
 
 #### Flags
-`-p, --preview`, Preview instead of calculating <br>
+`-p, --preview`, Previews instead of calculating <br>
 `-o, --output-type`, Select output type, 1 for pretty; 2 for latex and 3 for normal <br>
 `-u, --use-unicode`, Use unicode for symbols <br>
 `-l, --line-wrap`, Use line wrap on answer <br>
@@ -63,113 +55,152 @@ Commands:
 #### Arguments
 `-s, --use-scientific`, Notate approximate answer with scientific notation, argument is accuracy <br>
 `-a --accuracy`, Accuracy of evaluation <br>
+`-c --copy`, Copies the answer. 1 for exact_ans and 2 for approx_ans and 3 for a list of [exact_ans, approx_ans] <br>
+
+#### Equation specific arguments
+`-d --domain`, Give domain to solve for <br>
+`-v --verify-domain`, Filter out any solutions that isn't in domain. Doesn't work with solveset. This flag must be set in order for domain to work if it solves with solve and not solveset. Needed for system of equations <br> 
 
 #### deriv
 ```
-Calculate the derivative.
+Derive a function
 
-  Usage:
-    deriv *expression *variable order at_point
-    * = required
-  Example:
-    > caspy deriv sin(1/ok) ok 3 pi
+    Usage: caspy deriv EXPRESSION VARIABLE [ORDER] [AT_POINT]
+
+    Example(s):
+    >>> caspy deriv x**x x
+    >>> caspy deriv sin(1/x) x 3 pi
 ```
 
 #### eq
 ```
-Solve an equation.
+Solves a normal equation.
 
-  Usage:
-    eq *left_expression *right_expression *variable_to_solve_for solve_type
-    * = required
-    Use '--solve-type' or '-st' flag to solve equation with SymPy solve, set flag for solveset
-  Examples:
-    > caspy eq x**x 2 x
-    > caspy eq sin(x) 1 x -st
+    Separate equation by either a space or a =, but not both.
+
+    Usage: eq LEFT_EXPRESSION RIGHT_EXPRESSION VARIABLE_TO_SOLVE_FOR [SOLVE_TYPE]
+
+    Example(s):
+    >>> caspy eq x**x 2 x
+    >>> caspy eq sin(x)=1 x -st
+```
+
+#### diff-eq
+```
+Solves a differential equation equation.
+
+    Separate equation by either a space or a =, but not both.
+
+    Usage: diff-eq LEFT_EXPRESSION RIGHT_EXPRESSION FUNCTION_TO_SOLVE_FOR [HINT]
+
+    Example(s):
+    >>> caspy diff-eq f'(x) 1/f(x) f(x)
+    >>> caspy diff-eq f''(x)+3*f'(x)=x**2 f(x)
+```
+
+#### sys-eq
+```
+Solves a system of equations.
+
+    Takes number of equations as argument, then will prompt user for all equations
+
+    Usage: sys-eq NO_OF_EQUATIONS
+
+    Example(s):
+    >>> caspy sys-eq 5
+    >>> caspy sys-eq 3 -d Integers
+
 ```
 
 #### eval
 ```
 Evaluates an expression.
 
-  Usage:
-    eval *expression
-    * = required
-  Example:
-    > caspy eval exp(pi)+3/sin(6)
+    After expression you can also subtitute your variables with a value.
+    To substitute, simply type the variable to substitute followed by the value separated by a space.
+
+    For example:
+    >>> 3**(x+y) x 3 y 5
+    => 3**((3)+(5))
+    => 6561
+
+    Usage: eval EXPRESSION [VARS_SUB ... ]
+
+    Example(s):
+    >>> caspy eval exp(pi)+3/sin(6)
+    >>> caspy eval 3**x x 3
 ```
 
 
 #### exp
 ```
-  Expandes an expression.
+Expandes an expression.
 
-  Usage:
-    exp *expression
-    * = required
-  Example:
-    > exp (a+b-c)**3
+    Usage: exp EXPRESSION
+
+    Example(s):
+    >>> caspy exp (a+b-c)**3
 ```
 
 #### integ
 ```
-Calculate the integral.
+Calculate definite and indefinite integrals of expressions.
 
-  Usage:
-    integ *expression *variable lower_bound upper_bound
-    * = required
-  Example:
-    > caspy integ 1/sqrt(1-x**2) x (-1) 1
+    Usage: caspy integ EXPRESSION VARIABLE {LOWER_BOUND UPPER_BOUND} [APPROXIMATE]
+
+    Example(s):
+    >>> caspy integ 1/sqrt(1-x**2) x -1 1
+    >>> caspy integ x**x x -1 1 -A
 ```
 
 #### limit
 ```
 Calculate the limit of an expression.
 
-  Usage:
-    limit *expression *variable *as_variable_is_approaching side
-    * = required
-    Both sides as default, + for right side and - for left side
-  Example:
-    > caspy limit u!**(1/u) u 0 -
+    Usage: caspy limit EXPRESSION VARIABLE AS_VARIABLE_IS_APPROACHING [SIDE]
+
+    Example(s):
+    >>> caspy limit (1+1/(a*n))**(b*n) n oo
+    >>> caspy limit n!**(1/n) n 0 -
 ```
 
 #### pf
 ```
 Retreives the prime factors of an positive integer.
 
-  Usage:
-    pf *number
-    * = required
-  Example:
-    > caspy pf 372
+    Note: exact_ans stores factors as dict: '{2: 2, 3: 1, 31: 1}'
+    while approx_ans stores factors as string: '(2**2)*(3**1)*(31**1)'
 
-  Note: exact_ans stores factors as dict: '{2: 2, 3: 1, 31: 1}' while approx_ans stores factors as string: '(2**2)*(3**1)*(31**1)'
+    Usage: pf NUMBER
+
+    Example(s):
+    >>> caspy pf 372
 ```
 
 #### simp
 ```
 Simplifies an expression.
 
-  Usage:
-    simp *expression
-    * = required
-  Example:
-    > caspy simp sin(x)**2+cos(x)**2
+    Usage: simp EXPRESSION
+
+    Example(s):
+    >>> caspy simp sin(x)**2+cos(x)**2
 ```
 
 #### start
 ```
-Start the GUI
+Start the GUI. No options/flags etc
 ```
 
 #### web
 ```
-Choose a number from a list of usable maths websites. type '-l' for a list of websites and enter a number. The website will be opened in the default browser.
+Choose a number from a list of usable maths websites and open it in default web browser.
 
-  Usage:
-    web number
-  Example:
-    > caspy web 4
-    > caspy web -l
+    type '-l' for a list of websites and enter a number. The website will be opened in the default browser.
+
+    Usage: web {NUMBER | LIST}
+
+    Example(s):
+    >>> caspy web 4
+    >>> caspy web -l
 ```

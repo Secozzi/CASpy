@@ -2,7 +2,7 @@
 
 All changes will be documented in this file
 
-## [2.0] - TBA (Not released yet)
+## [2.0] - 2020-08-20
 
 ### Added
 
@@ -11,6 +11,10 @@ All changes will be documented in this file
 - Added 'view' to view the exact  or approximate answer in a separate window
 - Added CHANGELOG.md
 - Added option to type in equation with equals sign in left expression
+- Added option to approximate integrals. This overrides normal integration
+- Added option to substitute variables in the Evaluate tab
+- Added dialog to select tabs to show
+- Added tests
 
 ### Changed
 
@@ -22,8 +26,10 @@ All changes will be documented in this file
 - Prime Factor tab has now two text browsers. One for displaying as a dict and for displaying as a string
 - Wordwrap on the text browser that displays the exact answer has been disabled and is instead enabled on view -> view exact answer
 - Settings -> Accuracy is no longer checkable and always displays accuracy
-- Each tab is now split into a separate .py file. This adds around 11 ms to start but it makes it way easier to manage
-- Eventfilters are now installed on the tab, not on the QPlainTextEdit
+- Each tab is now split into a separate .py and .ui file. This adds around 11 ms to start but it makes it way easier to manage
+- Prime Factor tab now consits of a QLineEdit with QRegExpValidator instead of QSpinBox
+- CLI now automatically encloses negative numbers with parentheses
+- CLI updates to match all new functions
 
 ### Fixed
 

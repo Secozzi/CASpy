@@ -1,0 +1,25 @@
+{
+    "tabs": {
+        "DerivativeTab": true,
+        "IntegralTab": true,
+        "LimitTab": true,
+        "EquationsTab": true,
+        "SimplifyTab": true,
+        "ExpandTab": true,
+        "EvaluateTab": true,
+        "PfTab": true,
+        "WebTab": true,
+        "FormulaTab": true,
+        "ShellTab": true
+    },
+    "unicode": false,
+    "linewrap": false,
+    "output": 1,
+    "scientific": false,
+    "accuracy": 10,
+    "approx_integ": false,
+    "verify_domain_eq": false,
+    "selected_web_index": 0,
+    "verify_domain_formula": false,
+    "start_code": "from __future__ import division\n\nfrom sympy import *\nfrom sympy.parsing.sympy_parser import parse_expr\nfrom sympy.abc import _clash1\n\nimport math\nimport cmath as cm\n\nx, y, z, t = symbols('x y z t')\nk, m, n = symbols('k m n', integer=True)\nf, g, h = symbols('f g h', cls=Function)"
+}

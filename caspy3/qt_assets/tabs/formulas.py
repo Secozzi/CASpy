@@ -1,0 +1,269 @@
+from PyQt5.QtCore import QCoreApplication, QEvent, Qt
+from PyQt5.QtWidgets import QAction, QApplication, QGridLayout, QLabel, QLineEdit, QTreeWidgetItem, QWidget
+from PyQt5.QtGui import QFont, QCursor
+from PyQt5.uic import loadUi
+
+from worker import CASWorker
+
+class FormulaTab(QWidget):
+
+    from sympy import Symbol, S
+    from sympy.abc import _clash1
+
+    display_name = "Formulas"
+
+    def __init__(self, main_window):
+        super().__init__()
+        loadUi("qt_assets/tabs/formulas.ui", self)
+        self.init_ui()
+        self.main_window = main_window
+        
+        if "verify_domain_formula" in list(self.main_window.settings_data.keys()):
+            self.verify_domain_formula = self.main_window.settings_data["verify_domain_formula"]
+        else:
+            self.verify_domain_formula = False
+        self.main_window.add_to_save_settings({"verify_domain_formula": self.verify_domain_formula})
+
+        self.install_event_filter()
+        self.init_formula_menu()
+        self.init_bindings()
+        self.add_formulas()
+
+    def init_ui(self):
+        self.FormulaTree.sortByColumn(0, Qt.AscendingOrder)
+        self.grid_scroll_area = QGridLayout(self.FormulaScrollArea)
+        self.grid_scroll_area.setObjectName("grid_scroll_area")
+
+    def init_formula_menu(self):
+        self.menuFormula = self.main_window.menubar.addMenu("Formulas")
+        verify_domain_formula = QAction("Verify domain", self, checkable=True)
+        verify_domain_formula.setChecked(self.verify_domain_formula)
+        self.menuFormula.addAction(verify_domain_formula)
+        verify_domain_formula.triggered.connect(self.toggle_verify_domain_formula)
+
+    def toggle_verify_domain_formula(self, state):
+        if state:
+            self.verify_domain_formula = True
+        else:
+            self.verify_domain_formula = False
+
+        self.main_window.update_save_settings({"verify_domain_formula": self.verify_domain_formula})
+
+    def install_event_filter(self):
+        self.FormulaScrollArea.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        QModifiers = QApplication.keyboardModifiers()
+        modifiers = []
+        if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
+            modifiers.append('shift')
+
+        if event.type() == QEvent.KeyPress:
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                if modifiers:
+                    if modifiers[0] == "shift":
+                        self.calc_formula()
+                        return True
+
+        return super(FormulaTab, self).eventFilter(obj, event)
+
+    def init_bindings(self):
+        self.FormulaTree.itemDoubleClicked.connect(self.formula_tree_selected)
+        self.FormulaPreview.clicked.connect(self.prev_formula)
+        self.FormulaCalculate.clicked.connect(self.calc_formula)
+
+        self.FormulaDomain.currentIndexChanged.connect(self.set_interval)
+
+    def set_interval(self, index):
+        if index >= 5:
+            self.FormulaDomain.setEditable(True)
+            # Update Font
+            self.FormulaDomain.lineEdit().setFont(self.FormulaDomain.font())
+        else:
+            self.FormulaDomain.setEditable(False)
+        self.FormulaDomain.update()
+
+    def add_formulas(self):
+        self.formula_info_dict = self.main_window.formulas_data[0]
+        self.formula_tree_data = self.main_window.formulas_data[1]
+
+        for branch in self.formula_tree_data:
+            parent = QTreeWidgetItem(self.FormulaTree)
+            branch_name = str(list(branch.keys())[0])
+            parent.setText(0, branch_name)
+
+            for sub_branch in list(branch[branch_name].keys()):
+                child = QTreeWidgetItem(parent)
+                child.setText(0, sub_branch)
+
+                for formula in branch[branch_name][sub_branch]:
+                    formula_child = QTreeWidgetItem(child)
+                    formula_child.setText(0, formula)
+
+    def formula_tree_selected(self):
+        """
+        Retrieves formula and information about formula that user double clicked.
+        Splits equation into left side of equals symbol and right side.
+        Uses _i as imaginary unit instead of I and removes other similar functions/variables so they can be used as variables in formula.
+        """
+        get_selected = self.FormulaTree.selectedItems()
+        if get_selected:
+            base_node = get_selected[0]
+            self.selected_tree_item = base_node.text(0)
+            if "=" in self.selected_tree_item:
+                expr = self.selected_tree_item.split("=")
+                expr = list(map(lambda x: x.replace("_i", "(sqrt(-1))"), expr))
+                self.formula_symbols_list = [str(i) for i in list(self.S(expr[0], locals=self._clash1).atoms(self.Symbol))]
+                self.formula_symbols_list.extend((str(i) for i in list(self.S(expr[1], locals=self._clash1).atoms(self.Symbol))))
+                self.formula_symbols_list = list(set(self.formula_symbols_list))
+                self.formula_symbols_list.sort()
+
+                self.formula_update_vars()
+                self.formula_info = self.formula_get_info(self.selected_tree_item, self.formula_tree_data)
+                self.formula_set_tool_tip()
+
+    def formula_update_vars(self):
+        for i in reversed(range(self.grid_scroll_area.count())):
+            self.grid_scroll_area.itemAt(i).widget().setParent(None)
+        self.formula_label_names = self.formula_symbols_list
+        self.formula_label_pos = [[i, 0] for i in range(len(self.formula_label_names))]
+        self.formula_line_pos = [[i, 1] for i in range(len(self.formula_label_names))]
+
+        for self.formula_name_label, formula_pos_label, formula_pos_line in zip(self.formula_label_names, self.formula_label_pos, self.formula_line_pos):
+            self.formula_label = QLabel(self.FormulaScrollArea)
+            self.formula_label.setText(self.formula_name_label)
+            self.formula_label.setObjectName(self.formula_name_label + "line")
+            self.grid_scroll_area.addWidget(self.formula_label, *formula_pos_label)
+            self.formula_QLine = QLineEdit(self.FormulaScrollArea)
+            self.formula_QLine.setFixedHeight(30)
+            self.formula_QLine.setObjectName(self.formula_name_label + "line")
+            self.formula_QLine.setFont(QFont("Courier New", 8))
+            self.grid_scroll_area.addWidget(self.formula_QLine, *formula_pos_line)
+
+    def formula_set_tool_tip(self):
+        """
+        Retrieves info from json file, set tooltip and set value of constants if needed
+        """
+
+        _translate = QCoreApplication.translate
+
+        lines = []
+        for name in self.formula_label_names:
+            info = self.formula_info[name]
+
+            if info in list(self.formula_info_dict.keys()):
+                full_info = self.formula_info_dict[info]
+            else:
+                full_info = f"{info}|N/A|N/A"
+            lines.append([self.FormulaScrollArea.findChild(QLineEdit, str(name) + "line"), full_info])
+
+        for line in lines:
+            info_list = line[1].split("|")
+
+            name = info_list[0]
+            unit_info = info_list[1]
+            unit = info_list[2]
+
+            if ";" in name:
+                line[0].setText(name.split(";")[1])
+
+            line[0].setToolTip(_translate("MainWindow", f"{unit_info}, mäts i {unit}"))
+
+    def formula_get_info(self, text, data):
+        """
+        Retrieves info that's correlated with given formula
+
+        Parameters
+        -------------
+        text: string
+            Formula whose information is requested.
+        data: JSON file
+            Data that stores formulas and respective information.
+
+        Returns
+        ------------
+        formula[1]: string
+            Information correlated to formula.
+        """
+
+        for branch in data:
+            branch_name = str(list(branch.keys())[0])
+            for sub_branch in list(branch[branch_name].keys()):
+                if text in list(branch[branch_name][sub_branch].keys()):
+                    return branch[branch_name][sub_branch][text]
+
+    def stop_thread(self):
+        pass
+
+    def update_ui(self, input_dict):
+        self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
+        self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
+
+        first_key = list(input_dict.keys())[0]
+        if first_key == "error":
+            self.main_window.show_error_box(input_dict[first_key][0])
+            self.main_window.latex_text = ""
+        else:
+            self.main_window.latex_text = input_dict["latex"]
+            self.main_window.exact_ans = str(input_dict[first_key][0])
+            self.main_window.approx_ans = input_dict[first_key][1]
+
+            self.FormulaExact.setText(str(self.main_window.exact_ans))
+            self.FormulaApprox.setText(str(self.main_window.approx_ans))
+
+    def prev_formula(self):
+        try:
+            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.formula_label_names]
+        except:
+            self.main_window.show_error_box("Error: select a formula")
+        else:
+            values_string = self.selected_tree_item.split("=")
+
+            self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
+            self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
+
+            self.WorkerCAS = CASWorker("prev_formula", [
+                lines,
+                values_string,
+                self.FormulaDomain.currentText(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap
+            ])
+            self.WorkerCAS.signals.output.connect(self.update_ui)
+            self.WorkerCAS.signals.finished.connect(self.stop_thread)
+
+            self.main_window.threadpool.start(self.WorkerCAS)
+
+    def calc_formula(self):
+        if self.FormulaSolveSolve.isChecked():
+            solve_type = 2
+        if self.FormulaSolveSolveSet.isChecked():
+            solve_type = 1
+
+        try:
+            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.formula_label_names]
+            values_string = self.selected_tree_item.split("=")
+        except:
+            self.main_window.show_error_box("Error: select a formula")
+            return
+
+        self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
+        self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
+
+        self.WorkerCAS = CASWorker("calc_formula", [
+            lines,
+            values_string,
+            solve_type,
+            self.FormulaDomain.currentText(),
+            self.main_window.output_type,
+            self.main_window.use_unicode,
+            self.main_window.line_wrap,
+            self.main_window.use_scientific,
+            self.main_window.accuracy,
+            self.verify_domain_formula
+        ])
+        self.WorkerCAS.signals.output.connect(self.update_ui)
+        self.WorkerCAS.signals.finished.connect(self.stop_thread)
+
+        self.main_window.threadpool.start(self.WorkerCAS)

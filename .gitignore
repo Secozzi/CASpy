@@ -32,3 +32,4 @@ MANIFEST
 
 # Per-project virtualenvs
 .venv*
+.idea*
