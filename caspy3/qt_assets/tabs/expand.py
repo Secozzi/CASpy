@@ -1,9 +1,74 @@
-from PyQt5.QtCore import QEvent, Qt
+from PyQt5.QtCore import pyqtSlot, QEvent, Qt
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QCursor
 from PyQt5.uic import loadUi
 
-from worker import CASWorker
+from sympy import *
+from sympy.parsing.sympy_parser import parse_expr
+
+import traceback
+
+from worker import BaseWorker
+
+
+class ExpandWorker(BaseWorker):
+    def __init__(self, command, params, copy=None):
+        super().__init__(command, params, copy)
+
+    @BaseWorker.catch_error
+    @pyqtSlot()
+    def prev_expand_exp(self, expression, output_type, use_unicode, line_wrap):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+        self.approx_ans = 0
+        self.exact_ans = ""
+        self.latex_answer = ""
+
+        if not expression:
+            return {"error": ["Enter an expression"]}
+
+        if output_type == 1:
+            try:
+                self.exact_ans = str(pretty(parse_expr(expression, evaluate=False)))
+            except Exception:
+                return {"error": [f"Error: \n{traceback.format_exc()}"]}
+        elif output_type == 2:
+            try:
+                self.exact_ans = str(latex(parse_expr(expression, evaluate=False)))
+            except Exception:
+                return {"error": [f"Error: \n{traceback.format_exc()}"]}
+            self.latex_answer = str(latex(self.exact_ans))
+        else:
+            self.exact_ans = str(expression)
+        self.latex_answer = str(latex(parse_expr(expression, evaluate=False)))
+
+        return {"exp": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
+
+    @BaseWorker.catch_error
+    @pyqtSlot()
+    def expand_exp(self, expression, output_type, use_unicode, line_wrap):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+        self.approx_ans = 0
+        self.exact_ans = ""
+        self.latex_answer = ""
+
+        if not expression:
+            return {"error": ["Enter an expression"]}
+
+        try:
+            self.exact_ans = expand(expression)
+        except Exception:
+            return {"error": [f"Error: \n{traceback.format_exc()}"]}
+        self.latex_answer = str(latex(self.exact_ans))
+
+        if output_type == 1:
+            self.exact_ans = str(pretty(self.exact_ans))
+        elif output_type == 2:
+            self.exact_ans = str(latex(self.exact_ans))
+        else:
+            self.exact_ans = str(self.exact_ans)
+
+        return {"exp": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
+
 
 class ExpandTab(QWidget):
     display_name = "Expand"
@@ -57,27 +122,27 @@ class ExpandTab(QWidget):
     def prev_expand_exp(self):
         self.ExpOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        self.WorkerCAS = CASWorker("prev_expand_exp", [
+        worker = ExpandWorker("prev_expand_exp", [
             self.ExpExp.toPlainText(),
             self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
-        self.WorkerCAS.signals.output.connect(self.update_ui)
-        self.WorkerCAS.signals.finished.connect(self.stop_thread)
+        worker.signals.output.connect(self.update_ui)
+        worker.signals.finished.connect(self.stop_thread)
 
-        self.main_window.threadpool.start(self.WorkerCAS)
+        self.main_window.threadpool.start(worker)
 
     def expand_exp(self):
         self.ExpOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        self.WorkerCAS = CASWorker("expand_exp", [
+        worker = ExpandWorker("expand_exp", [
             self.ExpExp.toPlainText(),
             self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
-        self.WorkerCAS.signals.output.connect(self.update_ui)
-        self.WorkerCAS.signals.finished.connect(self.stop_thread)
+        worker.signals.output.connect(self.update_ui)
+        worker.signals.finished.connect(self.stop_thread)
 
-        self.main_window.threadpool.start(self.WorkerCAS)
+        self.main_window.threadpool.start(worker)

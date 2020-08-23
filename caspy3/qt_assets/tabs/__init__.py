@@ -14,8 +14,10 @@ from .web import WebTab
 
 TABS = []
 
+
 def str_to_class(classname):
     return getattr(sys.modules[__name__], classname)
+
 
 with open("data/settings.json", "r", encoding="utf8") as json_f:
     tab_file = json_f.read()
@@ -24,17 +26,3 @@ with open("data/settings.json", "r", encoding="utf8") as json_f:
 for tab in list(tab_data.keys()):
     if tab_data[tab]:
         TABS.append(str_to_class(tab))
-
-#TABS = [
-#    DerivativeTab,
-#    IntegralTab,
-#    LimitTab,
-#    EquationsTab,
-#    SimplifyTab,
-#    ExpandTab,
-#    EvaluateTab,
-#    PfTab,
-#    WebTab,
-#    FormulaTab,
-#    ShellTab
-#]

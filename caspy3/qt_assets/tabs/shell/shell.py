@@ -1,13 +1,65 @@
-from PyQt5.QtCore import pyqtSignal, QCoreApplication, QEvent, QRegularExpression, Qt
+from PyQt5.QtCore import pyqtSlot, QCoreApplication, QEvent, QRegularExpression, Qt
 from PyQt5.QtWidgets import QAction, QApplication, \
     QPushButton, QVBoxLayout, QWidget
 from PyQt5.QtGui import QCursor, QFont, QTextCursor
 
-from worker import CASWorker
+from sympy import *
+from sympy.parsing.sympy_parser import parse_expr
+
+import sys
+import traceback
 
 from qt_assets.tabs.shell.paren_highlight import TextEdit
 from qt_assets.tabs.shell.syntax_pars import PythonHighlighter
 from qt_assets.tabs.shell.start_code_dialog import StartCodeDialog
+
+from worker import BaseWorker
+
+
+class ShellWorker(BaseWorker):
+    def __init__(self, command, params, copy=None):
+        super().__init__(command, params, copy)
+
+    @BaseWorker.catch_error
+    @pyqtSlot()
+    def execute_code(self, code, namespace):
+        self.exact_ans = ""
+        self.approx_ans = 0
+        self.latex_answer = r"\text{LaTeX not supported for shell}"
+        new_namespace = namespace
+
+        class Capturing(list):
+            from io import StringIO
+            def __enter__(self):
+                self._stdout = sys.stdout
+                sys.stdout = self._stringio = self.StringIO()
+                return self
+
+            def __exit__(self, *args):
+                self.extend(self._stringio.getvalue().splitlines())
+                del self._stringio
+                sys.stdout = self._stdout
+
+        try:
+            with Capturing() as self.output:
+                try:
+                    exec(f"print({code})", namespace)
+                except Exception:
+                    exec(code, namespace)
+        except Exception:
+            self.output = f"\nError: {traceback.format_exc()}"
+
+        new_namespace.update(locals())
+
+        if type(self.output) != str:
+            for i in self.output:
+                self.exact_ans += f"{i}\n"
+
+            self.exact_ans = self.exact_ans[:-1]
+        else:
+            self.exact_ans = self.output
+
+        return {"exec": [self.exact_ans, self.approx_ans], "latex": self.latex_answer, "new_namespace": new_namespace}
 
 
 class Console(TextEdit):
@@ -70,11 +122,11 @@ class Console(TextEdit):
         if self.start_code:
             self.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-            self.WorkerCAS = CASWorker("execute_code", [self.start_code, self.namespace])
-            self.WorkerCAS.signals.output.connect(self.update_ui)
-            self.WorkerCAS.signals.finished.connect(self.stop_thread)
+            worker = ShellWorker("execute_code", [self.start_code, self.namespace])
+            worker.signals.output.connect(self.update_ui)
+            worker.signals.finished.connect(self.stop_thread)
 
-            self.main_window.threadpool.start(self.WorkerCAS)
+            self.main_window.threadpool.start(worker)
 
     def update_namespace(self, namespace):
         self.namespace.update(namespace)
@@ -308,8 +360,8 @@ class ShellTab(QWidget):
         if command:
             self.consoleIn.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-            self.WorkerCAS = CASWorker("execute_code", [command, namespace])
-            self.WorkerCAS.signals.output.connect(self.update_ui)
-            self.WorkerCAS.signals.finished.connect(self.stop_thread)
+            worker = ShellWorker("execute_code", [command, namespace])
+            worker.signals.output.connect(self.update_ui)
+            worker.signals.finished.connect(self.stop_thread)
 
-            self.main_window.threadpool.start(self.WorkerCAS)
+            self.main_window.threadpool.start(worker)

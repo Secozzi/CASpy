@@ -1,9 +1,125 @@
-from PyQt5.QtCore import QCoreApplication, QEvent, Qt
+from PyQt5.QtCore import pyqtSlot, QCoreApplication, QEvent, Qt
 from PyQt5.QtWidgets import QAction, QApplication, QGridLayout, QLabel, QLineEdit, QTreeWidgetItem, QWidget
 from PyQt5.QtGui import QFont, QCursor
 from PyQt5.uic import loadUi
 
-from worker import CASWorker
+from sympy import *
+from sympy.parsing.sympy_parser import parse_expr
+
+import traceback
+
+from worker import BaseWorker
+
+
+class FormulaWorker(BaseWorker):
+    def __init__(self, command, params, copy=None):
+        super().__init__(command, params, copy)
+
+    @BaseWorker.catch_error
+    @pyqtSlot()
+    def prev_formula(self, lines, value_string, domain, output_type, use_unicode, line_wrap):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+        empty_var_list, var_list, values = [], [], []
+        self.exact_ans = ""
+        self.approx_ans = 0
+        self.latex_answer = ""
+
+        if not lines:
+            return {"error": ["Error: select a formula"]}
+
+        if type(value_string) == list:
+            if len(value_string) != 2:
+                return {"error": [f"Error: Unable to get equation from {value_string}"]}
+        else:
+            return {"error": [f"Error: Unable to get equation from {value_string}"]}
+
+        for line in lines:
+            if line[0].text() == "":
+                empty_var_list.append(line[1])
+            elif line[0].text() == "var":
+                var_list.append(line[1])
+            else:
+                values.append([line[0].text(), line[1]])
+
+        if len(var_list) > 1:
+            return {
+                "error": ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+
+        if len(empty_var_list) > 1:
+            if len(var_list) != 1:
+                return {"error": [
+                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+
+        if len(var_list) == 1:
+            final_var = var_list[0]
+        else:
+            final_var = empty_var_list[0]
+
+        left_side = value_string[0]
+        right_side = value_string[1]
+
+        result = self.prev_normal_eq(left_side, right_side, final_var, domain, output_type, use_unicode, line_wrap)
+        return result
+
+    @BaseWorker.catch_error
+    @pyqtSlot()
+    def calc_formula(self, lines, value_string, solve_type, domain, output_type,
+                     use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
+        init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
+        empty_var_list, var_list, values = [], [], []
+        self.exact_ans = ""
+        self.approx_ans = 0
+        self.latex_answer = "\\text{LaTeX support not yet implemented for formula}"
+
+        if use_scientific:
+            if use_scientific > accuracy:
+                accuracy = use_scientific
+
+        if not lines:
+            return {"error": ["Error: select a formula"]}
+
+        if type(value_string) == list:
+            if len(value_string) != 2:
+                return {"error": [f"Error: Unable to get equation from {value_string}"]}
+        else:
+            return {"error": [f"Error: Unable to get equation from {value_string}"]}
+
+        for line in lines:
+            if line[0].text() == "":
+                empty_var_list.append(line[1])
+            elif line[0].text() == "var":
+                var_list.append(line[1])
+            else:
+                values.append([line[0].text(), line[1]])
+
+        if len(var_list) > 1:
+            return {
+                "error": ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+
+        if len(empty_var_list) > 1:
+            if len(var_list) != 1:
+                return {"error": [
+                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+
+        if len(var_list) == 1:
+            final_var = var_list[0]
+        else:
+            final_var = empty_var_list[0]
+
+        left_side = parse_expr(value_string[0])
+        right_side = parse_expr(value_string[1])
+
+        for i in values:
+            left_side = left_side.subs(parse_expr(i[1]), i[0])
+            right_side = right_side.subs(parse_expr(i[1]), i[0])
+
+        left_side = str(left_side).replace("_i", "(sqrt(-1))")
+        right_side = str(right_side).replace("_i", "(sqrt(-1))")
+
+        result = self.calc_normal_eq(left_side, right_side, final_var, solve_type, domain,
+                                     output_type, use_unicode, line_wrap, use_scientific, accuracy, verify_domain)
+        return result
+
 
 class FormulaTab(QWidget):
 
@@ -222,7 +338,7 @@ class FormulaTab(QWidget):
             self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
             self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-            self.WorkerCAS = CASWorker("prev_formula", [
+            worker = FormulaWorker("prev_formula", [
                 lines,
                 values_string,
                 self.FormulaDomain.currentText(),
@@ -230,10 +346,10 @@ class FormulaTab(QWidget):
                 self.main_window.use_unicode,
                 self.main_window.line_wrap
             ])
-            self.WorkerCAS.signals.output.connect(self.update_ui)
-            self.WorkerCAS.signals.finished.connect(self.stop_thread)
+            worker.signals.output.connect(self.update_ui)
+            worker.signals.finished.connect(self.stop_thread)
 
-            self.main_window.threadpool.start(self.WorkerCAS)
+            self.main_window.threadpool.start(worker)
 
     def calc_formula(self):
         if self.FormulaSolveSolve.isChecked():
@@ -251,7 +367,7 @@ class FormulaTab(QWidget):
         self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        self.WorkerCAS = CASWorker("calc_formula", [
+        worker = FormulaWorker("calc_formula", [
             lines,
             values_string,
             solve_type,
@@ -263,7 +379,7 @@ class FormulaTab(QWidget):
             self.main_window.accuracy,
             self.verify_domain_formula
         ])
-        self.WorkerCAS.signals.output.connect(self.update_ui)
-        self.WorkerCAS.signals.finished.connect(self.stop_thread)
+        worker.signals.output.connect(self.update_ui)
+        worker.signals.finished.connect(self.stop_thread)
 
-        self.main_window.threadpool.start(self.WorkerCAS)
+        self.main_window.threadpool.start(worker)

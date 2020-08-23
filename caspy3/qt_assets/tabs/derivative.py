@@ -4,31 +4,18 @@ from PyQt5.QtGui import QCursor
 from PyQt5.uic import loadUi
 
 from sympy import *
-from sympy.abc import _clash1
 from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
 
-#from worker import CASWorker
 from worker import BaseWorker
-
-def catch_thread(func):
-    """Decorator to catch any errors of a slot. This decorator shouldn't be called under normal circumstances"""
-
-    def wrapper(*s, **gs):
-        try:
-            result = func(*s, **gs)
-            return result
-        except Exception:
-            return {"error": [f"ERROR IN SOURCE CODE: \n\n{traceback.format_exc()}"]}
-
-    return wrapper
 
 
 class DerivativeWorker(BaseWorker):
     def __init__(self, command, params, copy=None):
         super().__init__(command, params, copy)
 
+    @BaseWorker.catch_error
     @pyqtSlot()
     def prev_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode,
                    line_wrap):
@@ -60,7 +47,7 @@ class DerivativeWorker(BaseWorker):
 
         return {"deriv": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
 
-    @BaseWorker.debug_output
+    @BaseWorker.catch_error
     @pyqtSlot()
     def calc_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode,
                    line_wrap, use_scientific, accuracy):
@@ -150,8 +137,6 @@ class DerivativeTab(QWidget):
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
             modifiers.append('shift')
-        #if (QModifiers & Qt.AltModifier) == Qt.AltModifier:
-        #    modifiers.append('alt')
 
         if event.type() == QEvent.KeyPress:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -159,16 +144,6 @@ class DerivativeTab(QWidget):
                     if modifiers[0] == "shift":
                         self.calc_deriv()
                         return True
-
-            #if event.key() in (Qt.Key_E, Qt.Key_A):
-            #    if modifiers:
-            #        if modifiers[0] == 'alt':
-            #            if event.key() == Qt.Key_E:
-            #                self.main_window.view_exact_ans()
-            #                return True
-            #            else:
-            #                self.main_window.view_approx_ans()
-            #                return True
 
         return super(DerivativeTab, self).eventFilter(obj, event)
 
@@ -199,7 +174,7 @@ class DerivativeTab(QWidget):
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        self.WorkerCAS = DerivativeWorker("prev_deriv", [
+        worker = DerivativeWorker("prev_deriv", [
             self.DerivExp.toPlainText(),
             self.DerivVar.text(),
             self.DerivOrder.value(),
@@ -208,10 +183,10 @@ class DerivativeTab(QWidget):
             self.main_window.use_unicode,
             self.main_window.line_wrap
         ])
-        self.WorkerCAS.signals.output.connect(self.update_ui)
-        self.WorkerCAS.signals.finished.connect(self.stop_thread)
+        worker.signals.output.connect(self.update_ui)
+        worker.signals.finished.connect(self.stop_thread)
 
-        self.main_window.threadpool.start(self.WorkerCAS)
+        self.main_window.threadpool.start(worker)
 
     def calc_deriv_new(self):
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
@@ -226,7 +201,7 @@ class DerivativeTab(QWidget):
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        self.WorkerCAS = DerivativeWorker("calc_deriv", [
+        worker = DerivativeWorker("calc_deriv", [
             self.DerivExp.toPlainText(),
             self.DerivVar.text(),
             self.DerivOrder.value(),
@@ -237,7 +212,7 @@ class DerivativeTab(QWidget):
             self.main_window.use_scientific,
             self.main_window.accuracy
         ])
-        self.WorkerCAS.signals.output.connect(self.update_ui)
-        self.WorkerCAS.signals.finished.connect(self.stop_thread)
+        worker.signals.output.connect(self.update_ui)
+        worker.signals.finished.connect(self.stop_thread)
 
-        self.main_window.threadpool.start(self.WorkerCAS)
+        self.main_window.threadpool.start(worker)

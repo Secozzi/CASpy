@@ -3,10 +3,6 @@ from PyQt5.QtCore import QThreadPool
 
 from colored import fg, attr
 import time
-import sys
-
-sys.path.append("../caspy3")
-from worker import CASWorker
 
 
 class BaseTester(QWidget):
@@ -20,18 +16,20 @@ class BaseTester(QWidget):
         self.start_time = time.time()
 
     @staticmethod
-    def call_worker(func):
-        def wrapper(self):
-            command, params, solution = func(self)
+    def call_worker(worker):
+        def call_wrapper(func):
+            def wrapper(self):
+                command, params, solution = func(self)
 
-            self.current_time = time.time()
-            self.counter_threads += 1
-            self.qworker = CASWorker(command, params)
-            self.qworker.signals.output.connect(lambda output:
-                                                self.test_output(output, solution, [command, params], func.__name__))
-            self.qworker.signals.finished.connect(self.stop_thread)
-            self.threadpool.start(self.qworker)
-        return wrapper
+                self.current_time = time.time()
+                self.counter_threads += 1
+                self.qworker = worker(command, params)
+                self.qworker.signals.output.connect(lambda output:
+                                                    self.test_output(output, solution, [command, params], func.__name__))
+                self.qworker.signals.finished.connect(self.stop_thread)
+                self.threadpool.start(self.qworker)
+            return wrapper
+        return call_wrapper
 
     def stop_thread(self):
         pass

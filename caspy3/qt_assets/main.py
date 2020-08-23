@@ -1,8 +1,6 @@
 from pyperclip import copy
 import json, os
 
-from worker import CASWorker
-
 from qt_assets.dialogs.dialog_view import View
 from qt_assets.dialogs.dialog_view_text import View_Text
 from qt_assets.dialogs.tab_list import TabList
