@@ -1,10 +1,6 @@
 from pathlib import Path
 import sys, os
 
-CURRENT_DIR = Path(__file__).parent
-sys.path.insert(0, str(CURRENT_DIR))
-os.chdir(CURRENT_DIR)
-
 from qt_assets.main import launch_app
 
 def main():

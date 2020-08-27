@@ -5,6 +5,7 @@ from PyQt5.uic import loadUi
 
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
+from sympy.physics.units import degree
 
 import traceback
 
