@@ -1,4 +1,3 @@
-import sys
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
 
@@ -25,29 +24,38 @@ def format(color, style=''):
 
 # Syntax styles that can be shared by all languages
 
+LIME = [80, 161, 79]
+BLUE = [64, 120, 242]
+TURQUOISE = [1, 132, 187]
+PINK = [166, 38, 164]
+PINK_2 = [150, 85, 140]
+YELLOW = [193, 132, 1]
+SAND_YELLOW = [152, 104, 1]
+RED = [244, 34, 47]
+LIGHT_GREY = [160, 161, 167]
+GREY = [150, 150, 150]
+DARK_GREY = [56, 58, 66]
+
 STYLES = {
-    'keyword': format([166, 38, 164]),
-    'literals': format([1, 132, 187]),
-    'operator': format([150, 150, 150]),
-    'brace': format([56, 58, 66]),
-    'deffunc': format([64, 120, 242]),
-    'defclass': format([193, 132, 1]),
-    'string': format([80, 161, 79]),
-    'string2': format([80, 161, 79]),
-    'meta': format([64, 120, 242]),
-    'special_attributes': format([344, 34, 47]),
-    'comment': format([160, 161, 167], 'italic'),
-    'self': format([150, 85, 140], 'italic'),
-    'numbers': format([152, 104, 1]),
+    'keyword': format(PINK),
+    'literals': format(TURQUOISE),
+    'operator': format(GREY),
+    'brace': format(DARK_GREY),
+    'deffunc': format(BLUE),
+    'defclass': format(YELLOW),
+    'string': format(LIME),
+    'string2': format(LIME),
+    'meta': format(BLUE),
+    'special_attributes': format(RED),
+    'comment': format(LIGHT_GREY, 'italic'),
+    'self': format(PINK_2, 'italic'),
+    'numbers': format(SAND_YELLOW),
 }
 
 
 class PythonHighlighter(QSyntaxHighlighter):
-    """Syntax highlighter for the Python language.
-    """
+    """Syntax highlighter for the Python language."""
     # Python keywords
-
-
     keywords = [
         'and', 'assert', 'break', 'class', 'continue', 'def',
         'del', 'elif', 'else', 'except', 'exec', 'finally',
