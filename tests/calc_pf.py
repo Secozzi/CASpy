@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QApplication
-from base_tester import BaseTester
+
+from .base_tester import BaseTester
+from caspy3.qt_assets.tabs.pf import PfWorker
 
 
 class CalcPfTester(BaseTester):
@@ -12,28 +14,28 @@ class CalcPfTester(BaseTester):
         self.test_calc_pf_1()
         self.test_calc_pf()
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(PfWorker)
     def test_calc_pf_non_integer(self):
         command = "calc_pf"
         params = ["Hello"]
         solution = {'error': ['Error: Hello is not an integer.']}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(PfWorker)
     def test_calc_pf_0(self):
         command = "calc_pf"
         params = [0]
         solution = {'error': ['Error: 0 is lower than 2, only number 2 and above is accepted.']}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(PfWorker)
     def test_calc_pf_1(self):
         command = "calc_pf"
         params = [1]
         solution = {'error': ['Error: 1 is lower than 2, only number 2 and above is accepted.']}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(PfWorker)
     def test_calc_pf(self):
         command = "calc_pf"
         params = [94136]

@@ -1,4 +1,6 @@
-import json, sys
+import json
+import sys
+import pkg_resources
 
 from .derivative import DerivativeTab
 from .equations import EquationsTab
@@ -10,6 +12,7 @@ from .limit import LimitTab
 from .pf import PfTab
 from .shell.shell import ShellTab
 from .simplify import SimplifyTab
+from .summation import SummationTab
 from .web import WebTab
 
 TABS = []
@@ -19,7 +22,8 @@ def str_to_class(classname):
     return getattr(sys.modules[__name__], classname)
 
 
-with open("data/settings.json", "r", encoding="utf8") as json_f:
+settings_json = pkg_resources.resource_filename('caspy3', 'data/settings.json')
+with open(settings_json, "r", encoding="utf8") as json_f:
     tab_file = json_f.read()
     tab_data = json.loads(tab_file)["tabs"]
 

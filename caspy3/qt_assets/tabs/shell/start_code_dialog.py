@@ -3,8 +3,8 @@ import json
 from PyQt5.QtWidgets import QDialog, QGridLayout
 from PyQt5.QtGui import QIcon
 
-from qt_assets.tabs.shell.paren_highlight import TextEdit
-from qt_assets.tabs.shell.syntax_pars import PythonHighlighter
+from .paren_highlight import TextEdit
+from .syntax_pars import PythonHighlighter
 
 
 class StartCodeDialog(QDialog):

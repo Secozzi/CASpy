@@ -2,30 +2,44 @@
 A script to auto-generate templates for tester
 """
 
+# Path of worker
+WORKER_PATH = "summation import SummationWorker"
+
 # Name of the class generated
-CLASS_NAME = "ThreadRunningTester"
+CLASS_NAME = "PrevSumTester"
 
 # Name of function that call each test, every test is a function
-HEAD_TEST = "test_running_thread"
+HEAD_TEST = "test_sum_prev"
 
 # Base name of each test, such as SUB_TEST_invalid_expr
-SUB_TEST = "test_thread_is_running"
+SUB_TEST = "test_prev_sum"
 
 # What function executed by worker
-COMMAND = "is_running"
+COMMAND = "prev_sum"
 
 # Path of outputfile
 OUTPUT_PATH = "tester_template_output.py"
 
 # All test functions, separated by a new line. Type _ to make it equal SUB_TEST
 test_functions = """
+no_expression
+invalid_expression
+one_start
+invalid_varaible
+invalid_start
 _
+latex
+normal
+var
+unicode
 """
 
 # ------------------ CODE -> only change variables above ------------------
 
 head = f"""from PyQt5.QtWidgets import QApplication
-from base_tester import BaseTester
+
+from .base_tester import BaseTester
+from caspy3.qt_assets.tabs.{WORKER_PATH}
 
 
 class {CLASS_NAME}(BaseTester):
@@ -42,10 +56,11 @@ for f in functions:
         test_caller += f"        self.{SUB_TEST}()\n"
 
 middle = "\n"
+worker_name = WORKER_PATH.split("import")[1][1:]
 for func in functions:
     sub_name = f"{SUB_TEST}_{func}" if func != "_" else SUB_TEST
 
-    middle += "    @BaseTester.call_worker\n"
+    middle += f"    @BaseTester.call_worker({worker_name})\n"
     middle += f"    def {sub_name}(self):\n"
     middle += f'        command = "{COMMAND}"\n'
     middle += "        params = 0\n"

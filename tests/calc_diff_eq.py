@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QApplication
 
-from tests.base_tester import BaseTester
-from qt_assets.tabs.equations import EquationsWorker
+from .base_tester import BaseTester
+from caspy3.qt_assets.tabs.equations import EquationsWorker
 
 
 class CalcDiffEqTester(BaseTester):

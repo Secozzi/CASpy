@@ -1,36 +1,31 @@
 from pyperclip import copy
-import json, os
+import json
+import os
+import pkg_resources
 
-from qt_assets.dialogs.dialog_view import View
-from qt_assets.dialogs.dialog_view_text import View_Text
-from qt_assets.dialogs.tab_list import TabList
+from .dialogs.dialog_view import View
+from .dialogs.dialog_view_text import ViewText
+from .dialogs.tab_list import TabList
 
-from qt_assets.tabs import TABS
+from .tabs import TABS
 from PyQt5.QtCore import (
     QCoreApplication,
-    QSize,
     QThreadPool
 )
 
 from PyQt5.QtWidgets import (
-    QAction,
     QActionGroup,
     QApplication,
-    QDialog,
     QInputDialog,
     QMainWindow,
-    QMessageBox,
-    QTextBrowser
+    QMessageBox
 )
 
-from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtGui import QFont, QIcon
 from PyQt5.uic import loadUi
+
 
 class CASpyGUI(QMainWindow):
     def __init__(self):
-        """"""
-
         """
         The main window.
 
@@ -66,6 +61,10 @@ class CASpyGUI(QMainWindow):
         # Initialize ui
         self.init_ui()
 
+    @staticmethod
+    def get_resource_path(relative_path):
+        return pkg_resources.resource_filename('caspy3', relative_path)
+
     def load_jsons(self):
         # Load each json_file
         self.load_settings()
@@ -73,30 +72,29 @@ class CASpyGUI(QMainWindow):
         self.load_formulas()
 
     def load_settings(self):
-        # Loads settings
-        with open("data/settings.json", "r", encoding="utf8") as json_f:
-            self.settings_file = json_f.read()
-            self.settings_data = json.loads(self.settings_file)
+        with open(self.get_resource_path('data/settings.json'), "r", encoding="utf8") as json_f:
+            _settings_file = json_f.read()
+            self.settings_data = json.loads(_settings_file)
 
     def load_websites(self):
-        with open("data/websites.json", "r", encoding="utf8") as json_f:
-            self.websites_file = json_f.read()
-            self.websites_data = json.loads(self.websites_file)
+        with open(self.get_resource_path('data/websites.json'), "r", encoding="utf8") as json_f:
+            _websites_file = json_f.read()
+            self.websites_data = json.loads(_websites_file)
 
     def load_formulas(self):
-        with open("data/formulas.json", "r", encoding="utf8") as json_f:
-            self.formulas_file = json_f.read()
-            self.formulas_data = json.loads(self.formulas_file)
+        with open(self.get_resource_path('data/formulas.json'), "r", encoding="utf8") as json_f:
+            _formulas_file = json_f.read()
+            self.formulas_data = json.loads(_formulas_file)
 
     def init_ui(self):
         """Load ui file, then initialize menu, and then initalize all tabs"""
-        loadUi('qt_assets/main.ui', self)
+        loadUi(self.get_resource_path('qt_assets/main.ui'), self)
 
         # For displaying icon in taskbar
         try:
             if os.name == "nt":
                 import ctypes
-                myappid = u'secozzi.caspy3.200'
+                myappid = u'secozzi.caspy3.210'
                 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
         except Exception:
             pass
@@ -167,7 +165,8 @@ class CASpyGUI(QMainWindow):
         for tab in self.TABS:
             self.tab_manager.addTab(tab(main_window=self), tab.display_name)
 
-    def show_error_box(self, message):
+    @staticmethod
+    def show_error_box(message):
         """
         Show a message box containing an error
 
@@ -255,7 +254,7 @@ class CASpyGUI(QMainWindow):
 
     def next_tab(self):
         # Goes to next tab.
-        if self.tab_manager.currentIndex() == 10:
+        if self.tab_manager.currentIndex() == self.tab_manager.count() - 1:
             self.tab_manager.setCurrentIndex(0)
         else:
             self.tab_manager.setCurrentIndex(self.tab_manager.currentIndex() + 1)
@@ -263,7 +262,7 @@ class CASpyGUI(QMainWindow):
     def previous_tab(self):
         # Goes to previous tab.
         if self.tab_manager.currentIndex() == 0:
-            self.tab_manager.setCurrentIndex(10)
+            self.tab_manager.setCurrentIndex(self.tab_manager.count() - 1)
         else:
             self.tab_manager.setCurrentIndex(self.tab_manager.currentIndex() - 1)
 
@@ -273,7 +272,7 @@ class CASpyGUI(QMainWindow):
 
     def view_approx_ans(self):
         # Open QDialog with approximate answer
-        self.v = View_Text(str(self.approx_ans))
+        self.v = ViewText(str(self.approx_ans))
 
     def add_to_save_settings(self, data):
         """
@@ -310,10 +309,11 @@ class CASpyGUI(QMainWindow):
         for key in list(self.save_settings_data.keys()):
             settings_json[key] = self.save_settings_data[key]
 
-        with open("data/settings.json", "w", encoding="utf-8") as json_f:
+        with open(self.get_resource_path('data/settings.json'), "w", encoding="utf-8") as json_f:
             json.dump(settings_json, json_f, ensure_ascii=False, indent=4, sort_keys=False)
 
         event.accept()
+
 
 def launch_app():
     import sys

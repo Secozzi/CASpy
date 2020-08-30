@@ -10,7 +10,7 @@ import traceback
 
 import re as pyreg
 
-from worker import BaseWorker
+from .worker import BaseWorker
 
 
 class EquationsWorker(BaseWorker):
@@ -77,12 +77,15 @@ class EquationsWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_system_eq(self, equations, variables, domain, output_type, use_unicode, line_wrap):
+    def prev_system_eq(self, equations, variables, domain, solve_type, output_type, use_unicode, line_wrap):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
 
         self.approx_ans = 0
         self.exact_ans = ""
         self.latex_answer = ""
+
+        if solve_type == 2:
+            equations = [self.parse_diff_text(eq) for eq in equations]
 
         equations = self.get_equations(equations)
         if equations[0] == "error":
@@ -90,9 +93,10 @@ class EquationsWorker(BaseWorker):
         if equations[0] == "traceback":
             return {"error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]}
 
-        variables = self.get_vars(variables)
-        if variables[0] == "error":
-            return {"error": [f"Error: \n{variables[1]}"]}
+        if variables:
+            variables = self.get_vars(variables)
+            if variables[0] == "error":
+                return {"error": [f"Error: \n{variables[1]}"]}
 
         try:
             domain = parse_expr(domain)
@@ -188,12 +192,15 @@ class EquationsWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def calc_system_eq(self, equations, variables, domain, output_type,
+    def calc_system_eq(self, equations, variables, domain, solve_type, output_type,
                        use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = []
         self.exact_ans = []
         self.latex_answer = ""
+
+        if solve_type == 2:
+            equations = [self.parse_diff_text(eq) for eq in equations]
 
         equations = self.get_equations(equations)
         if equations[0] == "error":
@@ -201,9 +208,10 @@ class EquationsWorker(BaseWorker):
         if equations[0] == "traceback":
             return {"error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]}
 
-        variables = self.get_vars(variables)
-        if variables[0] == "error":
-            return {"error": [f"Error: \n{variables[1]}"]}
+        if variables:
+            variables = self.get_vars(variables)
+            if variables[0] == "error":
+                return {"error": [f"Error: \n{variables[1]}"]}
 
         try:
             domain = parse_expr(domain)
@@ -215,67 +223,98 @@ class EquationsWorker(BaseWorker):
                 accuracy = use_scientific
 
         try:
-            result = solve(equations, variables, set=True)
+            if solve_type == 1:
+                result = solve(equations, variables, set=True) if variables else solve(equations, set=True)
+            else:
+                result = dsolve(equations, variables) if variables else dsolve(equations)
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
         if not result:
             return {"error": [f"Invalid variables"]}
 
-        var_list = result[0]
-        solutions = list(result[1])
+        if solve_type == 1:
+            var_list = result[0]
+            solutions = list(result[1])
 
-        for i, sol_list in enumerate(solutions):
-            temp_sol = []
-            temp_approx = []
+            for i, sol_list in enumerate(solutions):
+                temp_sol = []
+                temp_approx = []
 
-            if verify_domain:
-                sol_list_len = len(sol_list)
-                sol_list = tuple(self.verify_domain(sol_list, domain))
-                if len(sol_list) != sol_list_len:
-                    sol_list = []
+                if verify_domain:
+                    sol_list_len = len(sol_list)
+                    sol_list = tuple(self.verify_domain(sol_list, domain))
+                    if len(sol_list) != sol_list_len:
+                        sol_list = []
 
-            approx_list = [N(j, accuracy) for j in sol_list]
+                approx_list = [N(j, accuracy) for j in sol_list]
 
-            if use_scientific:
-                approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
+                if use_scientific:
+                    approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
 
-            for j, sol in enumerate(sol_list):
-                temp_sol.append(Eq(var_list[j], sol))
+                for j, sol in enumerate(sol_list):
+                    temp_sol.append(Eq(var_list[j], sol))
 
-            for j, sol in enumerate(approx_list):
-                temp_approx.append(f"{var_list[j]} = {sol}")
+                for j, sol in enumerate(approx_list):
+                    temp_approx.append(f"{var_list[j]} = {sol}")
 
-            if sol_list:
-                self.exact_ans.append(temp_sol)
-                self.approx_ans.append(temp_approx)
+                if sol_list:
+                    self.exact_ans.append(temp_sol)
+                    self.approx_ans.append(temp_approx)
 
-        temp_out = ""
-        for i in self.exact_ans:
-            temp_out += str(latex(i))
-            temp_out += r" \\ "
-
-        self.latex_answer = temp_out[:-4]
-
-        if output_type == 1:
-            temp_out = ""
-            for i in self.exact_ans:
-                temp_out += str(pretty(i))
-                temp_out += "\n\n"
-
-            self.exact_ans = temp_out
-        elif output_type == 2:
             temp_out = ""
             for i in self.exact_ans:
                 temp_out += str(latex(i))
                 temp_out += r" \\ "
 
-            self.exact_ans = temp_out
+            self.latex_answer = temp_out[:-4]
+
+            if output_type == 1:
+                temp_out = ""
+                for i in self.exact_ans:
+                    temp_out += str(pretty(i))
+                    temp_out += "\n\n"
+
+                self.exact_ans = temp_out
+            elif output_type == 2:
+                temp_out = ""
+                for i in self.exact_ans:
+                    temp_out += str(latex(i))
+                    temp_out += r" \\ "
+
+                self.exact_ans = temp_out
+            else:
+                self.exact_ans = str(self.exact_ans)
+
         else:
-            self.exact_ans = str(self.exact_ans)
+            temp_out = ""
+            lat_out = ""
+
+            for sol in result:
+                lat_out += str(latex(sol))
+                lat_out += r" \\ "
+
+            if output_type == 1:
+                for sol in result:
+                    temp_out += str(pretty(sol))
+                    temp_out += "\n\n"
+                self.exact_ans = temp_out
+            elif output_type == 2:
+                for sol in result:
+                    temp_out += str(latex(sol))
+                    temp_out += r" \\ "
+                self.exact_ans = temp_out
+            else:
+                self.exact_ans = str(result)
+
+            self.approx_ans = [N(j, accuracy) for j in result]
+
+            if use_scientific:
+                self.approx_ans = [self.to_scientific_notation(str(i), use_scientific) for i in self.approx_ans]
+
+            self.latex_answer = lat_out
 
         self.approx_ans = self.approx_ans[0] if len(self.approx_ans) == 1 else self.approx_ans
-
         return {"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
 
     @BaseWorker.catch_error
@@ -312,7 +351,7 @@ class EquationsWorker(BaseWorker):
             Returns list of SymPified symbols
         """
 
-        var_re = pyreg.compile(r"[a-zA-Z0-9_]+")
+        var_re = pyreg.compile(r"[a-zA-Z0-9_\(\)]+")
         vars = var_re.findall(var_text)
         output = []
         for var in vars:
@@ -378,8 +417,8 @@ class EquationsTab(QWidget):
 
     def __init__(self, main_window):
         super().__init__()
-        loadUi("qt_assets/tabs/equations.ui", self)
         self.main_window = main_window
+        loadUi(self.main_window.get_resource_path("qt_assets/tabs/equations.ui"), self)
 
         if "verify_domain_eq" in list(self.main_window.settings_data.keys()):
             self.verify_domain_eq = self.main_window.settings_data["verify_domain_eq"]
@@ -595,10 +634,16 @@ class EquationsTab(QWidget):
         equations = [line.text() for line in self.eq_sys_line_list]
         vars = self.EqSysVar.text()
 
+        if self.EqSysTypeNormal.isChecked():
+            solve_type = 1
+        if self.EqSysTypeDiff.isChecked():
+            solve_type = 2
+
         worker = EquationsWorker("calc_system_eq", [
             equations,
             vars,
             self.EqSysDomain.currentText(),
+            solve_type,
             self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap,
@@ -644,10 +689,16 @@ class EquationsTab(QWidget):
         equations = [line.text() for line in self.eq_sys_line_list]
         vars = self.EqSysVar.text()
 
+        if self.EqSysTypeNormal.isChecked():
+            solve_type = 1
+        if self.EqSysTypeDiff.isChecked():
+            solve_type = 2
+
         worker = EquationsWorker("prev_system_eq", [
             equations,
             vars,
             self.EqSysDomain.currentText(),
+            solve_type,
             self.main_window.output_type,
             self.main_window.use_unicode,
             self.main_window.line_wrap

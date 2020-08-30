@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QApplication
-from base_tester import BaseTester
+
+from .base_tester import BaseTester
+from caspy3.qt_assets.tabs.shell.shell import ShellWorker
 
 
 class ExecuteCodeTester(BaseTester):
@@ -11,14 +13,14 @@ class ExecuteCodeTester(BaseTester):
         self.test_execute_code_namespace()
         self.test_execute_code_loop()
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(ShellWorker)
     def test_execute_code(self):
         command = "execute_code"
         params = ['ok = 5;print(ok)', {}]
         solution = {'exec': ['5', 0]}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(ShellWorker)
     def test_execute_code_namespace(self):
         command = "execute_code"
         params = ["ok", {"ok": 4}]
@@ -26,7 +28,7 @@ class ExecuteCodeTester(BaseTester):
         return command, params, solution
 
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(ShellWorker)
     def test_execute_code_loop(self):
         command = "execute_code"
         params = ['for i in range(5):\n\tprint(i**2)', {}]

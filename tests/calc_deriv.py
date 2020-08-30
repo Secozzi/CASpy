@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QApplication
 
-from tests.base_tester import BaseTester
-from qt_assets.tabs.derivative import DerivativeWorker
+from .base_tester import BaseTester
+from caspy3.qt_assets.tabs.derivative import DerivativeWorker
 
 
 class CalcDerivTester(BaseTester):

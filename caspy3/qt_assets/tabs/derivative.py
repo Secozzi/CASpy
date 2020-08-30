@@ -8,7 +8,7 @@ from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
 
-from worker import BaseWorker
+from .worker import BaseWorker
 
 
 class DerivativeWorker(BaseWorker):
@@ -121,8 +121,9 @@ class DerivativeTab(QWidget):
         """
 
         super().__init__()
-        loadUi("qt_assets/tabs/derivative.ui", self)
         self.main_window = main_window
+        loadUi(self.main_window.get_resource_path("qt_assets/tabs/derivative.ui"), self)
+
         self.install_event_filters()
         self.init_bindings()
 

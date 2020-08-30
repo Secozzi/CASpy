@@ -1,7 +1,5 @@
-from pathlib import Path
-import sys, os
+from .qt_assets.main import launch_app
 
-from qt_assets.main import launch_app
 
 def main():
     import sys
@@ -14,6 +12,7 @@ def main():
 
     sys.excepthook = exception_hook
     launch_app()
+
 
 if __name__ == '__main__':
     main()

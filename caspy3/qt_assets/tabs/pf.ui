@@ -38,7 +38,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="PfInput"/>
+      <widget class="QLineEdit" name="PfInput">
+       <property name="toolTip">
+        <string>Number to prime factorize</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

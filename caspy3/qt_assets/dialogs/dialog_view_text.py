@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5.uic import loadUi
 
+import pkg_resources
 
-class View_Text(QDialog):
+
+class ViewText(QDialog):
     def __init__(self, text, parent=None):
         """
         Opens a QDialog and show text and a rendered latex text of exact answer
@@ -12,7 +14,7 @@ class View_Text(QDialog):
 
         The UI file is loaded and set the text to the QTextBrowser
         """
-        super(View_Text, self).__init__(parent=None)
-        loadUi("qt_assets/dialogs/main_view_a.ui", self)
+        super(ViewText, self).__init__(parent=None)
+        loadUi(pkg_resources.resource_filename('caspy3', "qt_assets/dialogs/main_view_a.ui"), self)
         self.approx_text.setText(text)
         self.show()

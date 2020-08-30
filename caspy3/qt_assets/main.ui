@@ -5,12 +5,15 @@
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1500</width>
-    <height>900</height>
+    <width>1494</width>
+    <height>888</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -50,7 +53,7 @@
    <bool>false</bool>
   </property>
   <property name="styleSheet">
-   <string notr="true">QSplitter::handle {background: white}</string>
+   <string notr="true">QSplitter::handle {background: rgb(255, 255, 255)}</string>
   </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
@@ -108,7 +111,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1500</width>
+     <width>1494</width>
      <height>21</height>
     </rect>
    </property>

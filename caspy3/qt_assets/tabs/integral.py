@@ -8,7 +8,7 @@ from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
 
-from worker import BaseWorker
+from .worker import BaseWorker
 
 
 class IntegralWorker(BaseWorker):
@@ -132,8 +132,8 @@ class IntegralTab(QWidget):
 
     def __init__(self, main_window):
         super().__init__()
-        loadUi("qt_assets/tabs/integral.ui", self)
         self.main_window = main_window
+        loadUi(self.main_window.get_resource_path("qt_assets/tabs/integral.ui"), self)
 
         if "approx_integ" in list(self.main_window.settings_data.keys()):
             self.approx_integ = self.main_window.settings_data["approx_integ"]

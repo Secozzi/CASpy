@@ -1,24 +1,24 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 from caspy3 import __version__
 
 
 def readme():
     with open('README.md') as f:
-        README = f.read()
-    return README
+        _readme = f.read()
+    return _readme
 
 
 def requires():
     with open('requirements.txt') as f:
-        REQUIRES = f.read()
-    return REQUIRES
+        _requires = f.read()
+    return _requires
 
 
 setup(
     name="CASPy3",
     version=__version__,
-    description="A program that provides a GUI and a CLI to a symbolic computation and computer algebra system python library, SymPy.",
+    description="A program that provides both a GUI and a CLI to SymPy, a symbolic computation and computer algebra system Python library.",
     long_description=readme(),
     long_description_content_type="text/markdown",
     url="https://github.com/Secozzi/CASPy",
@@ -35,9 +35,9 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
     ],
     install_requires=requires(),
-    packages=find_packages(),
+    packages=["caspy3"],
     include_package_data=True,
-    package_data={},
+    package_data={"caspy3": ["data/*.json"]},
     entry_points={
         "console_scripts": [
             "caspy = caspy3.cli:main",

@@ -5,13 +5,12 @@ from PyQt5.uic import loadUi
 
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
-from sympy.physics.units import degree
 
 import traceback
 
 import re as pyreg
 
-from worker import BaseWorker
+from .worker import BaseWorker
 
 
 class EvaluateWorker(BaseWorker):
@@ -149,14 +148,16 @@ class EvaluateWorker(BaseWorker):
 
         return {"eval": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
 
+
 class EvaluateTab(QWidget):
 
     display_name = "Evaluate"
 
     def __init__(self, main_window):
         super().__init__()
-        loadUi("qt_assets/tabs/evaluate.ui", self)
         self.main_window = main_window
+        loadUi(self.main_window.get_resource_path("qt_assets/tabs/evaluate.ui"), self)
+
         self.install_event_filters()
         self.init_bindings()
 

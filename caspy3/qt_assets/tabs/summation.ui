@@ -30,7 +30,7 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QTextEdit" name="IntegExp">
+        <widget class="QTextEdit" name="SumExp">
          <property name="toolTip">
           <string>Expression</string>
          </property>
@@ -65,15 +65,15 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Lower bound of integral</string>
+            <string>Start of sum</string>
            </property>
            <property name="text">
-            <string>From</string>
+            <string>Start</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="IntegLower">
+          <widget class="QLineEdit" name="SumStart">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -81,7 +81,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Lower bound of integral</string>
+            <string>Start of sum</string>
            </property>
           </widget>
          </item>
@@ -104,15 +104,15 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Upper bound of integral</string>
+            <string>End of sum</string>
            </property>
            <property name="text">
-            <string>To</string>
+            <string>End</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="IntegUpper">
+          <widget class="QLineEdit" name="SumEnd">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -120,7 +120,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Upper bound of integral</string>
+            <string>End of sum</string>
            </property>
           </widget>
          </item>
@@ -149,7 +149,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Integrate with respect to variable</string>
+            <string>Variable</string>
            </property>
            <property name="text">
             <string>Variable</string>
@@ -157,7 +157,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="IntegVar">
+          <widget class="QLineEdit" name="SumVar">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -165,10 +165,10 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Integrate with respect to variable</string>
+            <string>Variable</string>
            </property>
            <property name="text">
-            <string>x</string>
+            <string>k</string>
            </property>
            <property name="placeholderText">
             <string/>
@@ -178,9 +178,9 @@
         </layout>
        </item>
        <item>
-        <widget class="QPushButton" name="IntegPrev">
+        <widget class="QPushButton" name="SumPrev">
          <property name="toolTip">
-          <string>Preview the integral</string>
+          <string>Preview the summation</string>
          </property>
          <property name="text">
           <string>Preview</string>
@@ -191,9 +191,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="IntegCalc">
+        <widget class="QPushButton" name="SumCalc">
          <property name="toolTip">
-          <string>Calculate the integral - Shift + Enter</string>
+          <string>Calculate the summation - Shift + Enter</string>
          </property>
          <property name="text">
           <string>Calculate</string>
@@ -212,7 +212,7 @@
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QTextBrowser" name="IntegOut">
+      <widget class="QTextBrowser" name="SumOut">
        <property name="toolTip">
         <string>Exact answer of calculation</string>
        </property>
@@ -223,7 +223,7 @@
         <string>Output</string>
        </property>
       </widget>
-      <widget class="QTextBrowser" name="IntegApprox">
+      <widget class="QTextBrowser" name="SumApprox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>

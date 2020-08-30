@@ -8,7 +8,7 @@ from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
 
-from worker import BaseWorker
+from .worker import BaseWorker
 
 
 class PfWorker(BaseWorker):
@@ -47,8 +47,9 @@ class PfTab(QWidget):
 
     def __init__(self, main_window):
         super().__init__()
-        loadUi("qt_assets/tabs/pf.ui", self)
         self.main_window = main_window
+        loadUi(self.main_window.get_resource_path("qt_assets/tabs/pf.ui"), self)
+
         self.init_menu()
         self.init_bindings()
 

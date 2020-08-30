@@ -29,10 +29,18 @@
     </widget>
    </item>
    <item row="0" column="1">
-    <widget class="QLineEdit" name="display_line"/>
+    <widget class="QLineEdit" name="display_line">
+     <property name="toolTip">
+      <string>The name displayed on the menu</string>
+     </property>
+    </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QLineEdit" name="url_line"/>
+    <widget class="QLineEdit" name="url_line">
+     <property name="toolTip">
+      <string>Full url to website</string>
+     </property>
+    </widget>
    </item>
    <item row="0" column="0">
     <widget class="QLabel" name="display_label">

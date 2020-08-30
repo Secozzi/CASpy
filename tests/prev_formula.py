@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QLineEdit
-from base_tester import BaseTester
+
+from .base_tester import BaseTester
+from caspy3.qt_assets.tabs.formulas import FormulaWorker
 
 
 class PrevFormulaTester(BaseTester):
@@ -19,14 +21,14 @@ class PrevFormulaTester(BaseTester):
         self.test_prev_formula_var()
         self.test_prev_formula_unicode()
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_no_selected(self):
         command = "prev_formula"
         params = [None, self.formula, 'Complexes', 1, False, False]
         solution = {'error': ['Error: select a formula']}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_invalid_line_entry(self):
         command = "prev_formula"
 
@@ -41,7 +43,7 @@ class PrevFormulaTester(BaseTester):
         solution = {'error': [f'Error: Unable to get equation from {value_string}']}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_no_var(self):
         line_1 = [QLineEdit(self), "Ek"]
         line_2 = [QLineEdit(self), "m"]
@@ -57,7 +59,7 @@ class PrevFormulaTester(BaseTester):
         solution = {'error': ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_too_many_var(self):
         line_1 = [QLineEdit(self), "Ek"]
         line_2 = [QLineEdit(self), "m"]
@@ -73,7 +75,7 @@ class PrevFormulaTester(BaseTester):
         solution = {'error': ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula(self):
         line_1 = [QLineEdit(self), "Ek"]
         line_2 = [QLineEdit(self), "m"]
@@ -89,7 +91,7 @@ class PrevFormulaTester(BaseTester):
         solution = {'eq': ['            2\nEk = 0.5*m*v \nDomain: Complexes', 0], 'latex': 'Ek = 0.5 m v^{2}'}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_latex(self):
         command = "prev_formula"
 
@@ -106,7 +108,7 @@ class PrevFormulaTester(BaseTester):
         solution = {'eq': ['Ek = 0.5 m v^{2}\nDomain: Complexes', 0], 'latex': 'Ek = 0.5 m v^{2}'}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_normal(self):
         command = "prev_formula"
 
@@ -123,7 +125,7 @@ class PrevFormulaTester(BaseTester):
         solution = {'eq': ['Ek = 0.5*m*v**2\nDomain: Complexes', 0], 'latex': 'Ek = 0.5 m v^{2}'}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_var(self):
         command = "prev_formula"
 
@@ -139,7 +141,7 @@ class PrevFormulaTester(BaseTester):
         solution = {'eq': ['            2\nEk = 0.5*m*v \nDomain: Complexes', 0], 'latex': 'Ek = 0.5 m v^{2}'}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_unicode(self):
         command = "prev_formula"
 
@@ -155,7 +157,7 @@ class PrevFormulaTester(BaseTester):
         solution = {'eq': ['            2\nEk = 0.5⋅m⋅v \nDomain: Complexes', 0], 'latex': 'Ek = 0.5 m v^{2}'}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(FormulaWorker)
     def test_prev_formula_domain(self):
         command = "prev_formula"
 

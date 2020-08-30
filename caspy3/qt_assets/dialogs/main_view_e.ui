@@ -23,7 +23,7 @@
    <string>Exact Answer</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="images.qrc">
+   <iconset>
     <normaloff>:/logo/logo.png</normaloff>:/logo/logo.png</iconset>
   </property>
   <property name="sizeGripEnabled">
@@ -55,6 +55,9 @@
        <font>
         <family>Courier New</family>
        </font>
+      </property>
+      <property name="toolTip">
+       <string>Answer</string>
       </property>
       <property name="lineWrapMode">
        <enum>QTextEdit::WidgetWidth</enum>

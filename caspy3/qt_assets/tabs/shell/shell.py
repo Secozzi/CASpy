@@ -9,11 +9,11 @@ from sympy.parsing.sympy_parser import parse_expr
 import sys
 import traceback
 
-from qt_assets.tabs.shell.paren_highlight import TextEdit
-from qt_assets.tabs.shell.syntax_pars import PythonHighlighter
-from qt_assets.tabs.shell.start_code_dialog import StartCodeDialog
+from .paren_highlight import TextEdit
+from .syntax_pars import PythonHighlighter
+from .start_code_dialog import StartCodeDialog
 
-from worker import BaseWorker
+from ..worker import BaseWorker
 
 
 class ShellWorker(BaseWorker):
@@ -30,6 +30,7 @@ class ShellWorker(BaseWorker):
 
         class Capturing(list):
             from io import StringIO
+
             def __enter__(self):
                 self._stdout = sys.stdout
                 sys.stdout = self._stringio = self.StringIO()
@@ -80,6 +81,9 @@ class Console(TextEdit):
         self.history_index = 0
 
         self.setPlainText(self.start_text + self.start_code + "\n\n" + self.prompt)
+
+        self.last_line = self.document().lineCount()
+
         self.moveCursor(QTextCursor.End)
         self.setUndoRedoEnabled(False)
         highlight = PythonHighlighter(self.document())
@@ -213,6 +217,7 @@ class Console(TextEdit):
 
 
 class ShellTab(QWidget):
+
     display_name = "Shell"
 
     def __init__(self, main_window):
@@ -287,8 +292,16 @@ class ShellTab(QWidget):
                         return True
 
             if event.key() in (Qt.Key_Left, Qt.Key_Backspace):
-                if self.consoleIn.get_cursor_position() == 0:
-                    return True
+                text_c_pos = self.consoleIn.textCursor().blockNumber()
+
+                if text_c_pos + 1 == self.consoleIn.last_line - 1:
+                    if self.consoleIn.get_cursor_position() == 0:
+                        return True
+                else:
+                    if text_c_pos < self.consoleIn.last_line - 1:
+                        return True
+                    else:
+                        return super(ShellTab, self).eventFilter(obj, event)
 
             if event.key() == Qt.Key_Up:
                 entry = self.consoleIn.get_previous_history_entry()
@@ -326,6 +339,7 @@ class ShellTab(QWidget):
                 self.consoleIn.insertPlainText("\n>>> ")
 
             self.consoleIn.update_namespace(input_dict["new_namespace"])
+            self.consoleIn.last_line = self.consoleIn.document().lineCount()
 
         self.consoleIn.moveCursor(QTextCursor.End)
 

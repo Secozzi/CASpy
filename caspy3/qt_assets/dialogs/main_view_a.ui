@@ -28,6 +28,9 @@
        <family>Courier New</family>
       </font>
      </property>
+     <property name="toolTip">
+      <string>Answer</string>
+     </property>
      <property name="lineWrapMode">
       <enum>QTextEdit::WidgetWidth</enum>
      </property>

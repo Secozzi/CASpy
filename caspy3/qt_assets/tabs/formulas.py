@@ -8,7 +8,7 @@ from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
 
-from worker import BaseWorker
+from .worker import BaseWorker
 
 
 class FormulaWorker(BaseWorker):
@@ -130,10 +130,11 @@ class FormulaTab(QWidget):
 
     def __init__(self, main_window):
         super().__init__()
-        loadUi("qt_assets/tabs/formulas.ui", self)
-        self.init_ui()
         self.main_window = main_window
-        
+        loadUi(self.main_window.get_resource_path("qt_assets/tabs/formulas.ui"), self)
+
+        self.init_ui()
+
         if "verify_domain_formula" in list(self.main_window.settings_data.keys()):
             self.verify_domain_formula = self.main_window.settings_data["verify_domain_formula"]
         else:
@@ -260,7 +261,6 @@ class FormulaTab(QWidget):
         """
         Retrieves info from json file, set tooltip and set value of constants if needed
         """
-
         _translate = QCoreApplication.translate
 
         lines = []

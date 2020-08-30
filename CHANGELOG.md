@@ -12,6 +12,13 @@ All changes will be documented in this file
 ### Changed
 
 - Each tab has now their own worker
+- When pasting multi-line command into shell, left arrow and backspace won't be blocked when typing on a line under the line with the prompt
+
+### Fixed
+
+- pkg_resources is now used to read .json files
+- Fixed imports
+- Switching tabs now loops based from number of tabs
 
 ## [2.0] - 2020-08-20
 

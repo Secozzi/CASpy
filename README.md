@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
 # CASPy
-_A program that provides a GUI and a CLI to SymPy, a symbolic computation and computer algebra system Python library._
+_A program that provides both a GUI and a CLI to SymPy, a symbolic computation and computer algebra system Python library._
 
 <p align="center">
   <img src="https://i.imgur.com/F7wfzQt.png" alt="CASPY logo">
@@ -32,7 +32,7 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  deriv    Derive a function Usage: caspy deriv EXPRESSION VARIABLE [ORDER]...
+  deriv    Derive a function.
   diff-eq  Solves a differential equation equation.
   eq       Solves a normal equation.
   eval     Evaluates an expression.
@@ -41,8 +41,9 @@ Commands:
   limit    Calculate the limit of an expression.
   pf       Retreives the prime factors of an positive integer.
   simp     Simplifies an expression.
-  start    Start the GUI
-  sys-eq   Solves a system of equations.
+  start    Start the GUI.
+  sum      Calculate the summation of an expression.
+  sys-eq   Solves a system of either normal or differential equations.
   web      Choose a number from a list of usable maths websites and open it...
 ```
 
@@ -65,24 +66,11 @@ Commands:
 ```
 Derive a function
 
-    Usage: caspy deriv EXPRESSION VARIABLE [ORDER] [AT_POINT]
+    Usage: caspy deriv EXPRESSION VARIABLE [ORDER] [AT_POINT] [FLAGS]
 
     Example(s):
     >>> caspy deriv x**x x
     >>> caspy deriv sin(1/x) x 3 pi
-```
-
-#### eq
-```
-Solves a normal equation.
-
-    Separate equation by either a space or a =, but not both.
-
-    Usage: eq LEFT_EXPRESSION RIGHT_EXPRESSION VARIABLE_TO_SOLVE_FOR [SOLVE_TYPE]
-
-    Example(s):
-    >>> caspy eq x**x 2 x
-    >>> caspy eq sin(x)=1 x -st
 ```
 
 #### diff-eq
@@ -91,25 +79,24 @@ Solves a differential equation equation.
 
     Separate equation by either a space or a =, but not both.
 
-    Usage: diff-eq LEFT_EXPRESSION RIGHT_EXPRESSION FUNCTION_TO_SOLVE_FOR [HINT]
+    Usage: diff-eq LEFT_EXPRESSION RIGHT_EXPRESSION FUNCTION_TO_SOLVE_FOR [HINT] [FLAGS]
 
     Example(s):
     >>> caspy diff-eq f'(x) 1/f(x) f(x)
     >>> caspy diff-eq f''(x)+3*f'(x)=x**2 f(x)
 ```
 
-#### sys-eq
+#### eq
 ```
-Solves a system of equations.
+Solves a normal equation.
 
-    Takes number of equations as argument, then will prompt user for all equations
+    Separate equation by either a space or a =, but not both.
 
-    Usage: sys-eq NO_OF_EQUATIONS
+    Usage: eq LEFT_EXPRESSION RIGHT_EXPRESSION VARIABLE_TO_SOLVE_FOR [SOLVE_TYPE] [FLAGS]
 
     Example(s):
-    >>> caspy sys-eq 5
-    >>> caspy sys-eq 3 -d Integers
-
+    >>> caspy eq x**x 2 x
+    >>> caspy eq sin(x)=1 x -st
 ```
 
 #### eval
@@ -124,19 +111,18 @@ Evaluates an expression.
     => 3**((3)+(5))
     => 6561
 
-    Usage: eval EXPRESSION [VARS_SUB ... ]
+    Usage: eval EXPRESSION [VARS_SUB ... ] [FLAGS]
 
     Example(s):
     >>> caspy eval exp(pi)+3/sin(6)
     >>> caspy eval 3**x x 3
 ```
 
-
 #### exp
 ```
 Expandes an expression.
 
-    Usage: exp EXPRESSION
+    Usage: exp EXPRESSION [FLAGS]
 
     Example(s):
     >>> caspy exp (a+b-c)**3
@@ -146,7 +132,7 @@ Expandes an expression.
 ```
 Calculate definite and indefinite integrals of expressions.
 
-    Usage: caspy integ EXPRESSION VARIABLE {LOWER_BOUND UPPER_BOUND} [APPROXIMATE]
+    Usage: caspy integ EXPRESSION VARIABLE {LOWER_BOUND UPPER_BOUND} [APPROXIMATE] [FLAGS]
 
     Example(s):
     >>> caspy integ 1/sqrt(1-x**2) x -1 1
@@ -157,7 +143,7 @@ Calculate definite and indefinite integrals of expressions.
 ```
 Calculate the limit of an expression.
 
-    Usage: caspy limit EXPRESSION VARIABLE AS_VARIABLE_IS_APPROACHING [SIDE]
+    Usage: caspy limit EXPRESSION VARIABLE AS_VARIABLE_IS_APPROACHING [SIDE] [FLAGS]
 
     Example(s):
     >>> caspy limit (1+1/(a*n))**(b*n) n oo
@@ -181,7 +167,7 @@ Retreives the prime factors of an positive integer.
 ```
 Simplifies an expression.
 
-    Usage: simp EXPRESSION
+    Usage: simp EXPRESSION [FLAGS]
 
     Example(s):
     >>> caspy simp sin(x)**2+cos(x)**2
@@ -190,6 +176,32 @@ Simplifies an expression.
 #### start
 ```
 Start the GUI. No options/flags etc
+```
+
+#### sum
+```
+Calculate the summation of an expression.
+
+    Usage: caspy sum EXPRESSION VARIABLE START END [FLAGS]
+
+    \b
+    Example(s):
+    >>> caspy sum x**k/factorial(k) k 0 oo
+    >>> caspy sum k**2 k 1 m
+```
+
+#### sys-eq
+```
+Solves a system of either normal or differential equations.
+
+    Takes number of equations as argument, then will prompt user for all equations
+
+    Usage: sys-eq NO_OF_EQUATIONS [SOLVE_TYPE] [FLAGS]
+
+    Example(s):
+    >>> caspy sys-eq 5
+    >>> caspy sys-eq 3 -d Integers
+
 ```
 
 #### web

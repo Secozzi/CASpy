@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QApplication
-from base_tester import BaseTester
+
+from .base_tester import BaseTester
+from caspy3.qt_assets.tabs.evaluate import EvaluateWorker
 
 
 class ParseVarSubTester(BaseTester):
@@ -12,28 +14,28 @@ class ParseVarSubTester(BaseTester):
         self.test_parse_var_sub_no_value_multiple()
         self.test_parse_var_sub()
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(EvaluateWorker)
     def test_parse_var_sub_no_colon(self):
         command = "parse_var_sub"
         params = ["x"]
         solution = {'error': 'Colon missing'}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(EvaluateWorker)
     def test_parse_var_sub_no_value(self):
         command = "parse_var_sub"
         params = ["x: "]
         solution = {'error': "Variable 'x' is missing a value"}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(EvaluateWorker)
     def test_parse_var_sub_no_value_multiple(self):
         command = "parse_var_sub"
         params = ["x: 2 y: "]
         solution = {'error': "Variable 'y' is missing a value"}
         return command, params, solution
 
-    @BaseTester.call_worker
+    @BaseTester.call_worker(EvaluateWorker)
     def test_parse_var_sub(self):
         command = "parse_var_sub"
         params = ["x: 3 y: 5"]

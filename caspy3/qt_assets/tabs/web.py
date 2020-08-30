@@ -6,8 +6,8 @@ from PyQt5.uic import loadUi
 
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
 
-from qt_assets.dialogs.dialog_add_website import AddWebsite
-from qt_assets.dialogs.dialog_remove_website import RemoveWebsite
+from ..dialogs.dialog_add_website import AddWebsite
+from ..dialogs.dialog_remove_website import RemoveWebsite
 
 
 class WebEnginePage(QWebEnginePage):
@@ -21,12 +21,12 @@ class WebTab(QWidget):
 
     def __init__(self, main_window):
         super().__init__()
-        loadUi("qt_assets/tabs/web.ui", self)
+        self.main_window = main_window
+        loadUi(self.main_window.get_resource_path("qt_assets/tabs/web.ui"), self)
 
         page = WebEnginePage(self.web)
         self.web.setPage(page)
 
-        self.main_window = main_window
         if "selected_web_index" in list(self.main_window.settings_data.keys()):
             self.selected_web_index = self.main_window.settings_data["selected_web_index"]
         else:
@@ -36,7 +36,6 @@ class WebTab(QWidget):
         self.init_web_menu()
         self.main_window.latex_text = ""
 
-        # Load first url
         self.web.load(QUrl(list(self.main_window.websites_data[self.selected_web_index].values())[0]))
 
     def init_web_menu(self):

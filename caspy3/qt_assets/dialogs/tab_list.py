@@ -18,7 +18,7 @@ class TabList(QListWidget):
         self.setDragDropMode(QAbstractItemView.InternalMove)
         self.setDragDropOverwriteMode(False)
 
-        with open("data/settings.json", "r", encoding="utf8") as json_f:
+        with open(self.main_window.get_resource_path("data/settings.json"), "r", encoding="utf8") as json_f:
             tab_file = json_f.read()
             self.settings_json = json.loads(tab_file)
             self.tab_data = self.settings_json["tabs"]
@@ -49,9 +49,8 @@ class TabList(QListWidget):
             new_tab_list[item.text()] = True if item.checkState() == 2 else False
 
         self.settings_json.update({"tabs": new_tab_list})
-        #print(self.settings_json)
 
-        with open("data/settings.json", "w", encoding="utf-8") as json_f:
+        with open(self.main_window.get_resource_path("data/settings.json"), "w", encoding="utf-8") as json_f:
             json.dump(self.settings_json, json_f, ensure_ascii=False, indent=4, sort_keys=False)
 
         self.main_window.load_settings()
