@@ -22,5 +22,5 @@
     "verify_domain_eq": false,
     "selected_web_index": 0,
     "verify_domain_formula": false,
-    "start_code": "from __future__ import division\n\nfrom sympy import *\nfrom sympy.parsing.sympy_parser import parse_expr\nfrom sympy.abc import _clash1\n\nimport math\nimport cmath as cm\n\nx, y, z, t = symbols('x y z t')\nk, m, n = symbols('k m n', integer=True)\nf, g, h = symbols('f g h', cls=Function)"
+    "start_code": "from __future__ import division\n\nfrom sympy import *\nfrom sympy.parsing.sympy_parser import parse_expr\nfrom sympy.abc import _clash1\n\nimport math\nimport cmath as cm\n\nx, y, z, t = symbols('x y z t')\nk, m, n = symbols('k m n', integer=True)\nf, g, h = symbols('f g h', cls=Function)\n\nfor i in range(5):\n\tprint(i**2)"
 }

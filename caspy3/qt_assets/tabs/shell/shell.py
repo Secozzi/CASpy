@@ -17,16 +17,16 @@ from ..worker import BaseWorker
 
 
 class ShellWorker(BaseWorker):
-    def __init__(self, command, params, copy=None):
-        super().__init__(command, params, copy)
+    def __init__(self, input_command, input_params, copy=None):
+        super().__init__(input_command, input_params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def execute_code(self, code, namespace):
+    def execute_code(self, input_code, input_namespace):
         self.exact_ans = ""
         self.approx_ans = 0
         self.latex_answer = r"\text{LaTeX not supported for shell}"
-        new_namespace = namespace
+        new_namespace = input_namespace
 
         class Capturing(list):
             from io import StringIO
@@ -44,9 +44,9 @@ class ShellWorker(BaseWorker):
         try:
             with Capturing() as self.output:
                 try:
-                    exec(f"print({code})", namespace)
+                    exec(f"print({input_code})", input_namespace)
                 except Exception:
-                    exec(code, namespace)
+                    exec(input_code, input_namespace)
         except Exception:
             self.output = f"\nError: {traceback.format_exc()}"
 
@@ -79,10 +79,9 @@ class Console(TextEdit):
         self.namespace = {}
         self.history = []
         self.history_index = 0
+        self.last_line = 0
 
         self.setPlainText(self.start_text + self.start_code + "\n\n" + self.prompt)
-
-        self.last_line = self.document().lineCount()
 
         self.moveCursor(QTextCursor.End)
         self.setUndoRedoEnabled(False)
@@ -91,6 +90,9 @@ class Console(TextEdit):
 
     def stop_thread(self):
         pass
+
+    def set_last_line(self):
+        self.last_line = self.document().lineCount()
 
     def update_ui(self, input_dict):
         """
@@ -117,6 +119,7 @@ class Console(TextEdit):
             self.namespace = dict(self.namespace, **self.base_namespace)
 
         self.moveCursor(QTextCursor.End)
+        self.set_last_line()
 
     def create_base_namespace(self):
         """
@@ -294,7 +297,7 @@ class ShellTab(QWidget):
             if event.key() in (Qt.Key_Left, Qt.Key_Backspace):
                 text_c_pos = self.consoleIn.textCursor().blockNumber()
 
-                if text_c_pos + 1 == self.consoleIn.last_line - 1:
+                if text_c_pos + 1 == self.consoleIn.last_line:
                     if self.consoleIn.get_cursor_position() == 0:
                         return True
                 else:
@@ -342,6 +345,8 @@ class ShellTab(QWidget):
             self.consoleIn.last_line = self.consoleIn.document().lineCount()
 
         self.consoleIn.moveCursor(QTextCursor.End)
+        self.consoleIn.set_last_line()
+        self.consoleIn.last_line -= 1
 
     def add_to_menu(self):
         _translate = QCoreApplication.translate
@@ -363,6 +368,7 @@ class ShellTab(QWidget):
 
     def clear_shell(self):
         self.consoleIn.clear_shell()
+        self.consoleIn.set_last_line()
 
     def edit_start_code(self):
         self.start_text_dialog = StartCodeDialog(self.start_code, self)
