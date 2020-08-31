@@ -94,7 +94,7 @@ class CASpyGUI(QMainWindow):
         try:
             if os.name == "nt":
                 import ctypes
-                myappid = u'secozzi.caspy3.210'
+                myappid = u'secozzi.caspy3.212'
                 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
         except Exception:
             pass

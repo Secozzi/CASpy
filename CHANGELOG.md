@@ -2,7 +2,19 @@
 
 All changes will be documented in this file
 
-## [2.1] - TBA - not released yet
+## [2.1.2] - 2020-08-31
+
+### Fixed
+
+- Updated versions and changelog
+
+## [2.1.1] - 2020-08-31
+
+### Fixed
+
+- Fixed bug in shell where you couldn't go back after clearing shell
+
+## [2.1] - 2020-08-30
 
 ### Added
 
