@@ -23,11 +23,13 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QRunnable
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
+from typing import Any, Callable, Dict, List, Union
+
 from pyperclip import copy
 import traceback
 
 
-def catch_thread(func):
+def catch_thread(func: Callable[..., Any]):
     """Decorator to catch any errors of a slot. This decorator shouldn't be called under normal circumstances"""
 
     def wrapper(*s, **gs):
@@ -47,7 +49,11 @@ class WorkerSignals(QObject):
 
 
 class BaseWorker(QRunnable):
-    def __init__(self, command, params, copy_output=None):
+    def __init__(
+            self,
+            command: str,
+            params: list,
+            copy_output: Union[int, None] = None):
         super(BaseWorker, self).__init__()
 
         self.command = command
@@ -57,7 +63,7 @@ class BaseWorker(QRunnable):
         self.signals = WorkerSignals()
 
     @staticmethod
-    def catch_error(func):
+    def catch_error(func: Callable[..., Any]):
         """Decorator for debugging. It will print params and copy result"""
 
         def wrapper(self, *args, **kwargs):
@@ -67,14 +73,15 @@ class BaseWorker(QRunnable):
                 return {"error": [f"ERROR IN SOURCE CODE: \n\n{traceback.format_exc()}"]}
 
             return result
+
         return wrapper
 
     @pyqtSlot()
-    def run(self):
+    def run(self) -> Union[Dict[str, List[str]], None]:
         try:
             result = getattr(self, self.command)(*self.params)
         except Exception:
-            return {"error": f"Error calling function from worker thread: \n{traceback.format_exc()}"}
+            return {"error": [f"Error calling function from worker thread: \n{traceback.format_exc()}"]}
 
         # For tests
         if type(result) == list:
@@ -113,7 +120,7 @@ class BaseWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def to_scientific_notation(self, number, accuracy=5):
+    def to_scientific_notation(self, number: str, accuracy: int = 5) -> str:
         """
         Converts number into the string "a*x**b" where a is a float and b is an integer unless it's not a number in the
         complex plane, such as infinity.
@@ -197,8 +204,16 @@ class BaseWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def prev_normal_eq(self, left_expression, right_expression, input_variable, domain,
-                       output_type, use_unicode, line_wrap):
+    def prev_normal_eq(
+            self,
+            left_expression: str,
+            right_expression: str,
+            input_variable: str,
+            domain: str,
+            output_type: int,
+            use_unicode: bool,
+            line_wrap: bool
+    ) -> Dict[str, List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -243,8 +258,20 @@ class BaseWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def calc_normal_eq(self, left_expression, right_expression, input_variable, solve_type, domain,
-                       output_type, use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
+    def calc_normal_eq(
+            self,
+            left_expression: str,
+            right_expression: str,
+            input_variable: str,
+            solve_type: int,
+            domain: str,
+            output_type: int,
+            use_unicode: bool,
+            line_wrap: bool,
+            use_scientific: Union[int, None],
+            accuracy: int,
+            verify_domain: bool
+    ) -> Dict[str, List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -312,7 +339,7 @@ class BaseWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def verify_domain(self, input_values, domain):
+    def verify_domain(self, input_values: List[Expr], domain: [Set, Interval]) -> List[Expr]:
         output = []
 
         for value in input_values:
@@ -329,5 +356,5 @@ class BaseWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def eq_to_text(self, equation):
+    def eq_to_text(self, equation: Eq) -> str:
         return f"{equation.lhs} = {equation.rhs}"

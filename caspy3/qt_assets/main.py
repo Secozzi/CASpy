@@ -21,6 +21,8 @@ import json
 import os
 import pkg_resources
 
+from typing import Union
+
 from .dialogs.dialog_view import View
 from .dialogs.dialog_view_text import ViewText
 from .dialogs.tab_list import TabList
@@ -32,6 +34,7 @@ from PyQt5.QtCore import (
 )
 
 from PyQt5.QtWidgets import (
+    QAction,
     QActionGroup,
     QApplication,
     QInputDialog,
@@ -39,11 +42,12 @@ from PyQt5.QtWidgets import (
     QMessageBox
 )
 
+from PyQt5.QtGui import QCloseEvent
 from PyQt5.uic import loadUi
 
 
 class CASpyGUI(QMainWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         The main window.
 
@@ -80,31 +84,31 @@ class CASpyGUI(QMainWindow):
         self.init_ui()
 
     @staticmethod
-    def get_resource_path(relative_path):
+    def get_resource_path(relative_path: str) -> str:
         return pkg_resources.resource_filename('caspy3', relative_path)
 
-    def load_jsons(self):
+    def load_jsons(self) -> None:
         # Load each json_file
         self.load_settings()
         self.load_websites()
         self.load_formulas()
 
-    def load_settings(self):
+    def load_settings(self) -> None:
         with open(self.get_resource_path('data/settings.json'), "r", encoding="utf8") as json_f:
             _settings_file = json_f.read()
             self.settings_data = json.loads(_settings_file)
 
-    def load_websites(self):
+    def load_websites(self) -> None:
         with open(self.get_resource_path('data/websites.json'), "r", encoding="utf8") as json_f:
             _websites_file = json_f.read()
             self.websites_data = json.loads(_websites_file)
 
-    def load_formulas(self):
+    def load_formulas(self) -> None:
         with open(self.get_resource_path('data/formulas.json'), "r", encoding="utf8") as json_f:
             _formulas_file = json_f.read()
             self.formulas_data = json.loads(_formulas_file)
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         """Load ui file, then initialize menu, and then initalize all tabs"""
         loadUi(self.get_resource_path('qt_assets/main.ui'), self)
 
@@ -121,7 +125,7 @@ class CASpyGUI(QMainWindow):
         self.init_tabs()
         self.show()
 
-    def init_menu(self):
+    def init_menu(self) -> None:
         """For the QActionGroup Output Type -> Pretty - Latex - Normal.
         This couldn't be done in Qt Designer since it doesn't support QActionGroup."""
         self.output_type_group = QActionGroup(self.menuOutput_Type)
@@ -175,7 +179,7 @@ class CASpyGUI(QMainWindow):
         else:
             self.actionNormal.setChecked(True)
 
-    def init_tabs(self):
+    def init_tabs(self) -> None:
         """
         Iterate through self.TABS and add the tab to tab_manager and pass self as main_window
         """
@@ -184,7 +188,7 @@ class CASpyGUI(QMainWindow):
             self.tab_manager.addTab(tab(main_window=self), tab.display_name)
 
     @staticmethod
-    def show_error_box(message):
+    def show_error_box(message: str) -> None:
         """
         Show a message box containing an error
 
@@ -198,43 +202,43 @@ class CASpyGUI(QMainWindow):
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
 
-    def change_output_type(self, action):
+    def change_output_type(self, action: QAction) -> None:
         # Pretty is represented as a 1, Latex 2, and Normal 3
         types = ["Pretty", "Latex", "Normal"]
         self.output_type = types.index(action.text()) + 1
 
-    def get_scientific_notation(self):
+    def get_scientific_notation(self) -> Union[int, None]:
         # Get accuracy of scientific notation with QInputDialog
         number, confirmed = QInputDialog.getInt(self, "Get Scientific Notation", "Enter the accuracy for scientific notation", 5, 1, 999999, 1)
         if confirmed:
             return number
         else:
-            return False
+            return None
 
-    def get_accuracy(self):
+    def get_accuracy(self) -> int:
         # Get accuracy with QInputDialog
         number, confirmed = QInputDialog.getInt(self, "Get Accuracy", "Enter the accuracy for evaluation", self.accuracy, 1, 999999, 1)
         if confirmed:
             self.accuracy = number
 
-    def open_tab_list(self):
+    def open_tab_list(self) -> None:
         self.tab_list = TabList(self)
 
-    def toggle_unicode(self, state):
+    def toggle_unicode(self, state: bool) -> None:
         # Toggles whether or not to use unicode.
         if state:
             self.use_unicode = True
         else:
             self.use_unicode = False
 
-    def toggle_line_wrap(self, state):
+    def toggle_line_wrap(self, state: bool) -> None:
         # Toggles whether or not to wrap lines.
         if state:
             self.line_wrap = True
         else:
             self.line_wrap = False
 
-    def toggle_use_scientific(self, state):
+    def toggle_use_scientific(self, state: bool) -> None:
         # Toggles the use of scientific notation (and accuracy), only works when calculating an approximation
         _translate = QCoreApplication.translate
         if state:
@@ -248,13 +252,13 @@ class CASpyGUI(QMainWindow):
             self.use_scientific = False
             self.actionScientific_Notation.setText(_translate("MainWindow", "Scientific Notation"))
 
-    def change_accuracy(self):
+    def change_accuracy(self) -> None:
         # Changes accuracy of all evaluations
         _translate = QCoreApplication.translate
         self.get_accuracy()
         self.actionAccuracy.setText(_translate("MainWindow", f"Accuracy - {self.accuracy}"))
 
-    def copy_exact_ans(self):
+    def copy_exact_ans(self) -> None:
         # Copies self.exact_ans to clipboard.
         if type(self.exact_ans) == list:
             if len(self.exact_ans) == 1:
@@ -262,7 +266,7 @@ class CASpyGUI(QMainWindow):
         else:
             copy(str(self.exact_ans))
 
-    def copy_approx_ans(self):
+    def copy_approx_ans(self) -> None:
         # Copies self.approx_ans to clipboard.
         if type(self.approx_ans) == list:
             if len(self.approx_ans) == 1:
@@ -270,39 +274,39 @@ class CASpyGUI(QMainWindow):
         else:
             copy(str(self.approx_ans))
 
-    def next_tab(self):
+    def next_tab(self) -> None:
         # Goes to next tab.
         if self.tab_manager.currentIndex() == self.tab_manager.count() - 1:
             self.tab_manager.setCurrentIndex(0)
         else:
             self.tab_manager.setCurrentIndex(self.tab_manager.currentIndex() + 1)
 
-    def previous_tab(self):
+    def previous_tab(self) -> None:
         # Goes to previous tab.
         if self.tab_manager.currentIndex() == 0:
             self.tab_manager.setCurrentIndex(self.tab_manager.count() - 1)
         else:
             self.tab_manager.setCurrentIndex(self.tab_manager.currentIndex() - 1)
 
-    def view_exact_ans(self):
+    def view_exact_ans(self) -> None:
         # Open QDialog with exact answer
         self.v = View(str(self.exact_ans), self.latex_text)
 
-    def view_approx_ans(self):
+    def view_approx_ans(self) -> None:
         # Open QDialog with approximate answer
         self.v = ViewText(str(self.approx_ans))
 
-    def add_to_save_settings(self, data):
+    def add_to_save_settings(self, data: dict) -> None:
         """
         Function that a tab calls to add data to be saved when closing the window.
         The tab calls this function on init() and every time the data changes.
         :param data: dict
             Dict that holds data
         """
-        for key in list(data.keys()):
+        for key in data:
             self.save_settings_data[key] = data[key]
 
-    def update_save_settings(self, data):
+    def update_save_settings(self, data: dict) -> None:
         """
         Update the dict the saves all data
         :param data: dict
@@ -310,10 +314,11 @@ class CASpyGUI(QMainWindow):
         """
         self.save_settings_data.update(data)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         """
         Save settings when closing window by writing dict to json file
         """
+        print(f"EVENT: {event}")
         settings_json = {
             "tabs": self.settings_data["tabs"],
             "unicode": self.use_unicode,
@@ -333,7 +338,7 @@ class CASpyGUI(QMainWindow):
         event.accept()
 
 
-def launch_app():
+def launch_app() -> None:
     import sys
     app = QApplication(sys.argv)
     caspy = CASpyGUI()

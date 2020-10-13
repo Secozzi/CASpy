@@ -21,22 +21,32 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QCursor
 from PyQt5.uic import loadUi
 
+from typing import Dict, List
+
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
 
 from .worker import BaseWorker
+# TODO: Dict etc exists in sympy
 
 
 class SummationWorker(BaseWorker):
-    def __init__(self, command, params, copy=None):
+    def __init__(self, command: str, params: list, copy: int = None):
         super().__init__(command, params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_sum(self, input_expression, input_variable, sum_start, sum_end, output_type, use_unicode,
-                 line_wrap):
+    def prev_sum(self,
+                 input_expression: str,
+                 input_variable: str,
+                 sum_start: str,
+                 sum_end: str,
+                 output_type: int,
+                 use_unicode: bool,
+                 line_wrap: bool
+                 ) -> Dict[str, List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""

@@ -2,13 +2,17 @@
 
 All changes will be documented in this file
 
-## [2.1.3] - 2020-10-13
+## [2.2.0] - 2020-10-13
 
 ### Added
 
 - Fixed error 'QT_DEVICE_PIXEL_RATIO is deprecated' by setting enviromental variables
 - Added option '--dont-suppress' in order to not set enviromental variables
 - Added GPLv3+ warranty at the top of every .py file
+
+### Changed
+
+- Removed support for python 3.7 and below
 
 ## [2.1.2] - 2020-08-31
 

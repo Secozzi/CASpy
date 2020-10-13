@@ -19,7 +19,7 @@
 from .qt_assets.main import launch_app
 
 
-def main():
+def main() -> None:
     import sys
     sys._excepthook = sys.excepthook
 

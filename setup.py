@@ -43,12 +43,11 @@ setup(
     author="Folke Ishii",
     author_email="folke.ishii@gmail.com",
     license="GPLv3+",
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         'Programming Language :: Python :: 3 :: Only',
     ],

@@ -16,8 +16,6 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-import json
-
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QAction, QActionGroup, QDialog, QWidget
 from PyQt5.uic import loadUi
@@ -29,7 +27,13 @@ from ..dialogs.dialog_remove_website import RemoveWebsite
 
 
 class WebEnginePage(QWebEnginePage):
-    def javaScriptConsoleMessage(self, level, msg, line, sourceID):
+    def javaScriptConsoleMessage(
+            self,
+            level: 'QWebEnginePage.JavaScriptConsoleMessageLevel',
+            message: str,
+            lineNumber: int,
+            sourceID: str
+    ) -> None:
         pass
 
 
@@ -37,7 +41,7 @@ class WebTab(QWidget):
 
     display_name = "Web"
 
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/web.ui"), self)
@@ -56,11 +60,11 @@ class WebTab(QWidget):
 
         self.web.load(QUrl(list(self.main_window.websites_data[self.selected_web_index].values())[0]))
 
-    def init_web_menu(self):
+    def init_web_menu(self) -> None:
         self.menuWeb = self.main_window.menubar.addMenu("Web")
         self.set_actions()
 
-    def set_actions(self):
+    def set_actions(self) -> None:
         self.menuWeb.clear()
         self.web_list = self.main_window.websites_data
         self.web_menu_action_group = QActionGroup(self.menuWeb)
@@ -85,7 +89,7 @@ class WebTab(QWidget):
 
         self.web_menu_action_group.triggered.connect(self.updateWeb)
 
-    def updateWeb(self, action):
+    def updateWeb(self, action: QAction) -> None:
         """
         Updates web tab when user selects new website.
 
@@ -101,8 +105,8 @@ class WebTab(QWidget):
                     self.selected_web_index = self.web_list.index(i)
                     self.main_window.update_save_settings({"selected_web_index": self.selected_web_index})
 
-    def add_website_window(self):
+    def add_website_window(self) -> None:
         self.website_window_add = AddWebsite(self.main_window, self)
 
-    def remove_website_window(self):
+    def remove_website_window(self) -> None:
         self.website_window_remove = RemoveWebsite(self.main_window, self)

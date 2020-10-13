@@ -19,14 +19,23 @@
 from PyQt5.QtCore import QObject, QThreadPool
 from PyQt5.QtWidgets import QApplication
 
+from typing import Type
+from .qt_assets.tabs.worker import BaseWorker
+
 import traceback
 import click
 import sys
 
 
 class Cli(QObject):
-    def __init__(self, command, params, copy, worker, parent=None):
-        super(Cli, self).__init__(parent)
+    def __init__(
+            self,
+            command: str,
+            params: list,
+            copy: int,
+            worker: Type[BaseWorker]
+    ) -> None:
+        super(Cli, self).__init__()
 
         self.command = command
         self.params = params
@@ -36,10 +45,10 @@ class Cli(QObject):
 
         self.threadpool = QThreadPool()
 
-    def stop_thread(self):
+    def stop_thread(self) -> None:
         pass
 
-    def call_worker(self):
+    def call_worker(self) -> None:
         """
         Call worker, send command and params, and then start thread
         """
@@ -49,7 +58,7 @@ class Cli(QObject):
 
         self.threadpool.start(worker)
 
-    def print_output(self, input_dict):
+    def print_output(self, input_dict: dict) -> None:
         """
         Prints output then exit program
         :param input_dict: dict
@@ -65,7 +74,7 @@ class Cli(QObject):
         sys.exit()
 
 
-def suppress_qt_warnings():
+def suppress_qt_warnings() -> None:
     from os import environ
     environ["QT_DEVICE_PIXEL_RATIO"] = "0"
     environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
@@ -74,14 +83,14 @@ def suppress_qt_warnings():
 
 
 class EncloseNegative(click.Command):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(EncloseNegative, self).__init__(*args, **kwargs)
         self.params.insert(0, click.core.Option(("--dont-suppress", ), is_flag=True, default=False,
                                                 help="Set flag to suppress setting envirmental "
                                                      "varables in order to suppress the error "
                                                      "message QT_DEVICE_PIXEL_RATIO."))
 
-    def parse_args(self, ctx, args):
+    def parse_args(self, ctx: click.core.Context, args: list) -> list:
         """Enclose every negative number in parentheses so click doesn't think it's an option"""
         if '--dont-suppress' not in args:
             suppress_qt_warnings()
@@ -128,7 +137,7 @@ EQ_FLAGS = [
 ]
 
 
-def list_merge(default_params, input_params):
+def list_merge(default_params: list, input_params: list) -> list:
     """
     Merges two lists, uses element from input_params if it is not None, else use element from default_params
 
@@ -153,7 +162,12 @@ def list_merge(default_params, input_params):
     return output_list
 
 
-def validate_inputs(input_kwargs, default_params, input_params, name):
+def validate_inputs(
+        input_kwargs: dict,
+        default_params: list,
+        input_params: tuple,
+        name: str
+) -> dict:
     """
     Validates and restricts some of the inputs:
         1. 'output_type' must be integer between 1 and 3 inclusive
@@ -166,7 +180,7 @@ def validate_inputs(input_kwargs, default_params, input_params, name):
         Default parameters
     :param input_params: tuple
         Params typed by user
-    :param name:
+    :param name: str
         Name of the command
     :return:
         Returns either error along with message if validation failed, or True along with 'pass' if validation passed
@@ -185,7 +199,7 @@ def validate_inputs(input_kwargs, default_params, input_params, name):
     return {True: "pass"}
 
 
-def add_options(options):
+def add_options(options: list):
     """
     Adds flags and/or arguments to command via decorator: @add_options(list_of_flags_or_arguments)
 
@@ -194,7 +208,6 @@ def add_options(options):
     :return: function
         returns wrapper
     """
-
     def _add_options(func):
         for option in reversed(options):
             func = option(func)
@@ -204,12 +217,12 @@ def add_options(options):
 
 
 @click.group()
-def main(**kwargs):
+def main(**kwargs: dict) -> None:
     pass
 
 
 @main.command()
-def start():
+def start() -> None:
     """
     Start the GUI
     """
@@ -221,7 +234,7 @@ def start():
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE [ORDER] [AT_POINT]")
-def deriv(params, **kwargs):
+def deriv(params: list, **kwargs: dict) -> None:
     """Derive a function.
 
     \b
@@ -257,7 +270,7 @@ def deriv(params, **kwargs):
 @click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE [LOWER_BOUND UPPER_BOUND] [APPROXIMATE]")
 @click.option("--approximate-integral", "-A", is_flag=True, default=False,
               help="Set flag to approximate integral. This overrides the normal calculation")
-def integ(params, **kwargs):
+def integ(params: list, **kwargs: dict) -> None:
     """Calculate definite and indefinite integrals of expressions.
 
     \b
@@ -292,7 +305,7 @@ def integ(params, **kwargs):
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE START END")
-def sum(params, **kwargs):
+def sum(params: list, **kwargs: dict) -> None:
     """Calculate the summation of an expression.
 
     \b
@@ -327,7 +340,7 @@ def sum(params, **kwargs):
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE AS_VARIABLE_IS_APPROACHING [SIDE]")
-def limit(params, **kwargs):
+def limit(params: list, **kwargs: dict) -> None:
     """Calculate the limit of an expression.
 
     \b
@@ -366,7 +379,7 @@ def limit(params, **kwargs):
                                                                         "solveset (see SymPy solve vs solveset). "
                                                                         "Default is solve, set flag to solve with "
                                                                         "solveset.")
-def eq(params, **kwargs):
+def eq(params: list, **kwargs: dict) -> None:
     """Solves a normal equation.
 
     Separate equation by either a space or a =, but not both.
@@ -409,7 +422,7 @@ def eq(params, **kwargs):
 @add_options(DEFAULT_ARGUMENTS)
 @click.option("--hint", "-h", default="", help="The solving method that you want dsolve to use.")
 @click.argument("params", nargs=-1, metavar="LEFT_EXPRESSION RIGHT_EXPRESSION FUNCTION_TO_SOLVE_FOR [HINT]")
-def diff_eq(params, **kwargs):
+def diff_eq(params: list, **kwargs: dict) -> None:
     """Solves a differential equation equation.
     Separate equation by either a space or a =, but not both.
 
@@ -458,7 +471,7 @@ def diff_eq(params, **kwargs):
               help="Solve either a system of normal equations or a system of differential equations. Defualt if normal,"
                    " set flag to solve a system of differential equations.")
 @click.argument("no_of_eq", type=int, metavar="sys-eq NO_OF_EQUATIONS [SOLVE_TYPE]")
-def sys_eq(no_of_eq, **kwargs):
+def sys_eq(no_of_eq: int, **kwargs: dict) -> None:
     """Solves a system of either normal or differential equations.
     Takes number of equations as argument, then will prompt user for all equations
 
@@ -497,7 +510,7 @@ def sys_eq(no_of_eq, **kwargs):
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @click.argument("expression")
-def simp(expression, **kwargs):
+def simp(expression: str, **kwargs: dict) -> None:
     """Simplifies an expression.
 
     \b
@@ -529,7 +542,7 @@ def simp(expression, **kwargs):
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @click.argument("expression")
-def exp(expression, **kwargs):
+def exp(expression: str, **kwargs: dict) -> None:
     """Expandes an expression.
 
     \b
@@ -561,7 +574,7 @@ def exp(expression, **kwargs):
 @add_options(DEFAULT_ARGUMENTS)
 @click.argument("expression")
 @click.argument("vars_sub", required=False, nargs=-1)
-def eval(expression, vars_sub, **kwargs):
+def eval(expression: str, vars_sub: list, **kwargs: dict) -> None:
     """Evaluates an expression.
 
     After expression you can also subtitute your variables with a value.
@@ -614,7 +627,7 @@ def eval(expression, vars_sub, **kwargs):
 @click.option("-c", "--copy", type=click.IntRange(1, 3),
               help="Copies the answer. 1 for exact_ans, 2 for approx_ans, and 3 for a list of [exact_ans, "
                    "approx_ans].")
-def pf(number, **kwargs):
+def pf(number: int, **kwargs: dict) -> None:
     """Retreives the prime factors of an positive integer.
 
     Note: exact_ans stores factors as dict: '{2: 2, 3: 1, 31: 1}'
@@ -632,7 +645,7 @@ def pf(number, **kwargs):
 @main.command(cls=EncloseNegative)
 @click.argument("website_index", type=int, required=False, metavar="{NUMBER | LIST}")
 @click.option("--list-websites", "-l", is_flag=True, default=False)
-def web(website_index, list_websites, **kwargs):
+def web(website_index: int, list_websites: bool, **kwargs: dict) -> None:
     """Choose a number from a list of usable maths websites and open it in default web browser or
     type '-l' for a list of websites and then enter a number. The website will be opened in the default browser.
 
@@ -662,7 +675,7 @@ def web(website_index, list_websites, **kwargs):
         webbrowser.open(url)
 
 
-def send_to_thread(input_list, worker):
+def send_to_thread(input_list: list, worker: Type[BaseWorker]) -> None:
     def excepthook(exc_type, exc_value, exc_tb):
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         print("error catched!:")
