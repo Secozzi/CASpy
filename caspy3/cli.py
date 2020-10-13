@@ -1,9 +1,27 @@
-import sys
-import traceback
+#
+#    CASPy - A program that provides both a GUI and a CLI to SymPy.
+#    Copyright (C) 2020 Folke Ishii
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
 
-import click
 from PyQt5.QtCore import QObject, QThreadPool
 from PyQt5.QtWidgets import QApplication
+
+import traceback
+import click
+import sys
 
 
 class Cli(QObject):
@@ -47,18 +65,33 @@ class Cli(QObject):
         sys.exit()
 
 
+def suppress_qt_warnings():
+    from os import environ
+    environ["QT_DEVICE_PIXEL_RATIO"] = "0"
+    environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    environ["QT_SCREEN_SCALE_FACTORS"] = "1"
+    environ["QT_SCALE_FACTOR"] = "1"
+
+
 class EncloseNegative(click.Command):
     def __init__(self, *args, **kwargs):
         super(EncloseNegative, self).__init__(*args, **kwargs)
+        self.params.insert(0, click.core.Option(("--dont-suppress", ), is_flag=True, default=False,
+                                                help="Set flag to suppress setting envirmental "
+                                                     "varables in order to suppress the error "
+                                                     "message QT_DEVICE_PIXEL_RATIO."))
 
     def parse_args(self, ctx, args):
         """Enclose every negative number in parentheses so click doesn't think it's an option"""
+        if '--dont-suppress' not in args:
+            suppress_qt_warnings()
+
         for arg in args:
             if len(arg) > 1:
                 if arg[0] == "-" and arg[1] in "0123456789()":
                     args[args.index(arg)] = f"({arg})"
 
-                if len(arg) == 3: # -oo negative infinity
+                if len(arg) == 3:  # '-oo' negative infinity
                     if arg == "-oo":
                         args[args.index(arg)] = f"({arg})"
 
@@ -72,7 +105,7 @@ DEFAULT_FLAGS = [
                  help="Select output type, 1 for pretty; 2 for latex and 3 for normal"),
     click.option("--use-unicode", "-u", is_flag=True, default=False, help="Use unicode"),
     click.option("--line-wrap", "-l", is_flag=True, default=False, help="Use line wrap"),
-    click.option("-c", "--copy", type=click.IntRange(1, 3),
+    click.option("--copy", "-c", type=click.IntRange(1, 3),
                  help="Copies the answer. 1 for exact_ans, 2 for approx_ans, and 3 for a list of [exact_ans, "
                       "approx_ans].")
 ]
@@ -187,11 +220,9 @@ def start():
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
-@click.argument("params", nargs=-1)
+@click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE [ORDER] [AT_POINT]")
 def deriv(params, **kwargs):
     """Derive a function.
-
-    Usage: caspy deriv EXPRESSION VARIABLE [ORDER] [AT_POINT] [FLAGS]
 
     \b
     Example(s):
@@ -223,13 +254,11 @@ def deriv(params, **kwargs):
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
-@click.argument("params", nargs=-1)
+@click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE [LOWER_BOUND UPPER_BOUND] [APPROXIMATE]")
 @click.option("--approximate-integral", "-A", is_flag=True, default=False,
               help="Set flag to approximate integral. This overrides the normal calculation")
 def integ(params, **kwargs):
     """Calculate definite and indefinite integrals of expressions.
-
-    Usage: caspy integ EXPRESSION VARIABLE {LOWER_BOUND UPPER_BOUND} [APPROXIMATE] [FLAGS]
 
     \b
     Example(s):
@@ -262,11 +291,9 @@ def integ(params, **kwargs):
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
-@click.argument("params", nargs=-1)
+@click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE START END")
 def sum(params, **kwargs):
     """Calculate the summation of an expression.
-
-    Usage: caspy sum EXPRESSION VARIABLE START END [FLAGS]
 
     \b
     Example(s):
@@ -299,11 +326,9 @@ def sum(params, **kwargs):
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
-@click.argument("params", nargs=-1)
+@click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE AS_VARIABLE_IS_APPROACHING [SIDE]")
 def limit(params, **kwargs):
     """Calculate the limit of an expression.
-
-    Usage: caspy limit EXPRESSION VARIABLE AS_VARIABLE_IS_APPROACHING [SIDE] [FLAGS]
 
     \b
     Example(s):
@@ -336,16 +361,15 @@ def limit(params, **kwargs):
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @add_options(EQ_FLAGS)
-@click.argument("params", nargs=-1)
-@click.option("--solve-type", "-st", is_flag=True, default=False,
-              help="Solves an equation with either solve or solveset (see SymPy solve vs solveset). Default is solve, "
-                   "set flag to solve with solveset.")
+@click.argument("params", nargs=-1, metavar="LEFT_EXPRESSION RIGHT_EXPRESSION VARIABLE_TO_SOLVE_FOR [SOLVE_TYPE]")
+@click.option("--solve-type", "-st", is_flag=True, default=False, help= "Solves an equation with either solve or "
+                                                                        "solveset (see SymPy solve vs solveset). "
+                                                                        "Default is solve, set flag to solve with "
+                                                                        "solveset.")
 def eq(params, **kwargs):
     """Solves a normal equation.
 
     Separate equation by either a space or a =, but not both.
-
-    Usage: eq LEFT_EXPRESSION RIGHT_EXPRESSION VARIABLE_TO_SOLVE_FOR [SOLVE_TYPE] [FLAGS]
 
     \b
     Example(s):
@@ -384,13 +408,10 @@ def eq(params, **kwargs):
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @click.option("--hint", "-h", default="", help="The solving method that you want dsolve to use.")
-@click.argument("params", nargs=-1)
+@click.argument("params", nargs=-1, metavar="LEFT_EXPRESSION RIGHT_EXPRESSION FUNCTION_TO_SOLVE_FOR [HINT]")
 def diff_eq(params, **kwargs):
     """Solves a differential equation equation.
-
     Separate equation by either a space or a =, but not both.
-
-    Usage: diff-eq LEFT_EXPRESSION RIGHT_EXPRESSION FUNCTION_TO_SOLVE_FOR [HINT] [FLAGS]
 
     \b
     Example(s):
@@ -436,13 +457,10 @@ def diff_eq(params, **kwargs):
 @click.option("--solve_type", "-st", is_flag=True, default=False,
               help="Solve either a system of normal equations or a system of differential equations. Defualt if normal,"
                    " set flag to solve a system of differential equations.")
-@click.argument("no_of_eq", type=int)
+@click.argument("no_of_eq", type=int, metavar="sys-eq NO_OF_EQUATIONS [SOLVE_TYPE]")
 def sys_eq(no_of_eq, **kwargs):
     """Solves a system of either normal or differential equations.
-
     Takes number of equations as argument, then will prompt user for all equations
-
-    Usage: sys-eq NO_OF_EQUATIONS [SOLVE_TYPE] [FLAGS]
 
     \b
     Example(s):
@@ -482,8 +500,6 @@ def sys_eq(no_of_eq, **kwargs):
 def simp(expression, **kwargs):
     """Simplifies an expression.
 
-    Usage: simp EXPRESSION [FLAGS]
-
     \b
     Example(s):
     >>> caspy simp sin(x)**2+cos(x)**2
@@ -515,8 +531,6 @@ def simp(expression, **kwargs):
 @click.argument("expression")
 def exp(expression, **kwargs):
     """Expandes an expression.
-
-    Usage: exp EXPRESSION [FLAGS]
 
     \b
     Example(s):
@@ -559,8 +573,6 @@ def eval(expression, vars_sub, **kwargs):
     => 3**((3)+(5))
     => 6561
 
-    Usage: eval EXPRESSION [VARS_SUB ... ] [FLAGS]
-
     \b
     Example(s):
     >>> caspy eval exp(pi)+3/sin(6)
@@ -575,7 +587,8 @@ def eval(expression, vars_sub, **kwargs):
         return
 
     if len(vars_sub) % 2 != 0:
-        print("Variable substitution must consist of an even number of arguments, see 'eval --help' for more information")
+        print("Variable substitution must consist of an even number of arguments, see 'eval --help' for more "
+              "information")
         return
 
     var_sub = ""
@@ -607,8 +620,6 @@ def pf(number, **kwargs):
     Note: exact_ans stores factors as dict: '{2: 2, 3: 1, 31: 1}'
     while approx_ans stores factors as string: '(2**2)*(3**1)*(31**1)'
 
-    Usage: pf NUMBER [FLAGS]
-
     \b
     Example(s):
     >>> caspy pf 372
@@ -619,21 +630,17 @@ def pf(number, **kwargs):
 
 
 @main.command(cls=EncloseNegative)
-@click.argument("website_index", type=int, required=False)
-@click.option("--list", "-l", is_flag=True)
-def web(website_index, list):
-    """Choose a number from a list of usable maths websites and open it in default web browser.
-
-    type '-l' for a list of websites and enter a number. The website will be opened in the default browser.
-
-    Usage: web {NUMBER | LIST}
+@click.argument("website_index", type=int, required=False, metavar="{NUMBER | LIST}")
+@click.option("--list-websites", "-l", is_flag=True, default=False)
+def web(website_index, list_websites, **kwargs):
+    """Choose a number from a list of usable maths websites and open it in default web browser or
+    type '-l' for a list of websites and then enter a number. The website will be opened in the default browser.
 
     \b
     Example(s):
     >>> caspy web 4
     >>> caspy web -l
     """
-
     import json
     import pkg_resources
     with open(pkg_resources.resource_filename('caspy3', "data/websites.json"), "r", encoding="utf8") as json_f:
@@ -645,7 +652,7 @@ def web(website_index, list):
             print(f"Index of website must be between 1 and {len(web_list)}")
             return
 
-    if list:
+    if list_websites:
         for web, i in zip(web_list, range(len(web_list))):
             print(f"{i + 1}. {next(iter(web))}")
 
