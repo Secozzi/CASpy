@@ -23,16 +23,21 @@ import pkg_resources
 
 
 class ViewText(QDialog):
-    def __init__(self, text, parent=None):
+    def __init__(self, text: str, parent=None) -> None:
         """
         Opens a QDialog and show text and a rendered latex text of exact answer
 
-        :param text: string
+        :param text: str
             The text that is shown in the QTextBrowser
 
         The UI file is loaded and set the text to the QTextBrowser
         """
         super(ViewText, self).__init__(parent=None)
-        loadUi(pkg_resources.resource_filename('caspy3', "qt_assets/dialogs/main_view_a.ui"), self)
+        loadUi(
+            pkg_resources.resource_filename(
+                "caspy3", "qt_assets/dialogs/main_view_a.ui"
+            ),
+            self,
+        )
         self.approx_text.setText(text)
         self.show()

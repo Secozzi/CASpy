@@ -30,7 +30,7 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QTextEdit" name="SimpExp">
+        <widget class="TextEdit" name="SimpExp">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
            <horstretch>0</horstretch>
@@ -42,12 +42,6 @@
          </property>
          <property name="tabChangesFocus">
           <bool>true</bool>
-         </property>
-         <property name="lineWrapMode">
-          <enum>QTextEdit::NoWrap</enum>
-         </property>
-         <property name="acceptRichText">
-          <bool>false</bool>
          </property>
          <property name="placeholderText">
           <string>Expression</string>
@@ -97,6 +91,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>caspy3/qt_assets/tabs/highlight.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

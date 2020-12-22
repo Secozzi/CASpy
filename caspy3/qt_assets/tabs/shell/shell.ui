@@ -18,14 +18,34 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
+  <property name="styleSheet">
+   <string notr="true">QSplitter::handle {
+	background-color: rgb(240, 240, 240);
+	margin-left: 2px;
+	margin-right: 2px;
+}
+
+QSplitter::handle:horizontal {
+width: 1px;
+margin-top: 2px;
+margin-bottom: 2px;
+}</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QPlainTextEdit" name="consoleIn">
-     <property name="toolTip">
-      <string>Console</string>
+    <widget class="QSplitter" name="shell_splitter_layout">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
-     <property name="plainText">
-      <string>This is a very simple shell using 'exec' commands, so it has some limitations. Every variable declared and function defined will be saved until the program is closed or when the 'clear commands' button in the menubar is pressed. It will automatically output to the shell, but it can't use 'print' commands. To copy output, press the 'copy exact answer' in the menubar.
+     <widget class="QWidget" name="">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QPlainTextEdit" name="consoleIn">
+         <property name="toolTip">
+          <string>Console</string>
+         </property>
+         <property name="plainText">
+          <string>This is a very simple shell using 'exec' commands, so it has some limitations. Every variable declared and function defined will be saved until the program is closed or when the 'clear commands' button in the menubar is pressed. It will automatically output to the shell, but it can't use 'print' commands. To copy output, press the 'copy exact answer' in the menubar.
 Theses commands were executed:
 from __future__ import division
 
@@ -41,17 +61,32 @@ k, m, n = symbols('k m n', integer=True)
 f, g, h = symbols('f g h', cls=Function)
 
 &gt;&gt;&gt; </string>
-     </property>
-     <property name="tabStopWidth">
-      <number>40</number>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QPushButton" name="ShellRun">
-     <property name="text">
-      <string>Run (Enter)</string>
-     </property>
+         </property>
+         <property name="tabStopWidth">
+          <number>40</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="ShellRun">
+         <property name="text">
+          <string>Run (Enter)</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <layout class="QVBoxLayout" name="mpl_layout">
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>PushButton</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>

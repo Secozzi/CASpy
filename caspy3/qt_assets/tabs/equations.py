@@ -17,7 +17,14 @@
 #
 
 from PyQt5.QtCore import pyqtSlot, QEvent, Qt
-from PyQt5.QtWidgets import QAction, QApplication, QGridLayout, QLabel, QLineEdit, QWidget
+from PyQt5.QtWidgets import (
+    QAction,
+    QApplication,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QWidget,
+)
 from PyQt5.QtGui import QCursor, QFont
 from PyQt5.uic import loadUi
 
@@ -25,19 +32,27 @@ from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
-
 import re as pyreg
+import typing as ty
 
 from .worker import BaseWorker
 
 
 class EquationsWorker(BaseWorker):
-    def __init__(self, command, params, copy=None):
+    def __init__(self, command: str, params: list, copy: int = None) -> None:
         super().__init__(command, params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_diff_eq(self, left_expression, right_expression, function_solve, output_type, use_unicode, line_wrap):
+    def prev_diff_eq(
+        self,
+        left_expression: str,
+        right_expression: str,
+        function_solve: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
 
         self.approx_ans = 0
@@ -95,9 +110,17 @@ class EquationsWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_system_eq(self, equations, variables, domain, solve_type, output_type, use_unicode, line_wrap):
+    def prev_system_eq(
+        self,
+        equations: ty.List[str],
+        variables: str,
+        domain: str,
+        solve_type: int,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
-
         self.approx_ans = 0
         self.exact_ans = ""
         self.latex_answer = ""
@@ -107,9 +130,13 @@ class EquationsWorker(BaseWorker):
 
         equations = self.get_equations(equations)
         if equations[0] == "error":
-            return {"error": [f"Error: \nEnter only one '=' on line {equations[1] + 1}"]}
+            return {
+                "error": [f"Error: \nEnter only one '=' on line {equations[1] + 1}"]
+            }
         if equations[0] == "traceback":
-            return {"error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]}
+            return {
+                "error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]
+            }
 
         if variables:
             variables = self.get_vars(variables)
@@ -135,12 +162,25 @@ class EquationsWorker(BaseWorker):
             self.latex_answer += str(latex(eq)) + " \\ "
 
         self.exact_ans += f"Variables to solve for: {variables}"
-        return {"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer[:-3]}
+        return {
+            "eq": [self.exact_ans, self.approx_ans],
+            "latex": self.latex_answer[:-3],
+        }
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def calc_diff_eq(self, left_expression, right_expression, hint, function_solve,
-                     output_type, use_unicode, line_wrap, use_scientific, accuracy):
+    def calc_diff_eq(
+        self,
+        left_expression: str,
+        right_expression: str,
+        hint: str,
+        function_solve: str,
+        output_type: str,
+        use_unicode: bool,
+        line_wrap: bool,
+        use_scientific: ty.Union[int, None],
+        accuracy: int,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -156,7 +196,9 @@ class EquationsWorker(BaseWorker):
                     right_side = parse_expr(self.parse_diff_text(eq[1]))
             else:
                 if not left_expression or not right_expression:
-                    return {"error": ["Enter an expression both in left and right side"]}
+                    return {
+                        "error": ["Enter an expression both in left and right side"]
+                    }
 
                 left_side = parse_expr(self.parse_diff_text(left_expression))
                 right_side = parse_expr(self.parse_diff_text(right_expression))
@@ -172,7 +214,7 @@ class EquationsWorker(BaseWorker):
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
         if not hint:
-            hint = 'default'
+            hint = "default"
 
         if use_scientific:
             if use_scientific > accuracy:
@@ -192,7 +234,11 @@ class EquationsWorker(BaseWorker):
 
         approx_list = [N(i, accuracy) for i in self.exact_ans]
         if use_scientific:
-            return {"error": ["Scientific notation not supported for differential equations"]}
+            return {
+                "error": [
+                    "Scientific notation not supported for differential equations"
+                ]
+            }
 
         self.approx_ans = approx_list[0] if len(approx_list) == 1 else approx_list
 
@@ -210,8 +256,19 @@ class EquationsWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def calc_system_eq(self, equations, variables, domain, solve_type, output_type,
-                       use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
+    def calc_system_eq(
+        self,
+        equations: ty.List[str],
+        variables: str,
+        domain: str,
+        solve_type: int,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+        use_scientific: ty.Union[int, None],
+        accuracy: int,
+        verify_domain: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = []
         self.exact_ans = []
@@ -222,9 +279,13 @@ class EquationsWorker(BaseWorker):
 
         equations = self.get_equations(equations)
         if equations[0] == "error":
-            return {"error": [f"Error: \nEnter only one '=' on line {equations[1] + 1}"]}
+            return {
+                "error": [f"Error: \nEnter only one '=' on line {equations[1] + 1}"]
+            }
         if equations[0] == "traceback":
-            return {"error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]}
+            return {
+                "error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]
+            }
 
         if variables:
             variables = self.get_vars(variables)
@@ -242,9 +303,15 @@ class EquationsWorker(BaseWorker):
 
         try:
             if solve_type == 1:
-                result = solve(equations, variables, set=True) if variables else solve(equations, set=True)
+                result = (
+                    solve(equations, variables, set=True)
+                    if variables
+                    else solve(equations, set=True)
+                )
             else:
-                result = dsolve(equations, variables) if variables else dsolve(equations)
+                result = (
+                    dsolve(equations, variables) if variables else dsolve(equations)
+                )
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -268,7 +335,10 @@ class EquationsWorker(BaseWorker):
                 approx_list = [N(j, accuracy) for j in sol_list]
 
                 if use_scientific:
-                    approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
+                    approx_list = [
+                        self.to_scientific_notation(str(i), use_scientific)
+                        for i in approx_list
+                    ]
 
                 for j, sol in enumerate(sol_list):
                     temp_sol.append(Eq(var_list[j], sol))
@@ -328,16 +398,21 @@ class EquationsWorker(BaseWorker):
             self.approx_ans = [N(j, accuracy) for j in result]
 
             if use_scientific:
-                self.approx_ans = [self.to_scientific_notation(str(i), use_scientific) for i in self.approx_ans]
+                self.approx_ans = [
+                    self.to_scientific_notation(str(i), use_scientific)
+                    for i in self.approx_ans
+                ]
 
             self.latex_answer = lat_out
 
-        self.approx_ans = self.approx_ans[0] if len(self.approx_ans) == 1 else self.approx_ans
+        self.approx_ans = (
+            self.approx_ans[0] if len(self.approx_ans) == 1 else self.approx_ans
+        )
         return {"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def get_equations(self, equations):
+    def get_equations(self, equations: ty.List[str]) -> ty.List[Eq]:
         """
         Each equation is to be typed as 'expr1 = expr2'.
         This checks that exactly one '=' is present and if not, show error box and return "error"
@@ -360,7 +435,7 @@ class EquationsWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def get_vars(self, var_text):
+    def get_vars(self, var_text: str) -> ty.List[Symbol]:
         """
         Return vars that is separated by anything other than a-z, 0-9, and _
         :param var_text: str
@@ -383,7 +458,7 @@ class EquationsWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def parse_diff_text(self, text):
+    def parse_diff_text(self, text: str) -> str:
         """
         Catches all derivatives and transforms it so SymPy can read it.
         No nested functions because no.
@@ -433,7 +508,7 @@ class EquationsTab(QWidget):
 
     display_name = "Equation Solver"
 
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/equations.ui"), self)
@@ -442,7 +517,9 @@ class EquationsTab(QWidget):
             self.verify_domain_eq = self.main_window.settings_data["verify_domain_eq"]
         else:
             self.verify_domain_eq = False
-        self.main_window.add_to_save_settings({"verify_domain_eq": self.verify_domain_eq})
+        self.main_window.add_to_save_settings(
+            {"verify_domain_eq": self.verify_domain_eq}
+        )
 
         self.init_ui()
         self.init_equation_menu()
@@ -450,36 +527,38 @@ class EquationsTab(QWidget):
         self.init_bindings()
         self.update_eq_line()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         self.EqSysGridArea = QGridLayout(self.EqSysScroll)
         self.EqSysGridArea.setObjectName("EqSysGridArea")
 
-    def init_equation_menu(self):
+    def init_equation_menu(self) -> None:
         self.menuEq = self.main_window.menubar.addMenu("Equations")
         verify_domain_eq = QAction("Verify domain", self, checkable=True)
         verify_domain_eq.setChecked(self.verify_domain_eq)
         self.menuEq.addAction(verify_domain_eq)
         verify_domain_eq.triggered.connect(self.toggle_verify_domain_eq)
 
-    def toggle_verify_domain_eq(self, state):
+    def toggle_verify_domain_eq(self, state: bool) -> None:
         if state:
             self.verify_domain_eq = True
         else:
             self.verify_domain_eq = False
 
-        self.main_window.update_save_settings({"verify_domain_eq": self.verify_domain_eq})
+        self.main_window.update_save_settings(
+            {"verify_domain_eq": self.verify_domain_eq}
+        )
 
-    def install_event_filters(self):
+    def install_event_filters(self) -> None:
         self.EqNormalLeft.installEventFilter(self)
         self.EqNormalRight.installEventFilter(self)
         self.EqDiffLeft.installEventFilter(self)
         self.EqDiffRight.installEventFilter(self)
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
         QModifiers = QApplication.keyboardModifiers()
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append('shift')
+            modifiers.append("shift")
 
         if event.type() == QEvent.KeyPress:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -490,20 +569,32 @@ class EquationsTab(QWidget):
 
         return super(EquationsTab, self).eventFilter(obj, event)
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         # Setting up buttons for selecting equation mode
         self.normalNormal.setChecked(True)
         self.EqNormalDomain.currentIndexChanged.connect(self.set_normal_interval)
         self.EqSysDomain.currentIndexChanged.connect(self.set_sys_interval)
 
         for normal_btn in [self.normalNormal, self.diffNormal, self.systemNormal]:
-            normal_btn.clicked.connect(lambda: self.set_eq_state([self.normalDiff, self.normalSystem], 0, self.normalNormal))
+            normal_btn.clicked.connect(
+                lambda: self.set_eq_state(
+                    [self.normalDiff, self.normalSystem], 0, self.normalNormal
+                )
+            )
 
         for diff_btn in [self.normalDiff, self.diffDiff, self.systemDiff]:
-            diff_btn.clicked.connect(lambda: self.set_eq_state([self.diffNormal, self.diffSystem], 1, self.diffDiff))
+            diff_btn.clicked.connect(
+                lambda: self.set_eq_state(
+                    [self.diffNormal, self.diffSystem], 1, self.diffDiff
+                )
+            )
 
         for system_btn in [self.normalSystem, self.diffSystem, self.systemSystem]:
-            system_btn.clicked.connect(lambda: self.set_eq_state([self.systemNormal, self.systemDiff], 2, self.systemSystem))
+            system_btn.clicked.connect(
+                lambda: self.set_eq_state(
+                    [self.systemNormal, self.systemDiff], 2, self.systemSystem
+                )
+            )
 
         # Connect prev and calc buttons
         self.EqPrev.clicked.connect(self.prev_eq)
@@ -512,7 +603,10 @@ class EquationsTab(QWidget):
         # Connect spinbox
         self.EqSysNo.valueChanged.connect(self.update_eq_line)
 
-    def set_normal_interval(self, index):
+        # Approximate
+        self.EqNormalNsolve.stateChanged.connect(self.approximate_state)
+
+    def set_normal_interval(self, index: int) -> None:
         if index >= 5:
             self.EqNormalDomain.setEditable(True)
             # Update Font
@@ -521,7 +615,7 @@ class EquationsTab(QWidget):
             self.EqNormalDomain.setEditable(False)
         self.EqNormalDomain.update()
 
-    def set_sys_interval(self, index):
+    def set_sys_interval(self, index: int) -> None:
         if index >= 5:
             self.EqSysDomain.setEditable(True)
             # Update Font
@@ -530,7 +624,12 @@ class EquationsTab(QWidget):
             self.EqSysDomain.setEditable(False)
         self.EqSysDomain.update()
 
-    def set_eq_state(self, btn_list, stacked_index, btn_true):
+    def set_eq_state(
+        self,
+        btn_list: ty.List["QPushButton"],
+        stacked_index: int,
+        btn_true: "QPushButton",
+    ) -> None:
         """
         :param btn_list: list
             List of buttons to set to false.
@@ -545,7 +644,7 @@ class EquationsTab(QWidget):
         for btn in btn_list:
             btn.setChecked(False)
 
-    def update_eq_line(self):
+    def update_eq_line(self) -> None:
         self.eq_sys_line_list = []
 
         # Clear the GridArea
@@ -565,10 +664,14 @@ class EquationsTab(QWidget):
             self.eq_sys_line_list.append(self.SysEqLine)
             self.EqSysGridArea.addWidget(self.SysEqLine, i, 1)
 
-    def stop_thread(self):
+    def approximate_state(self) -> None:
+        _state = self.EqNormalNsolve.isChecked()
+        self.EqNormalStartV.setEnabled(_state)
+
+    def stop_thread(self) -> None:
         pass
 
-    def update_ui(self, input_dict):
+    def update_ui(self, input_dict: ty.Dict[str, ty.List[str]]) -> None:
         self.EqOut.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
         self.EqApprox.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
 
@@ -584,7 +687,7 @@ class EquationsTab(QWidget):
             self.EqOut.setText(self.main_window.exact_ans)
             self.EqApprox.setText(str(self.main_window.approx_ans))
 
-    def prev_eq(self):
+    def prev_eq(self) -> None:
         self.EqOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.EqApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         current_index = self.eqStackedWidget.currentIndex()
@@ -595,7 +698,7 @@ class EquationsTab(QWidget):
         else:
             self.prev_system_eq()
 
-    def calc_eq(self):
+    def calc_eq(self) -> None:
         self.EqOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.EqApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         current_index = self.eqStackedWidget.currentIndex()
@@ -606,49 +709,61 @@ class EquationsTab(QWidget):
         else:
             self.calc_system_eq()
 
-    def calc_normal_eq(self):
+    def calc_normal_eq(self) -> None:
         if self.EqNormalSolve.isChecked():
             solve_type = 2
         if self.EqNormalSolveSet.isChecked():
             solve_type = 1
 
-        worker = EquationsWorker("calc_normal_eq", [
-            self.EqNormalLeft.toPlainText(),
-            self.EqNormalRight.toPlainText(),
-            self.EqNormalVar.text(),
-            solve_type,
-            self.EqNormalDomain.currentText(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap,
-            self.main_window.use_scientific,
-            self.main_window.accuracy,
-            self.verify_domain_eq
-        ])
+        if self.EqNormalNsolve.isChecked():
+            _start = self.EqNormalStartV.text()
+        else:
+            _start = None
+
+        worker = EquationsWorker(
+            "calc_normal_eq",
+            [
+                self.EqNormalLeft.toPlainText(),
+                self.EqNormalRight.toPlainText(),
+                self.EqNormalVar.text(),
+                solve_type,
+                self.EqNormalDomain.currentText(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+                self.verify_domain_eq,
+                _start,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def calc_diff_eq(self):
-        worker = EquationsWorker("calc_diff_eq", [
-            self.EqDiffLeft.toPlainText(),
-            self.EqDiffRight.toPlainText(),
-            self.EqDiffHint.text(),
-            self.EqDiffFunc.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap,
-            self.main_window.use_scientific,
-            self.main_window.accuracy
-        ])
+    def calc_diff_eq(self) -> None:
+        worker = EquationsWorker(
+            "calc_diff_eq",
+            [
+                self.EqDiffLeft.toPlainText(),
+                self.EqDiffRight.toPlainText(),
+                self.EqDiffHint.text(),
+                self.EqDiffFunc.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+            ],
+        )
 
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def calc_system_eq(self):
+    def calc_system_eq(self) -> None:
         equations = [line.text() for line in self.eq_sys_line_list]
         vars = self.EqSysVar.text()
 
@@ -657,53 +772,62 @@ class EquationsTab(QWidget):
         if self.EqSysTypeDiff.isChecked():
             solve_type = 2
 
-        worker = EquationsWorker("calc_system_eq", [
-            equations,
-            vars,
-            self.EqSysDomain.currentText(),
-            solve_type,
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap,
-            self.main_window.use_scientific,
-            self.main_window.accuracy,
-            self.verify_domain_eq
-        ])
+        worker = EquationsWorker(
+            "calc_system_eq",
+            [
+                equations,
+                vars,
+                self.EqSysDomain.currentText(),
+                solve_type,
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+                self.verify_domain_eq,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def prev_normal_eq(self):
-        worker = EquationsWorker("prev_normal_eq", [
-            self.EqNormalLeft.toPlainText(),
-            self.EqNormalRight.toPlainText(),
-            self.EqNormalVar.text(),
-            self.EqNormalDomain.currentText(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap
-        ])
+    def prev_normal_eq(self) -> None:
+        worker = EquationsWorker(
+            "prev_normal_eq",
+            [
+                self.EqNormalLeft.toPlainText(),
+                self.EqNormalRight.toPlainText(),
+                self.EqNormalVar.text(),
+                self.EqNormalDomain.currentText(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def prev_diff_eq(self):
-        worker = EquationsWorker("prev_diff_eq", [
-            self.EqDiffLeft.toPlainText(),
-            self.EqDiffRight.toPlainText(),
-            self.EqDiffFunc.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap
-        ])
+    def prev_diff_eq(self) -> None:
+        worker = EquationsWorker(
+            "prev_diff_eq",
+            [
+                self.EqDiffLeft.toPlainText(),
+                self.EqDiffRight.toPlainText(),
+                self.EqDiffFunc.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def prev_system_eq(self):
+    def prev_system_eq(self) -> None:
         equations = [line.text() for line in self.eq_sys_line_list]
         vars = self.EqSysVar.text()
 
@@ -712,15 +836,18 @@ class EquationsTab(QWidget):
         if self.EqSysTypeDiff.isChecked():
             solve_type = 2
 
-        worker = EquationsWorker("prev_system_eq", [
-            equations,
-            vars,
-            self.EqSysDomain.currentText(),
-            solve_type,
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap
-        ])
+        worker = EquationsWorker(
+            "prev_system_eq",
+            [
+                equations,
+                vars,
+                self.EqSysDomain.currentText(),
+                solve_type,
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+            ],
+        )
 
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)

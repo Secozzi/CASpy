@@ -17,25 +17,41 @@
 #
 
 from PyQt5.QtCore import pyqtSlot, QCoreApplication, QEvent, Qt
-from PyQt5.QtWidgets import QAction, QApplication, QGridLayout, QLabel, QLineEdit, QTreeWidgetItem, QWidget
+from PyQt5.QtWidgets import (
+    QAction,
+    QApplication,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QTreeWidgetItem,
+    QWidget,
+)
 from PyQt5.QtGui import QFont, QCursor
 from PyQt5.uic import loadUi
 
+import typing as ty
+
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
-
-import traceback
 
 from .worker import BaseWorker
 
 
 class FormulaWorker(BaseWorker):
-    def __init__(self, command, params, copy=None):
+    def __init__(self, command: str, params: list, copy: int = None) -> None:
         super().__init__(command, params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_formula(self, lines, value_string, domain, output_type, use_unicode, line_wrap):
+    def prev_formula(
+        self,
+        lines: ty.List[list],
+        value_string: ty.List[str],
+        domain: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         empty_var_list, var_list, values = [], [], []
         self.exact_ans = ""
@@ -61,12 +77,18 @@ class FormulaWorker(BaseWorker):
 
         if len(var_list) > 1:
             return {
-                "error": ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+                "error": [
+                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"
+                ]
+            }
 
         if len(empty_var_list) > 1:
             if len(var_list) != 1:
-                return {"error": [
-                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+                return {
+                    "error": [
+                        "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"
+                    ]
+                }
 
         if len(var_list) == 1:
             final_var = var_list[0]
@@ -76,13 +98,33 @@ class FormulaWorker(BaseWorker):
         left_side = value_string[0]
         right_side = value_string[1]
 
-        result = self.prev_normal_eq(left_side, right_side, final_var, domain, output_type, use_unicode, line_wrap)
+        result = self.prev_normal_eq(
+            left_side,
+            right_side,
+            final_var,
+            domain,
+            output_type,
+            use_unicode,
+            line_wrap,
+        )
         return result
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def calc_formula(self, lines, value_string, solve_type, domain, output_type,
-                     use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
+    def calc_formula(
+        self,
+        lines: ty.List[list],
+        value_string: ty.List[str],
+        solve_type: int,
+        domain: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+        use_scientific: ty.Union[int, None],
+        accuracy: int,
+        verify_domain: bool,
+        approximate: ty.Union[str, None],
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         empty_var_list, var_list, values = [], [], []
         self.exact_ans = ""
@@ -112,12 +154,18 @@ class FormulaWorker(BaseWorker):
 
         if len(var_list) > 1:
             return {
-                "error": ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+                "error": [
+                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"
+                ]
+            }
 
         if len(empty_var_list) > 1:
             if len(var_list) != 1:
-                return {"error": [
-                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+                return {
+                    "error": [
+                        "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"
+                    ]
+                }
 
         if len(var_list) == 1:
             final_var = var_list[0]
@@ -134,8 +182,20 @@ class FormulaWorker(BaseWorker):
         left_side = str(left_side).replace("_i", "(sqrt(-1))")
         right_side = str(right_side).replace("_i", "(sqrt(-1))")
 
-        result = self.calc_normal_eq(left_side, right_side, final_var, solve_type, domain,
-                                     output_type, use_unicode, line_wrap, use_scientific, accuracy, verify_domain)
+        result = self.calc_normal_eq(
+            left_side,
+            right_side,
+            final_var,
+            solve_type,
+            domain,
+            output_type,
+            use_unicode,
+            line_wrap,
+            use_scientific,
+            accuracy,
+            verify_domain,
+            approximate,
+        )
         return result
 
 
@@ -146,7 +206,7 @@ class FormulaTab(QWidget):
 
     display_name = "Formulas"
 
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/formulas.ui"), self)
@@ -154,44 +214,50 @@ class FormulaTab(QWidget):
         self.init_ui()
 
         if "verify_domain_formula" in list(self.main_window.settings_data.keys()):
-            self.verify_domain_formula = self.main_window.settings_data["verify_domain_formula"]
+            self.verify_domain_formula = self.main_window.settings_data[
+                "verify_domain_formula"
+            ]
         else:
             self.verify_domain_formula = False
-        self.main_window.add_to_save_settings({"verify_domain_formula": self.verify_domain_formula})
+        self.main_window.add_to_save_settings(
+            {"verify_domain_formula": self.verify_domain_formula}
+        )
 
         self.install_event_filter()
         self.init_formula_menu()
         self.init_bindings()
         self.add_formulas()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         self.FormulaTree.sortByColumn(0, Qt.AscendingOrder)
         self.grid_scroll_area = QGridLayout(self.FormulaScrollArea)
         self.grid_scroll_area.setObjectName("grid_scroll_area")
 
-    def init_formula_menu(self):
+    def init_formula_menu(self) -> None:
         self.menuFormula = self.main_window.menubar.addMenu("Formulas")
         verify_domain_formula = QAction("Verify domain", self, checkable=True)
         verify_domain_formula.setChecked(self.verify_domain_formula)
         self.menuFormula.addAction(verify_domain_formula)
         verify_domain_formula.triggered.connect(self.toggle_verify_domain_formula)
 
-    def toggle_verify_domain_formula(self, state):
+    def toggle_verify_domain_formula(self, state: bool) -> None:
         if state:
             self.verify_domain_formula = True
         else:
             self.verify_domain_formula = False
 
-        self.main_window.update_save_settings({"verify_domain_formula": self.verify_domain_formula})
+        self.main_window.update_save_settings(
+            {"verify_domain_formula": self.verify_domain_formula}
+        )
 
-    def install_event_filter(self):
+    def install_event_filter(self) -> None:
         self.FormulaScrollArea.installEventFilter(self)
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
         QModifiers = QApplication.keyboardModifiers()
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append('shift')
+            modifiers.append("shift")
 
         if event.type() == QEvent.KeyPress:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -202,14 +268,15 @@ class FormulaTab(QWidget):
 
         return super(FormulaTab, self).eventFilter(obj, event)
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         self.FormulaTree.itemDoubleClicked.connect(self.formula_tree_selected)
         self.FormulaPreview.clicked.connect(self.prev_formula)
         self.FormulaCalculate.clicked.connect(self.calc_formula)
 
         self.FormulaDomain.currentIndexChanged.connect(self.set_interval)
+        self.FormulaNsolve.stateChanged.connect(self.approximate_state)
 
-    def set_interval(self, index):
+    def set_interval(self, index: int) -> None:
         if index >= 5:
             self.FormulaDomain.setEditable(True)
             # Update Font
@@ -218,7 +285,11 @@ class FormulaTab(QWidget):
             self.FormulaDomain.setEditable(False)
         self.FormulaDomain.update()
 
-    def add_formulas(self):
+    def approximate_state(self) -> None:
+        _state = self.FormulaNsolve.isChecked()
+        self.FormulaStartV.setEnabled(_state)
+
+    def add_formulas(self) -> None:
         self.formula_info_dict = self.main_window.formulas_data[0]
         self.formula_tree_data = self.main_window.formulas_data[1]
 
@@ -235,7 +306,7 @@ class FormulaTab(QWidget):
                     formula_child = QTreeWidgetItem(child)
                     formula_child.setText(0, formula)
 
-    def formula_tree_selected(self):
+    def formula_tree_selected(self) -> None:
         """
         Retrieves formula and information about formula that user double clicked.
         Splits equation into left side of equals symbol and right side.
@@ -248,23 +319,39 @@ class FormulaTab(QWidget):
             if "=" in self.selected_tree_item:
                 expr = self.selected_tree_item.split("=")
                 expr = list(map(lambda x: x.replace("_i", "(sqrt(-1))"), expr))
-                self.formula_symbols_list = [str(i) for i in list(self.S(expr[0], locals=self._clash1).atoms(self.Symbol))]
-                self.formula_symbols_list.extend((str(i) for i in list(self.S(expr[1], locals=self._clash1).atoms(self.Symbol))))
+                self.formula_symbols_list = [
+                    str(i)
+                    for i in list(
+                        self.S(expr[0], locals=self._clash1).atoms(self.Symbol)
+                    )
+                ]
+                self.formula_symbols_list.extend(
+                    (
+                        str(i)
+                        for i in list(
+                            self.S(expr[1], locals=self._clash1).atoms(self.Symbol)
+                        )
+                    )
+                )
                 self.formula_symbols_list = list(set(self.formula_symbols_list))
                 self.formula_symbols_list.sort()
 
                 self.formula_update_vars()
-                self.formula_info = self.formula_get_info(self.selected_tree_item, self.formula_tree_data)
+                self.formula_info = self.formula_get_info(
+                    self.selected_tree_item, self.formula_tree_data
+                )
                 self.formula_set_tool_tip()
 
-    def formula_update_vars(self):
+    def formula_update_vars(self) -> None:
         for i in reversed(range(self.grid_scroll_area.count())):
             self.grid_scroll_area.itemAt(i).widget().setParent(None)
         self.formula_label_names = self.formula_symbols_list
         self.formula_label_pos = [[i, 0] for i in range(len(self.formula_label_names))]
         self.formula_line_pos = [[i, 1] for i in range(len(self.formula_label_names))]
 
-        for self.formula_name_label, formula_pos_label, formula_pos_line in zip(self.formula_label_names, self.formula_label_pos, self.formula_line_pos):
+        for self.formula_name_label, formula_pos_label, formula_pos_line in zip(
+            self.formula_label_names, self.formula_label_pos, self.formula_line_pos
+        ):
             self.formula_label = QLabel(self.FormulaScrollArea)
             self.formula_label.setText(self.formula_name_label)
             self.formula_label.setObjectName(self.formula_name_label + "line")
@@ -275,7 +362,7 @@ class FormulaTab(QWidget):
             self.formula_QLine.setFont(QFont("Courier New", 8))
             self.grid_scroll_area.addWidget(self.formula_QLine, *formula_pos_line)
 
-    def formula_set_tool_tip(self):
+    def formula_set_tool_tip(self) -> None:
         """
         Retrieves info from json file, set tooltip and set value of constants if needed
         """
@@ -289,7 +376,12 @@ class FormulaTab(QWidget):
                 full_info = self.formula_info_dict[info]
             else:
                 full_info = f"{info}|N/A|N/A"
-            lines.append([self.FormulaScrollArea.findChild(QLineEdit, str(name) + "line"), full_info])
+            lines.append(
+                [
+                    self.FormulaScrollArea.findChild(QLineEdit, str(name) + "line"),
+                    full_info,
+                ]
+            )
 
         for line in lines:
             info_list = line[1].split("|")
@@ -303,7 +395,7 @@ class FormulaTab(QWidget):
 
             line[0].setToolTip(_translate("MainWindow", f"{unit_info}, mäts i {unit}"))
 
-    def formula_get_info(self, text, data):
+    def formula_get_info(self, text: str, data: dict) -> str:
         """
         Retrieves info that's correlated with given formula
 
@@ -326,10 +418,10 @@ class FormulaTab(QWidget):
                 if text in list(branch[branch_name][sub_branch].keys()):
                     return branch[branch_name][sub_branch][text]
 
-    def stop_thread(self):
+    def stop_thread(self) -> None:
         pass
 
-    def update_ui(self, input_dict):
+    def update_ui(self, input_dict: ty.Dict[str, ty.List[str]]) -> None:
         self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
         self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
 
@@ -345,9 +437,12 @@ class FormulaTab(QWidget):
             self.FormulaExact.setText(str(self.main_window.exact_ans))
             self.FormulaApprox.setText(str(self.main_window.approx_ans))
 
-    def prev_formula(self):
+    def prev_formula(self) -> None:
         try:
-            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.formula_label_names]
+            lines = [
+                [self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i]
+                for i in self.formula_label_names
+            ]
         except:
             self.main_window.show_error_box("Error: select a formula")
         else:
@@ -356,27 +451,33 @@ class FormulaTab(QWidget):
             self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
             self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-            worker = FormulaWorker("prev_formula", [
-                lines,
-                values_string,
-                self.FormulaDomain.currentText(),
-                self.main_window.output_type,
-                self.main_window.use_unicode,
-                self.main_window.line_wrap
-            ])
+            worker = FormulaWorker(
+                "prev_formula",
+                [
+                    lines,
+                    values_string,
+                    self.FormulaDomain.currentText(),
+                    self.main_window.output_type,
+                    self.main_window.use_unicode,
+                    self.main_window.line_wrap,
+                ],
+            )
             worker.signals.output.connect(self.update_ui)
             worker.signals.finished.connect(self.stop_thread)
 
             self.main_window.threadpool.start(worker)
 
-    def calc_formula(self):
+    def calc_formula(self) -> None:
         if self.FormulaSolveSolve.isChecked():
             solve_type = 2
         if self.FormulaSolveSolveSet.isChecked():
             solve_type = 1
 
         try:
-            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.formula_label_names]
+            lines = [
+                [self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i]
+                for i in self.formula_label_names
+            ]
             values_string = self.selected_tree_item.split("=")
         except:
             self.main_window.show_error_box("Error: select a formula")
@@ -385,18 +486,27 @@ class FormulaTab(QWidget):
         self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = FormulaWorker("calc_formula", [
-            lines,
-            values_string,
-            solve_type,
-            self.FormulaDomain.currentText(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap,
-            self.main_window.use_scientific,
-            self.main_window.accuracy,
-            self.verify_domain_formula
-        ])
+        if self.FormulaNsolve.isChecked():
+            _start = self.FormulaStartV.text()
+        else:
+            _start = None
+
+        worker = FormulaWorker(
+            "calc_formula",
+            [
+                lines,
+                values_string,
+                solve_type,
+                self.FormulaDomain.currentText(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+                self.verify_domain_formula,
+                _start,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 

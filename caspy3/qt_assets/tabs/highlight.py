@@ -9,7 +9,7 @@ BracketInfo = namedtuple("BracketInfo", "character position")
 
 
 class ParenMatchHighlighter(QSyntaxHighlighter):
-    def highlightBlock(self, text):
+    def highlightBlock(self, text: str) -> None:
         block_data = TextBlockData()
         for pos, rune in enumerate(text):
             if rune in "()":
@@ -20,19 +20,19 @@ class ParenMatchHighlighter(QSyntaxHighlighter):
 
 
 class TextBlockData(QTextBlockUserData):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.parentheses = []
         self.brackets = []
 
 
 class TextEdit(QPlainTextEdit):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.highlighter = ParenMatchHighlighter(self.document())
         self.cursorPositionChanged.connect(self.matchParentheses)
 
-    def matchParentheses(self):
+    def matchParentheses(self) -> None:
         self.setExtraSelections([])
         block = self.textCursor().block()
         data = block.userData()
@@ -43,7 +43,7 @@ class TextEdit(QPlainTextEdit):
             for i, info in enumerate(data.parentheses):
                 curpos = abspos - pos
                 if info.position == curpos - 1 and info.character == "(":
-                    if self.matchLeftPar(block, i+1):
+                    if self.matchLeftPar(block, i + 1):
                         self.createParSelection(pos + info.position)
                     else:
                         self.highlightIncomplete(pos + info.position)
@@ -66,7 +66,7 @@ class TextEdit(QPlainTextEdit):
                     else:
                         self.highlightIncomplete(pos + info.position)
 
-    def matchLeftPar(self, block, index, count=0):
+    def matchLeftPar(self, block: "QTextBlock", index: int, count: int = 0) -> bool:
         pos = block.position()
         data = block.userData()
         for i, info in enumerate(data.parentheses[index:]):
@@ -84,7 +84,7 @@ class TextEdit(QPlainTextEdit):
         else:
             return False
 
-    def matchRightPar(self, block, index, count=0):
+    def matchRightPar(self, block: "QTextBlock", index: int, count: int = 0) -> bool:
         pos = block.position()
         data = block.userData()
         for i, info in enumerate(reversed(data.parentheses[:index])):
@@ -103,7 +103,9 @@ class TextEdit(QPlainTextEdit):
             self.highlightIncomplete(self.textCursor().position())
             return False
 
-    def matchLeftParBracket(self, block, index, count=0):
+    def matchLeftParBracket(
+        self, block: "QTextBlock", index: int, count: int = 0
+    ) -> bool:
         pos = block.position()
         data = block.userData()
         for i, info in enumerate(data.brackets[index:]):
@@ -121,7 +123,9 @@ class TextEdit(QPlainTextEdit):
         else:
             return False
 
-    def matchRightParBracket(self, block, index, count=0):
+    def matchRightParBracket(
+        self, block: "QTextBlock", index: int, count: int = 0
+    ) -> bool:
         pos = block.position()
         data = block.userData()
         for i, info in enumerate(reversed(data.brackets[:index])):
@@ -140,7 +144,7 @@ class TextEdit(QPlainTextEdit):
             self.highlightIncomplete(self.textCursor().position())
             return False
 
-    def highlightIncomplete(self, pos):
+    def highlightIncomplete(self, pos: int) -> None:
         selection = QTextEdit.ExtraSelection()
         selection.format.setForeground(Qt.magenta)
         cursor = self.textCursor()
@@ -149,7 +153,7 @@ class TextEdit(QPlainTextEdit):
         selection.cursor = cursor
         self.setExtraSelections(self.extraSelections() + [selection])
 
-    def createParSelection(self, pos):
+    def createParSelection(self, pos: int) -> None:
         selection = QTextEdit.ExtraSelection()
         selection.format.setBackground(Qt.green)
         selection.format.setForeground(Qt.black)

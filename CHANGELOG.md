@@ -2,13 +2,18 @@
 
 All changes will be documented in this file
 
-## [2.2.0] - 2020-10-13
+## [2.2.0] - 2020-12-16
 
 ### Added
 
 - Fixed error 'QT_DEVICE_PIXEL_RATIO is deprecated' by setting enviromental variables
 - Added option '--dont-suppress' in order to not set enviromental variables
+- Added option '--approximate-equation' to normal equation and formulae using nsolve()
 - Added GPLv3+ warranty at the top of every .py file
+- Running ````py -m caspy3```` now starts the gui
+- Added parentheses highlighting for textedits
+- Pressing Alt+"NUMBER" goes to tab number "NUMBER"
+- Anything inside parentheses will be merged in the CLI
 
 ### Changed
 

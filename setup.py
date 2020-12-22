@@ -22,13 +22,13 @@ from caspy3 import __version__
 
 
 def readme():
-    with open('README.md') as f:
+    with open("README.md") as f:
         _readme = f.read()
     return _readme
 
 
 def requires():
-    with open('requirements.txt') as f:
+    with open("requirements.txt") as f:
         _requires = f.read()
     return _requires
 
@@ -49,7 +49,7 @@ setup(
         "Topic :: Scientific/Engineering :: Mathematics",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
-        'Programming Language :: Python :: 3 :: Only',
+        "Programming Language :: Python :: 3 :: Only",
     ],
     install_requires=requires(),
     packages=["caspy3"],
@@ -59,5 +59,5 @@ setup(
         "console_scripts": [
             "caspy = caspy3.cli:main",
         ]
-    }
+    },
 )

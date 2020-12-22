@@ -21,6 +21,8 @@ from PyQt5.QtWidgets import QAction, QApplication, QWidget
 from PyQt5.QtGui import QCursor
 from PyQt5.uic import loadUi
 
+import typing as ty
+
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
@@ -30,13 +32,21 @@ from .worker import BaseWorker
 
 
 class IntegralWorker(BaseWorker):
-    def __init__(self, command, params, copy=None):
+    def __init__(self, command: str, params: list, copy: int = None) -> None:
         super().__init__(command, params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_integ(self, input_expression, input_variable, input_lower, input_upper, output_type, use_unicode,
-                   line_wrap):
+    def prev_integ(
+        self,
+        input_expression: str,
+        input_variable: str,
+        input_lower: str,
+        input_upper: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -51,13 +61,17 @@ class IntegralWorker(BaseWorker):
 
         if input_lower:
             try:
-                self.exact_ans = Integral(parse_expr(input_expression), (parse_expr(input_variable),
-                                                                         input_lower, input_upper))
+                self.exact_ans = Integral(
+                    parse_expr(input_expression),
+                    (parse_expr(input_variable), input_lower, input_upper),
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
         else:
             try:
-                self.exact_ans = Integral(parse_expr(input_expression), parse_expr(input_variable))
+                self.exact_ans = Integral(
+                    parse_expr(input_expression), parse_expr(input_variable)
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -73,8 +87,19 @@ class IntegralWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def calc_integ(self, input_expression, input_variable, input_lower, input_upper, approx_integ, output_type,
-                   use_unicode, line_wrap, use_scientific, accuracy):
+    def calc_integ(
+        self,
+        input_expression: str,
+        input_variable: str,
+        input_lower: str,
+        input_upper: str,
+        approx_integ: bool,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+        use_scientific: ty.Union[int, None],
+        accuracy: int,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -93,8 +118,10 @@ class IntegralWorker(BaseWorker):
 
         if input_lower:
             try:
-                self.exact_ans = Integral(parse_expr(input_expression),
-                                          (parse_expr(input_variable), input_lower, input_upper))
+                self.exact_ans = Integral(
+                    parse_expr(input_expression),
+                    (parse_expr(input_variable), input_lower, input_upper),
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -110,7 +137,9 @@ class IntegralWorker(BaseWorker):
 
             try:
                 if use_scientific:
-                    self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
+                    self.approx_ans = self.to_scientific_notation(
+                        str(N(self.exact_ans, accuracy)), use_scientific
+                    )
                 else:
                     self.approx_ans = str(simplify(N(self.exact_ans, accuracy)))
             except Exception:
@@ -118,13 +147,17 @@ class IntegralWorker(BaseWorker):
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
             else:
                 if use_scientific:
-                    self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
+                    self.approx_ans = self.to_scientific_notation(
+                        str(N(self.exact_ans, accuracy)), use_scientific
+                    )
                 else:
                     self.approx_ans = str(N(self.exact_ans, accuracy))
 
         else:
             try:
-                self.exact_ans = integrate(parse_expr(input_expression), parse_expr(input_variable))
+                self.exact_ans = integrate(
+                    parse_expr(input_expression), parse_expr(input_variable)
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
             self.latex_answer = str(latex(self.exact_ans))
@@ -148,7 +181,7 @@ class IntegralTab(QWidget):
 
     display_name = "Integral"
 
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/integral.ui"), self)
@@ -163,19 +196,21 @@ class IntegralTab(QWidget):
         self.init_integral_menu()
         self.init_bindings()
 
-    def install_event_filters(self):
+    def install_event_filters(self) -> None:
         self.IntegExp.installEventFilter(self)
 
-    def init_integral_menu(self):
+    def init_integral_menu(self) -> None:
         self.menuInteg = self.main_window.menubar.addMenu("Integral")
         self.menuInteg.setToolTipsVisible(True)
         approx_integ = QAction("Approximate integral", self, checkable=True)
-        approx_integ.setToolTip("Approximates integral by N(). Note: this overrides the normal calculation")
+        approx_integ.setToolTip(
+            "Approximates integral by N(). Note: this overrides the normal calculation"
+        )
         approx_integ.setChecked(self.approx_integ)
         self.menuInteg.addAction(approx_integ)
         approx_integ.triggered.connect(self.toggle_approx_integ)
 
-    def toggle_approx_integ(self, state):
+    def toggle_approx_integ(self, state: bool) -> None:
         if state:
             self.approx_integ = True
         else:
@@ -183,11 +218,11 @@ class IntegralTab(QWidget):
 
         self.main_window.update_save_settings({"approx_integ": self.approx_integ})
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
         QModifiers = QApplication.keyboardModifiers()
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append('shift')
+            modifiers.append("shift")
 
         if event.type() == QEvent.KeyPress:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -198,14 +233,14 @@ class IntegralTab(QWidget):
 
         return super(IntegralTab, self).eventFilter(obj, event)
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         self.IntegPrev.clicked.connect(self.prev_integ)
         self.IntegCalc.clicked.connect(self.calc_integ)
 
-    def stop_thread(self):
+    def stop_thread(self) -> None:
         pass
 
-    def update_ui(self, input_dict):
+    def update_ui(self, input_dict: ty.Dict[str, ty.List[str]]) -> None:
         self.IntegOut.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
         self.IntegApprox.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
 
@@ -221,40 +256,46 @@ class IntegralTab(QWidget):
             self.IntegOut.setText(self.main_window.exact_ans)
             self.IntegApprox.setText(str(self.main_window.approx_ans))
 
-    def prev_integ(self):
+    def prev_integ(self) -> None:
         self.IntegOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.IntegApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = IntegralWorker("prev_integ", [
-            self.IntegExp.toPlainText(),
-            self.IntegVar.text(),
-            self.IntegLower.text(),
-            self.IntegUpper.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap
-        ])
+        worker = IntegralWorker(
+            "prev_integ",
+            [
+                self.IntegExp.toPlainText(),
+                self.IntegVar.text(),
+                self.IntegLower.text(),
+                self.IntegUpper.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def calc_integ(self):
+    def calc_integ(self) -> None:
         self.IntegOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.IntegApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = IntegralWorker("calc_integ", [
-            self.IntegExp.toPlainText(),
-            self.IntegVar.text(),
-            self.IntegLower.text(),
-            self.IntegUpper.text(),
-            self.approx_integ,
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap,
-            self.main_window.use_scientific,
-            self.main_window.accuracy
-        ])
+        worker = IntegralWorker(
+            "calc_integ",
+            [
+                self.IntegExp.toPlainText(),
+                self.IntegVar.text(),
+                self.IntegLower.text(),
+                self.IntegUpper.text(),
+                self.approx_integ,
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 

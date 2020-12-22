@@ -36,11 +36,11 @@ from .web import WebTab
 TABS = []
 
 
-def str_to_class(classname):
+def str_to_class(classname: str) -> "sip.wrappertype":
     return getattr(sys.modules[__name__], classname)
 
 
-settings_json = pkg_resources.resource_filename('caspy3', 'data/settings.json')
+settings_json = pkg_resources.resource_filename("caspy3", "data/settings.json")
 with open(settings_json, "r", encoding="utf8") as json_f:
     tab_file = json_f.read()
     tab_data = json.loads(tab_file)["tabs"]

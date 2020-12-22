@@ -122,12 +122,15 @@
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
-             <widget class="QTextEdit" name="EqNormalLeft">
+             <widget class="TextEdit" name="EqNormalLeft">
               <property name="font">
                <font>
                 <stylestrategy>PreferDefault</stylestrategy>
                 <kerning>true</kerning>
                </font>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::StrongFocus</enum>
               </property>
               <property name="toolTip">
                <string>Left side of equation</string>
@@ -135,25 +138,16 @@
               <property name="tabChangesFocus">
                <bool>true</bool>
               </property>
-              <property name="lineWrapMode">
-               <enum>QTextEdit::NoWrap</enum>
-              </property>
-              <property name="acceptRichText">
-               <bool>false</bool>
-              </property>
               <property name="placeholderText">
-               <string>Left Side</string>
+               <string>Left side</string>
               </property>
              </widget>
-             <widget class="QTextEdit" name="EqNormalRight">
+             <widget class="TextEdit" name="EqNormalRight">
               <property name="toolTip">
                <string>Right side of equation</string>
               </property>
               <property name="tabChangesFocus">
                <bool>true</bool>
-              </property>
-              <property name="acceptRichText">
-               <bool>false</bool>
               </property>
               <property name="placeholderText">
                <string>Right side</string>
@@ -288,6 +282,42 @@
             </layout>
            </item>
            <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_13">
+             <item>
+              <widget class="QCheckBox" name="EqNormalNsolve">
+               <property name="toolTip">
+                <string>Approximate equation using nsolve()</string>
+               </property>
+               <property name="text">
+                <string>Approximate</string>
+               </property>
+               <property name="autoRepeat">
+                <bool>false</bool>
+               </property>
+               <property name="autoExclusive">
+                <bool>false</bool>
+               </property>
+               <property name="tristate">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="EqNormalStartV">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>Starting point that's close to the solution</string>
+               </property>
+               <property name="placeholderText">
+                <string>Starting Vector (x0)</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QRadioButton" name="EqNormalSolve">
@@ -395,41 +425,28 @@
             </layout>
            </item>
            <item>
-            <widget class="QTextEdit" name="EqDiffLeft">
+            <widget class="TextEdit" name="EqDiffLeft">
              <property name="toolTip">
               <string>Left side of equation, to type derivative use either f''(x) or SymPy's diff(). Previewing will show classifications</string>
              </property>
              <property name="tabChangesFocus">
               <bool>true</bool>
              </property>
-             <property name="html">
-              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Courier New'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="acceptRichText">
-              <bool>false</bool>
-             </property>
              <property name="placeholderText">
-              <string>Left Side</string>
+              <string>Left side</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QTextEdit" name="EqDiffRight">
+            <widget class="TextEdit" name="EqDiffRight">
              <property name="toolTip">
               <string>Right side of equation, to type derivative use either f''(x) or SymPy's diff(). Previewing will show classifications</string>
              </property>
              <property name="tabChangesFocus">
               <bool>true</bool>
              </property>
-             <property name="acceptRichText">
-              <bool>false</bool>
-             </property>
              <property name="placeholderText">
-              <string>Right Side</string>
+              <string>Right side</string>
              </property>
             </widget>
            </item>
@@ -604,8 +621,8 @@ p, li { white-space: pre-wrap; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>98</width>
-                <height>28</height>
+                <width>400</width>
+                <height>343</height>
                </rect>
               </property>
              </widget>
@@ -842,6 +859,13 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>caspy3/qt_assets/tabs/highlight.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

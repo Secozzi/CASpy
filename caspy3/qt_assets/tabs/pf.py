@@ -21,6 +21,8 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QCursor, QRegExpValidator
 from PyQt5.uic import loadUi
 
+import typing as ty
+
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
@@ -30,12 +32,12 @@ from .worker import BaseWorker
 
 
 class PfWorker(BaseWorker):
-    def __init__(self, command, params, copy=None):
+    def __init__(self, command: str, params: list, copy: int = None) -> None:
         super().__init__(command, params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def calc_pf(self, input_number):
+    def calc_pf(self, input_number: int) -> ty.Dict[str, ty.List[str]]:
         self.approx_ans = ""
         self.latex_answer = ""
 
@@ -45,7 +47,11 @@ class PfWorker(BaseWorker):
             return {"error": [f"Error: {input_number} is not an integer."]}
 
         if input_number < 2:
-            return {"error": [f"Error: {input_number} is lower than 2, only number 2 and above is accepted."]}
+            return {
+                "error": [
+                    f"Error: {input_number} is lower than 2, only number 2 and above is accepted."
+                ]
+            }
 
         try:
             self.exact_ans = factorint(input_number)
@@ -57,13 +63,16 @@ class PfWorker(BaseWorker):
             self.approx_ans += f"({base}**{self.exact_ans[base]})*"
 
         self.latex_answer = latex(parse_expr(self.latex_answer[0:-1], evaluate=False))
-        return {"pf": [self.exact_ans, self.approx_ans[0:-1]], "latex": self.latex_answer}
+        return {
+            "pf": [self.exact_ans, self.approx_ans[0:-1]],
+            "latex": self.latex_answer,
+        }
 
 
 class PfTab(QWidget):
     display_name = "Prime Factors"
 
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/pf.ui"), self)
@@ -71,19 +80,19 @@ class PfTab(QWidget):
         self.init_menu()
         self.init_bindings()
 
-    def init_menu(self):
+    def init_menu(self) -> None:
         self.number_reg = QRegExp("[0-9]+")
         self.number_reg_validator = QRegExpValidator(self.number_reg, self)
 
         self.PfInput.setValidator(self.number_reg_validator)
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         self.PfCalc.clicked.connect(self.calc_pf)
 
-    def stop_thread(self):
+    def stop_thread(self) -> None:
         pass
 
-    def update_ui(self, input_dict):
+    def update_ui(self, input_dict: ty.Dict[str, ty.List[str]]) -> None:
         self.PfOut.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
         self.PfApprox.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
 
@@ -99,7 +108,7 @@ class PfTab(QWidget):
             self.PfOut.setText(self.main_window.exact_ans)
             self.PfApprox.setText(self.main_window.approx_ans)
 
-    def calc_pf(self):
+    def calc_pf(self) -> None:
         self.PfOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.PfApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 

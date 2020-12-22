@@ -25,18 +25,27 @@ from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
+import typing as ty
 
 from .worker import BaseWorker
 
 
 class DerivativeWorker(BaseWorker):
-    def __init__(self, command, params, copy=None):
+    def __init__(self, command: str, params: list, copy: int = None) -> None:
         super().__init__(command, params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode,
-                   line_wrap):
+    def prev_deriv(
+        self,
+        input_expression: str,
+        input_variable: str,
+        input_order: int,
+        input_point: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -67,8 +76,18 @@ class DerivativeWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def calc_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode,
-                   line_wrap, use_scientific, accuracy):
+    def calc_deriv(
+        self,
+        input_expression: str,
+        input_variable: str,
+        input_order: int,
+        input_point: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+        use_scientific: ty.Union[int, None],
+        accuracy: int,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
 
         self.approx_ans = 0
@@ -85,17 +104,23 @@ class DerivativeWorker(BaseWorker):
             return {"error": ["Enter a variable"]}
 
         try:
-            self.exact_ans = diff(parse_expr(input_expression), parse_expr(input_variable), input_order)
+            self.exact_ans = diff(
+                parse_expr(input_expression), parse_expr(input_variable), input_order
+            )
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
         self.latex_answer = str(latex(self.exact_ans))
 
         if input_point:
-            calc_deriv_point = str(self.exact_ans).replace(input_variable, f"({input_point})")
+            calc_deriv_point = str(self.exact_ans).replace(
+                input_variable, f"({input_point})"
+            )
 
             if use_scientific:
                 try:
-                    self.approx_ans = self.to_scientific_notation(str(N(calc_deriv_point, accuracy)), use_scientific)
+                    self.approx_ans = self.to_scientific_notation(
+                        str(N(calc_deriv_point, accuracy)), use_scientific
+                    )
                 except Exception:
                     return {"error": [f"Failed to parse {input_point}"]}
             else:
@@ -126,7 +151,7 @@ class DerivativeTab(QWidget):
 
     display_name = "Derivative"
 
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         """
         A QWidget is created to be added in as a tab in the main window.
 
@@ -145,17 +170,17 @@ class DerivativeTab(QWidget):
         self.install_event_filters()
         self.init_bindings()
 
-    def install_event_filters(self):
+    def install_event_filters(self) -> None:
         self.DerivExp.installEventFilter(self)
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
         """
         Add modifiers and if shift + enter or shift + return is pressed, run calc_deriv()
         """
         QModifiers = QApplication.keyboardModifiers()
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append('shift')
+            modifiers.append("shift")
 
         if event.type() == QEvent.KeyPress:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -166,14 +191,14 @@ class DerivativeTab(QWidget):
 
         return super(DerivativeTab, self).eventFilter(obj, event)
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         self.DerivPrev.clicked.connect(self.prev_deriv)
         self.DerivCalc.clicked.connect(self.calc_deriv)
 
-    def stop_thread(self):
+    def stop_thread(self) -> None:
         pass
 
-    def update_ui(self, input_dict):
+    def update_ui(self, input_dict: ty.Dict[str, ty.List[str]]) -> None:
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
         self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
 
@@ -189,48 +214,45 @@ class DerivativeTab(QWidget):
             self.DerivOut.setText(self.main_window.exact_ans)
             self.DerivApprox.setText(str(self.main_window.approx_ans))
 
-    def prev_deriv(self):
+    def prev_deriv(self) -> None:
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = DerivativeWorker("prev_deriv", [
-            self.DerivExp.toPlainText(),
-            self.DerivVar.text(),
-            self.DerivOrder.value(),
-            self.DerivPoint.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap
-        ])
+        worker = DerivativeWorker(
+            "prev_deriv",
+            [
+                self.DerivExp.toPlainText(),
+                self.DerivVar.text(),
+                self.DerivOrder.value(),
+                self.DerivPoint.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def calc_deriv_new(self):
+    def calc_deriv(self) -> None:
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = DerivativeWorker()
-
-        worker.signals.output.connect(self.update_ui)
-        worker.signals.finished.connect(self.stop_thread)
-
-    def calc_deriv(self):
-        self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
-        self.DerivApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
-
-        worker = DerivativeWorker("calc_deriv", [
-            self.DerivExp.toPlainText(),
-            self.DerivVar.text(),
-            self.DerivOrder.value(),
-            self.DerivPoint.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap,
-            self.main_window.use_scientific,
-            self.main_window.accuracy
-        ])
+        worker = DerivativeWorker(
+            "calc_deriv",
+            [
+                self.DerivExp.toPlainText(),
+                self.DerivVar.text(),
+                self.DerivOrder.value(),
+                self.DerivPoint.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 

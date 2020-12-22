@@ -32,6 +32,7 @@ os.chdir(CURRENT_DIR)
 from CAS import Ui_MainWindow
 from qt_assets.main import CASpyGUI
 
+
 class MainWindow(QMainWindow, CASpyGUI):
     def __init__(self, *args, **kwargs):
         """
@@ -41,7 +42,18 @@ class MainWindow(QMainWindow, CASpyGUI):
 
         self.setWindowIcon(QIcon("assets/logo.png"))
         self.setupUi(self)
-        for i in [self.consoleIn, self.DerivExp, self.IntegExp, self.LimExp, self.EqLeft, self.EqRight, self.SimpExp, self.ExpExp, self.EvalExp, self.PfInput]:
+        for i in [
+            self.consoleIn,
+            self.DerivExp,
+            self.IntegExp,
+            self.LimExp,
+            self.EqLeft,
+            self.EqRight,
+            self.SimpExp,
+            self.ExpExp,
+            self.EvalExp,
+            self.PfInput,
+        ]:
             i.installEventFilter(self)
 
     def eventFilter(self, obj, event):
@@ -58,7 +70,7 @@ class MainWindow(QMainWindow, CASpyGUI):
         QModifiers = QApplication.keyboardModifiers()
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append('shift')
+            modifiers.append("shift")
 
         """
         Executs code when enter is pressed. Goes to new line and enters '... ' when shift+enter is pressed (doesn't execute code)
@@ -72,7 +84,6 @@ class MainWindow(QMainWindow, CASpyGUI):
                 else:
                     self.execute_code()
                     return True
-
 
         """
         Calculates when shift+enter is pressed.
@@ -98,7 +109,9 @@ class MainWindow(QMainWindow, CASpyGUI):
                         self.calc_limit()
                         return True
 
-        if (obj is self.EqLeft and event.type() == QEvent.KeyPress) or (obj is self.EqRight and event.type() == QEvent.KeyPress) :
+        if (obj is self.EqLeft and event.type() == QEvent.KeyPress) or (
+            obj is self.EqRight and event.type() == QEvent.KeyPress
+        ):
             if modifiers:
                 if modifiers[0] == "shift":
                     if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -135,16 +148,19 @@ class MainWindow(QMainWindow, CASpyGUI):
 
         return super(MainWindow, self).eventFilter(obj, event)
 
+
 def main():
     """
     Runs program. Catches errors and prints them to console.
     """
     import sys
+
     def excepthook(exc_type, exc_value, exc_tb):
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         print("error catched!:")
         print("error message:\n", tb)
         QApplication.quit()
+
     sys.excepthook = excepthook
     e = CASpyGUI()
     app = QApplication(sys.argv)
@@ -152,6 +168,7 @@ def main():
     cas.start_thread()
     cas.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()

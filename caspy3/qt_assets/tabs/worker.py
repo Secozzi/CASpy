@@ -23,13 +23,13 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QRunnable
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
-from typing import Any, Callable, Dict, List, Union
+import typing as ty
 
 from pyperclip import copy
 import traceback
 
 
-def catch_thread(func: Callable[..., Any]):
+def catch_thread(func: ty.Callable[..., ty.Any]):
     """Decorator to catch any errors of a slot. This decorator shouldn't be called under normal circumstances"""
 
     def wrapper(*s, **gs):
@@ -50,10 +50,8 @@ class WorkerSignals(QObject):
 
 class BaseWorker(QRunnable):
     def __init__(
-            self,
-            command: str,
-            params: list,
-            copy_output: Union[int, None] = None):
+        self, command: str, params: list, copy_output: ty.Union[int, None] = None
+    ) -> None:
         super(BaseWorker, self).__init__()
 
         self.command = command
@@ -63,25 +61,31 @@ class BaseWorker(QRunnable):
         self.signals = WorkerSignals()
 
     @staticmethod
-    def catch_error(func: Callable[..., Any]):
+    def catch_error(func: ty.Callable[..., ty.Any]):
         """Decorator for debugging. It will print params and copy result"""
 
         def wrapper(self, *args, **kwargs):
             try:
                 result = func(self, *args, **kwargs)
             except Exception:
-                return {"error": [f"ERROR IN SOURCE CODE: \n\n{traceback.format_exc()}"]}
+                return {
+                    "error": [f"ERROR IN SOURCE CODE: \n\n{traceback.format_exc()}"]
+                }
 
             return result
 
         return wrapper
 
     @pyqtSlot()
-    def run(self) -> Union[Dict[str, List[str]], None]:
+    def run(self) -> ty.Union[ty.Dict[str, ty.List[str]], None]:
         try:
             result = getattr(self, self.command)(*self.params)
         except Exception:
-            return {"error": [f"Error calling function from worker thread: \n{traceback.format_exc()}"]}
+            return {
+                "error": [
+                    f"Error calling function from worker thread: \n{traceback.format_exc()}"
+                ]
+            }
 
         # For tests
         if type(result) == list:
@@ -205,15 +209,15 @@ class BaseWorker(QRunnable):
     @catch_thread
     @pyqtSlot()
     def prev_normal_eq(
-            self,
-            left_expression: str,
-            right_expression: str,
-            input_variable: str,
-            domain: str,
-            output_type: int,
-            use_unicode: bool,
-            line_wrap: bool
-    ) -> Dict[str, List[str]]:
+        self,
+        left_expression: str,
+        right_expression: str,
+        input_variable: str,
+        domain: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -239,7 +243,9 @@ class BaseWorker(QRunnable):
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
         try:
-            full_equation = Eq(parse_expr(left_expression), parse_expr(right_expression))
+            full_equation = Eq(
+                parse_expr(left_expression), parse_expr(right_expression)
+            )
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -259,23 +265,27 @@ class BaseWorker(QRunnable):
     @catch_thread
     @pyqtSlot()
     def calc_normal_eq(
-            self,
-            left_expression: str,
-            right_expression: str,
-            input_variable: str,
-            solve_type: int,
-            domain: str,
-            output_type: int,
-            use_unicode: bool,
-            line_wrap: bool,
-            use_scientific: Union[int, None],
-            accuracy: int,
-            verify_domain: bool
-    ) -> Dict[str, List[str]]:
+        self,
+        left_expression: str,
+        right_expression: str,
+        input_variable: str,
+        solve_type: int,
+        domain: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+        use_scientific: ty.Union[int, None],
+        accuracy: int,
+        verify_domain: bool,
+        approximate: ty.Union[str, None] = None,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
         self.latex_answer = ""
+
+        if approximate == "":
+            return {"error": ["Enter starting vector"]}
 
         try:
             domain = parse_expr(domain)
@@ -300,17 +310,42 @@ class BaseWorker(QRunnable):
             if use_scientific > accuracy:
                 accuracy = use_scientific
 
+        if approximate:
+            try:
+                _startv = parse_expr(approximate)
+                self.exact_ans = nsolve(
+                    Eq(parse_expr(left_expression), parse_expr(right_expression)),
+                    parse_expr(input_variable),
+                    _startv,
+                    prec=accuracy
+                )
+            except Exception:
+                return {"error": [f"Error: \n{traceback.format_exc()}"]}
+
+            self.exact_ans = str(self.exact_ans)
+            self.approx_ans = self.exact_ans
+            self.latex_answer = str(latex(self.exact_ans))
+
+            return {"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
+
         if solve_type == 1:
             try:
-                self.exact_ans = solveset(Eq(parse_expr(left_expression), parse_expr(right_expression)),
-                                          parse_expr(input_variable), domain=domain)
+                self.exact_ans = solveset(
+                    Eq(parse_expr(left_expression), parse_expr(right_expression)),
+                    parse_expr(input_variable),
+                    domain=domain,
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
         else:
             try:
-                self.exact_ans = solve(Eq(parse_expr(left_expression), parse_expr(right_expression)),
-                                       parse_expr(input_variable), domain=domain, rational=True)
+                self.exact_ans = solve(
+                    Eq(parse_expr(left_expression), parse_expr(right_expression)),
+                    parse_expr(input_variable),
+                    domain=domain,
+                    rational=True,
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -323,7 +358,10 @@ class BaseWorker(QRunnable):
             approx_list = [str(N(i, accuracy)) for i in self.exact_ans]
 
             if use_scientific:
-                approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
+                approx_list = [
+                    self.to_scientific_notation(str(i), use_scientific)
+                    for i in approx_list
+                ]
 
             self.approx_ans = approx_list[0] if len(approx_list) == 1 else approx_list
 
@@ -339,7 +377,9 @@ class BaseWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def verify_domain(self, input_values: List[Expr], domain: [Set, Interval]) -> List[Expr]:
+    def verify_domain(
+        self, input_values: ty.List[Expr], domain: ty.Union[Set, Interval]
+    ) -> ty.List[Expr]:
         output = []
 
         for value in input_values:
@@ -347,7 +387,9 @@ class BaseWorker(QRunnable):
             if len(value.free_symbols) != 0:
                 output.append(value)
             else:
-                if type(domain.contains(value)) == Contains or not domain.contains(value):
+                if type(domain.contains(value)) == Contains or not domain.contains(
+                    value
+                ):
                     pass
                 else:
                     output.append(value)

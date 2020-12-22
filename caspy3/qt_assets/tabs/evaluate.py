@@ -25,19 +25,26 @@ from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 import traceback
-
 import re as pyreg
+import typing as ty
 
 from .worker import BaseWorker
 
 
 class EvaluateWorker(BaseWorker):
-    def __init__(self, command, params, copy=None):
+    def __init__(self, command: str, params: list, copy: int = None) -> None:
         super().__init__(command, params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_eval_exp(self, expression, var_sub, output_type, use_unicode, line_wrap):
+    def prev_eval_exp(
+        self,
+        expression: str,
+        var_sub: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -72,7 +79,7 @@ class EvaluateWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def parse_var_sub(self, var_sub):
+    def parse_var_sub(self, var_sub: str) -> ty.Dict[str, str]:
         """
         Parses var_sub and returns a dictionary. Any variable followed by a ':' will be subtituted by everything
         between the ':' and the next variable. It must be of the type var1: value1 var2: value2 or else
@@ -115,7 +122,16 @@ class EvaluateWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def eval_exp(self, expression, var_sub, output_type, use_unicode, line_wrap, use_scientific, accuracy):
+    def eval_exp(
+        self,
+        expression: str,
+        var_sub: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+        use_scientific: ty.Union[int, None],
+        accuracy: int,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -132,7 +148,11 @@ class EvaluateWorker(BaseWorker):
 
         if var_sub:
             if ":" not in var_sub:
-                return {"error": ["A ':' must be present after variable to indicate end of variable"]}
+                return {
+                    "error": [
+                        "A ':' must be present after variable to indicate end of variable"
+                    ]
+                }
 
             var_sub = self.parse_var_sub(var_sub)
             if "error" in list(var_sub.keys()):
@@ -150,7 +170,9 @@ class EvaluateWorker(BaseWorker):
             expression = str(expression)
             self.exact_ans = simplify(parse_expr(expression))
             if use_scientific:
-                self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
+                self.approx_ans = self.to_scientific_notation(
+                    str(N(self.exact_ans, accuracy)), use_scientific
+                )
             else:
                 self.approx_ans = str(N(self.exact_ans, accuracy))
         except Exception:
@@ -171,7 +193,7 @@ class EvaluateTab(QWidget):
 
     display_name = "Evaluate"
 
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/evaluate.ui"), self)
@@ -179,15 +201,15 @@ class EvaluateTab(QWidget):
         self.install_event_filters()
         self.init_bindings()
 
-    def install_event_filters(self):
+    def install_event_filters(self) -> None:
         self.EvalExp.installEventFilter(self)
         self.EvalVarSub.installEventFilter(self)
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
         QModifiers = QApplication.keyboardModifiers()
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append('shift')
+            modifiers.append("shift")
 
         if event.type() == QEvent.KeyPress:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -198,14 +220,14 @@ class EvaluateTab(QWidget):
 
         return super(EvaluateTab, self).eventFilter(obj, event)
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         self.EvalPrev.clicked.connect(self.prev_eval_exp)
         self.EvalCalc.clicked.connect(self.eval_exp)
 
-    def stop_thread(self):
+    def stop_thread(self) -> None:
         pass
 
-    def update_ui(self, input_dict):
+    def update_ui(self, input_dict: ty.Dict[str, ty.List[str]]) -> None:
         self.EvalOut.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
         self.EvalApprox.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
 
@@ -221,35 +243,41 @@ class EvaluateTab(QWidget):
             self.EvalOut.setText(str(self.main_window.exact_ans))
             self.EvalApprox.setText(str(self.main_window.approx_ans))
 
-    def prev_eval_exp(self):
+    def prev_eval_exp(self) -> None:
         self.EvalOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.EvalApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = EvaluateWorker("prev_eval_exp", [
-            self.EvalExp.toPlainText(),
-            self.EvalVarSub.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap
-        ])
+        worker = EvaluateWorker(
+            "prev_eval_exp",
+            [
+                self.EvalExp.toPlainText(),
+                self.EvalVarSub.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def eval_exp(self):
+    def eval_exp(self) -> None:
         self.EvalOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.EvalApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = EvaluateWorker("eval_exp", [
-            self.EvalExp.toPlainText(),
-            self.EvalVarSub.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap,
-            self.main_window.use_scientific,
-            self.main_window.accuracy
-        ])
+        worker = EvaluateWorker(
+            "eval_exp",
+            [
+                self.EvalExp.toPlainText(),
+                self.EvalVarSub.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 

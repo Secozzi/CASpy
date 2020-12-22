@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QCursor
 from PyQt5.uic import loadUi
 
-from typing import Dict, List
+import typing as ty
 
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
@@ -29,24 +29,24 @@ from sympy.parsing.sympy_parser import parse_expr
 import traceback
 
 from .worker import BaseWorker
-# TODO: Dict etc exists in sympy
 
 
 class SummationWorker(BaseWorker):
-    def __init__(self, command: str, params: list, copy: int = None):
+    def __init__(self, command: str, params: list, copy: int = None) -> None:
         super().__init__(command, params, copy)
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def prev_sum(self,
-                 input_expression: str,
-                 input_variable: str,
-                 sum_start: str,
-                 sum_end: str,
-                 output_type: int,
-                 use_unicode: bool,
-                 line_wrap: bool
-                 ) -> Dict[str, List[str]]:
+    def prev_sum(
+        self,
+        input_expression: str,
+        input_variable: str,
+        sum_start: str,
+        sum_end: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -60,7 +60,10 @@ class SummationWorker(BaseWorker):
             return {"error": ["Enter both start and end"]}
 
         try:
-            self.exact_ans = Sum(parse_expr(input_expression), (parse_expr(input_variable), sum_start, sum_end))
+            self.exact_ans = Sum(
+                parse_expr(input_expression),
+                (parse_expr(input_variable), sum_start, sum_end),
+            )
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -76,8 +79,18 @@ class SummationWorker(BaseWorker):
 
     @BaseWorker.catch_error
     @pyqtSlot()
-    def calc_sum(self, input_expression, input_variable, sum_start, sum_end, output_type,
-                 use_unicode, line_wrap, use_scientific, accuracy):
+    def calc_sum(
+        self,
+        input_expression: str,
+        input_variable: str,
+        sum_start: str,
+        sum_end: str,
+        output_type: int,
+        use_unicode: bool,
+        line_wrap: bool,
+        use_scientific: ty.Union[int, None],
+        accuracy: int,
+    ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -95,13 +108,18 @@ class SummationWorker(BaseWorker):
             return {"error": ["Enter both start and end"]}
 
         try:
-            self.exact_ans = Sum(parse_expr(input_expression), (parse_expr(input_variable), sum_start, sum_end)).doit()
+            self.exact_ans = Sum(
+                parse_expr(input_expression),
+                (parse_expr(input_variable), sum_start, sum_end),
+            ).doit()
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
         try:
             if use_scientific:
-                self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
+                self.approx_ans = self.to_scientific_notation(
+                    str(N(self.exact_ans, accuracy)), use_scientific
+                )
             else:
                 self.approx_ans = str(simplify(N(self.exact_ans, accuracy)))
         except Exception:
@@ -122,7 +140,7 @@ class SummationWorker(BaseWorker):
 class SummationTab(QWidget):
     display_name = "Summation"
 
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/summation.ui"), self)
@@ -130,14 +148,14 @@ class SummationTab(QWidget):
         self.install_event_filters()
         self.init_bindings()
 
-    def install_event_filters(self):
+    def install_event_filters(self) -> None:
         self.SumExp.installEventFilter(self)
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
         QModifiers = QApplication.keyboardModifiers()
         modifiers = []
         if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append('shift')
+            modifiers.append("shift")
 
         if event.type() == QEvent.KeyPress:
             if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -148,14 +166,14 @@ class SummationTab(QWidget):
 
         return super(SummationTab, self).eventFilter(obj, event)
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         self.SumPrev.clicked.connect(self.prev_sum)
         self.SumCalc.clicked.connect(self.calc_sum)
 
-    def stop_thread(self):
+    def stop_thread(self) -> None:
         pass
 
-    def update_ui(self, input_dict):
+    def update_ui(self, input_dict: ty.Dict[str, ty.List[str]]) -> None:
         self.SumOut.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
         self.SumApprox.viewport().setProperty("cursor", QCursor(Qt.ArrowCursor))
 
@@ -171,39 +189,45 @@ class SummationTab(QWidget):
             self.SumOut.setText(self.main_window.exact_ans)
             self.SumApprox.setText(str(self.main_window.approx_ans))
 
-    def prev_sum(self):
+    def prev_sum(self) -> None:
         self.SumOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.SumApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = SummationWorker("prev_sum", [
-            self.SumExp.toPlainText(),
-            self.SumVar.text(),
-            self.SumStart.text(),
-            self.SumEnd.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap
-        ])
+        worker = SummationWorker(
+            "prev_sum",
+            [
+                self.SumExp.toPlainText(),
+                self.SumVar.text(),
+                self.SumStart.text(),
+                self.SumEnd.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 
         self.main_window.threadpool.start(worker)
 
-    def calc_sum(self):
+    def calc_sum(self) -> None:
         self.SumOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
         self.SumApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
 
-        worker = SummationWorker("calc_sum", [
-            self.SumExp.toPlainText(),
-            self.SumVar.text(),
-            self.SumStart.text(),
-            self.SumEnd.text(),
-            self.main_window.output_type,
-            self.main_window.use_unicode,
-            self.main_window.line_wrap,
-            self.main_window.use_scientific,
-            self.main_window.accuracy
-        ])
+        worker = SummationWorker(
+            "calc_sum",
+            [
+                self.SumExp.toPlainText(),
+                self.SumVar.text(),
+                self.SumStart.text(),
+                self.SumEnd.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+            ],
+        )
         worker.signals.output.connect(self.update_ui)
         worker.signals.finished.connect(self.stop_thread)
 

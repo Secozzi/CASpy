@@ -18,33 +18,34 @@ class ParseVarSubTester(BaseTester):
     def test_parse_var_sub_no_colon(self):
         command = "parse_var_sub"
         params = ["x"]
-        solution = {'error': 'Colon missing'}
+        solution = {"error": "Colon missing"}
         return command, params, solution
 
     @BaseTester.call_worker(EvaluateWorker)
     def test_parse_var_sub_no_value(self):
         command = "parse_var_sub"
         params = ["x: "]
-        solution = {'error': "Variable 'x' is missing a value"}
+        solution = {"error": "Variable 'x' is missing a value"}
         return command, params, solution
 
     @BaseTester.call_worker(EvaluateWorker)
     def test_parse_var_sub_no_value_multiple(self):
         command = "parse_var_sub"
         params = ["x: 2 y: "]
-        solution = {'error': "Variable 'y' is missing a value"}
+        solution = {"error": "Variable 'y' is missing a value"}
         return command, params, solution
 
     @BaseTester.call_worker(EvaluateWorker)
     def test_parse_var_sub(self):
         command = "parse_var_sub"
         params = ["x: 3 y: 5"]
-        solution = {'x': '3', 'y': '5'}
+        solution = {"x": "3", "y": "5"}
         return command, params, solution
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     tester = ParseVarSubTester()
     tester.test_var_sub_parse()

@@ -24,7 +24,7 @@ from PyQt5.QtGui import QIcon
 
 
 class TabList(QListWidget):
-    def __init__(self, main_window):
+    def __init__(self, main_window: "CASpyGUI") -> None:
         super(TabList, self).__init__()
         self.main_window = main_window
         self.setFixedWidth(340)
@@ -36,7 +36,11 @@ class TabList(QListWidget):
         self.setDragDropMode(QAbstractItemView.InternalMove)
         self.setDragDropOverwriteMode(False)
 
-        with open(self.main_window.get_resource_path("data/settings.json"), "r", encoding="utf8") as json_f:
+        with open(
+            self.main_window.get_resource_path("data/settings.json"),
+            "r",
+            encoding="utf8",
+        ) as json_f:
             tab_file = json_f.read()
             self.settings_json = json.loads(tab_file)
             self.tab_data = self.settings_json["tabs"]
@@ -46,7 +50,12 @@ class TabList(QListWidget):
         for tab in list(self.tab_data.keys()):
             item = QListWidgetItem(tab)
 
-            item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDragEnabled)
+            item.setFlags(
+                Qt.ItemIsUserCheckable
+                | Qt.ItemIsEnabled
+                | Qt.ItemIsSelectable
+                | Qt.ItemIsDragEnabled
+            )
             if self.tab_data[tab]:
                 item.setCheckState(Qt.Checked)
             else:
@@ -56,10 +65,10 @@ class TabList(QListWidget):
 
         self.show()
 
-    def str_to_class(self, classname):
+    def str_to_class(self, classname: str) -> "sip.wrappertype":
         return getattr(sys.modules[__name__], classname)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: "QtGui.QCloseEvent") -> None:
         new_tab_list = {}
 
         for i in range(self.count()):
@@ -68,8 +77,18 @@ class TabList(QListWidget):
 
         self.settings_json.update({"tabs": new_tab_list})
 
-        with open(self.main_window.get_resource_path("data/settings.json"), "w", encoding="utf-8") as json_f:
-            json.dump(self.settings_json, json_f, ensure_ascii=False, indent=4, sort_keys=False)
+        with open(
+            self.main_window.get_resource_path("data/settings.json"),
+            "w",
+            encoding="utf-8",
+        ) as json_f:
+            json.dump(
+                self.settings_json,
+                json_f,
+                ensure_ascii=False,
+                indent=4,
+                sort_keys=False,
+            )
 
         self.main_window.load_settings()
 

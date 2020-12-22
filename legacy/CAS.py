@@ -35,15 +35,10 @@ from PyQt5.QtCore import (
     QSize,
     Qt,
     QThreadPool,
-    QUrl
+    QUrl,
 )
 
-from PyQt5.QtGui import (
-    QCursor,
-    QFont,
-    QRegExpValidator,
-    QTextCursor
-)
+from PyQt5.QtGui import QCursor, QFont, QRegExpValidator, QTextCursor
 
 from PyQt5.QtWidgets import (
     QAction,
@@ -71,7 +66,7 @@ from PyQt5.QtWidgets import (
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
-    QWidget
+    QWidget,
 )
 
 from PyQt5.QtWebEngineWidgets import QWebEngineView
@@ -176,12 +171,28 @@ class Ui_MainWindow(object):
         msg.exec_()
 
     def get_scientific_notation(self):
-        number, confirmed = QInputDialog.getInt(self, "Get Scientific Notation", "Enter the accuracy for scientific notation", 5, 1, 999999, 1)
+        number, confirmed = QInputDialog.getInt(
+            self,
+            "Get Scientific Notation",
+            "Enter the accuracy for scientific notation",
+            5,
+            1,
+            999999,
+            1,
+        )
         if confirmed:
             self.use_scientific = number
 
     def get_accuracy(self):
-        number, confirmed = QInputDialog.getInt(self, "Get Accuracy", "Enter the accuracy for evaluation", self.accuracy, 1, 999999, 1)
+        number, confirmed = QInputDialog.getInt(
+            self,
+            "Get Accuracy",
+            "Enter the accuracy for evaluation",
+            self.accuracy,
+            1,
+            999999,
+            1,
+        )
         if confirmed:
             self.accuracy = number
 
@@ -204,16 +215,18 @@ class Ui_MainWindow(object):
     def clear_shell(self):
         # Clears shell of written text, and previously initialized variables and functions.
         self.alreadyExecuted = []
-        code = "This is a very simple shell using 'exec' commands, so it has some limitations.\n" \
-                           "Every variable declared and function defined will be saved until the program is closed" \
-                           " or when the 'clear commands' button in the menubar is pressed.\n" \
-                           "It will automatically output to the shell, but it can't use 'print' commands. To copy" \
-                           " output, press the 'copy exact answer' in the menubar\nTheses commands were executed:\n" \
-                           "from __future__ import division\n" \
-                           "from sympy import *\n" \
-                           "from sympy.parsing.sympy_parser import parse_expr\n" \
-                           "from sympy.abc import _clash1\nimport math as m\nx, y, z, t = symbols('x y z t')\n" \
-                           "k, m, n = symbols('k m n', integer=True)\nf, g, h = symbols('f g h', cls=Function)\n\n>>> "
+        code = (
+            "This is a very simple shell using 'exec' commands, so it has some limitations.\n"
+            "Every variable declared and function defined will be saved until the program is closed"
+            " or when the 'clear commands' button in the menubar is pressed.\n"
+            "It will automatically output to the shell, but it can't use 'print' commands. To copy"
+            " output, press the 'copy exact answer' in the menubar\nTheses commands were executed:\n"
+            "from __future__ import division\n"
+            "from sympy import *\n"
+            "from sympy.parsing.sympy_parser import parse_expr\n"
+            "from sympy.abc import _clash1\nimport math as m\nx, y, z, t = symbols('x y z t')\n"
+            "k, m, n = symbols('k m n', integer=True)\nf, g, h = symbols('f g h', cls=Function)\n\n>>> "
+        )
         self.consoleIn.clear()
         self.consoleIn.appendPlainText(code)
         self.WorkerCAS.clear_shell()
@@ -237,16 +250,22 @@ class Ui_MainWindow(object):
         _translate = QCoreApplication.translate
         if state:
             self.get_scientific_notation()
-            self.actionScientific.setText(_translate("MainWindow", f"Scientific Notation - {self.use_scientific}"))
+            self.actionScientific.setText(
+                _translate("MainWindow", f"Scientific Notation - {self.use_scientific}")
+            )
         else:
             self.use_scientific = False
-            self.actionScientific.setText(_translate("MainWindow", "Scientific Notation"))
+            self.actionScientific.setText(
+                _translate("MainWindow", "Scientific Notation")
+            )
 
     def change_accuracy(self, state):
         _translate = QCoreApplication.translate
         if state:
             self.get_accuracy()
-            self.actionAccuracy.setText(_translate("MainWindow", f"Accuracy - {self.accuracy}"))
+            self.actionAccuracy.setText(
+                _translate("MainWindow", f"Accuracy - {self.accuracy}")
+            )
         else:
             self.actionAccuracy.setText(_translate("MainWindow", "Accuracy"))
 
@@ -276,15 +295,18 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_deriv", [
-            self.DerivExp.toPlainText(),
-            self.DerivVar.text(),
-            self.DerivOrder.value(),
-            self.DerivPoint.text(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "prev_deriv",
+            [
+                self.DerivExp.toPlainText(),
+                self.DerivVar.text(),
+                self.DerivOrder.value(),
+                self.DerivPoint.text(),
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -302,17 +324,20 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("calc_deriv", [
-            self.DerivExp.toPlainText(),
-            self.DerivVar.text(),
-            self.DerivOrder.value(),
-            self.DerivPoint.text(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap,
-            self.use_scientific,
-            self.accuracy
-        ])
+        self.WorkerCAS = CASWorker(
+            "calc_deriv",
+            [
+                self.DerivExp.toPlainText(),
+                self.DerivVar.text(),
+                self.DerivOrder.value(),
+                self.DerivPoint.text(),
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+                self.use_scientific,
+                self.accuracy,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -331,15 +356,18 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_integ", [
-            self.IntegExp.toPlainText(),
-            self.IntegVar.text(),
-            self.IntegLower.text(),
-            self.IntegUpper.text(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "prev_integ",
+            [
+                self.IntegExp.toPlainText(),
+                self.IntegVar.text(),
+                self.IntegLower.text(),
+                self.IntegUpper.text(),
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -357,17 +385,20 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("calc_integ", [
-            self.IntegExp.toPlainText(),
-            self.IntegVar.text(),
-            self.IntegLower.text(),
-            self.IntegUpper.text(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap,
-            self.use_scientific,
-            self.accuracy
-        ])
+        self.WorkerCAS = CASWorker(
+            "calc_integ",
+            [
+                self.IntegExp.toPlainText(),
+                self.IntegVar.text(),
+                self.IntegLower.text(),
+                self.IntegUpper.text(),
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+                self.use_scientific,
+                self.accuracy,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -393,15 +424,18 @@ class Ui_MainWindow(object):
         else:
             limit_side = "+"
 
-        self.WorkerCAS = CASWorker("prev_limit", [
-            self.LimExp.toPlainText(),
-            self.LimVar.text(),
-            self.LimApproach.text(),
-            limit_side,
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "prev_limit",
+            [
+                self.LimExp.toPlainText(),
+                self.LimVar.text(),
+                self.LimApproach.text(),
+                limit_side,
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -427,17 +461,20 @@ class Ui_MainWindow(object):
         else:
             limit_side = "+"
 
-        self.WorkerCAS = CASWorker("calc_limit", [
-            self.LimExp.toPlainText(),
-            self.LimVar.text(),
-            self.LimApproach.text(),
-            limit_side,
-            output_type,
-            self.use_unicode,
-            self.line_wrap,
-            self.use_scientific,
-            self.accuracy
-        ])
+        self.WorkerCAS = CASWorker(
+            "calc_limit",
+            [
+                self.LimExp.toPlainText(),
+                self.LimVar.text(),
+                self.LimApproach.text(),
+                limit_side,
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+                self.use_scientific,
+                self.accuracy,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -456,15 +493,18 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_eq", [
-            self.EqLeft.toPlainText(),
-            self.EqRight.toPlainText(),
-            self.EqVar.text(),
-            self.EqOut.toPlainText(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "prev_eq",
+            [
+                self.EqLeft.toPlainText(),
+                self.EqRight.toPlainText(),
+                self.EqVar.text(),
+                self.EqOut.toPlainText(),
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -488,17 +528,20 @@ class Ui_MainWindow(object):
         if self.EqSolveSet.isChecked():
             solve_type = 1
 
-        self.WorkerCAS = CASWorker("calc_eq", [
-            self.EqLeft.toPlainText(),
-            self.EqRight.toPlainText(),
-            self.EqVar.text(),
-            solve_type,
-            output_type,
-            self.use_unicode,
-            self.line_wrap,
-            self.use_scientific,
-            self.accuracy
-        ])
+        self.WorkerCAS = CASWorker(
+            "calc_eq",
+            [
+                self.EqLeft.toPlainText(),
+                self.EqRight.toPlainText(),
+                self.EqVar.text(),
+                solve_type,
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+                self.use_scientific,
+                self.accuracy,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -517,12 +560,10 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_simp_eq", [
-            self.SimpExp.toPlainText(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "prev_simp_eq",
+            [self.SimpExp.toPlainText(), output_type, self.use_unicode, self.line_wrap],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -541,12 +582,10 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("simp_eq", [
-            self.SimpExp.toPlainText(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "simp_eq",
+            [self.SimpExp.toPlainText(), output_type, self.use_unicode, self.line_wrap],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -565,12 +604,10 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_exp_eq", [
-            self.ExpExp.toPlainText(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "prev_exp_eq",
+            [self.ExpExp.toPlainText(), output_type, self.use_unicode, self.line_wrap],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -589,12 +626,10 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("exp_eq", [
-            self.ExpExp.toPlainText(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "exp_eq",
+            [self.ExpExp.toPlainText(), output_type, self.use_unicode, self.line_wrap],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -613,12 +648,10 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("prev_eval_exp", [
-            self.EvalExp.toPlainText(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap
-        ])
+        self.WorkerCAS = CASWorker(
+            "prev_eval_exp",
+            [self.EvalExp.toPlainText(), output_type, self.use_unicode, self.line_wrap],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -637,14 +670,17 @@ class Ui_MainWindow(object):
         else:
             output_type = 3
 
-        self.WorkerCAS = CASWorker("eval_exp", [
-            self.EvalExp.toPlainText(),
-            output_type,
-            self.use_unicode,
-            self.line_wrap,
-            self.use_scientific,
-            self.accuracy
-        ])
+        self.WorkerCAS = CASWorker(
+            "eval_exp",
+            [
+                self.EvalExp.toPlainText(),
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+                self.use_scientific,
+                self.accuracy,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -676,12 +712,18 @@ class Ui_MainWindow(object):
             if "=" in self.selectedTreeItem:
                 expr = self.selectedTreeItem.split("=")
                 expr = list(map(lambda x: x.replace("_i", "(sqrt(-1))"), expr))
-                self.FormulaSymbolsList = [str(i) for i in list(parse_expr(expr[0], _clash1).atoms(Symbol))]
-                self.FormulaSymbolsList.extend((str(i) for i in list(parse_expr(expr[1], _clash1).atoms(Symbol))))
+                self.FormulaSymbolsList = [
+                    str(i) for i in list(parse_expr(expr[0], _clash1).atoms(Symbol))
+                ]
+                self.FormulaSymbolsList.extend(
+                    (str(i) for i in list(parse_expr(expr[1], _clash1).atoms(Symbol)))
+                )
                 self.FormulaSymbolsList = list(set(self.FormulaSymbolsList))
                 self.FormulaSymbolsList.sort()
                 self.FormulaUpdateVars()
-                self.FormulaInfo = self.FormulaGetInfo(self.selectedTreeItem, self.FormulaTreeData)
+                self.FormulaInfo = self.FormulaGetInfo(
+                    self.selectedTreeItem, self.FormulaTreeData
+                )
                 self.FormulaSetInfoText()
 
     def FormulaSetInfoText(self):
@@ -689,15 +731,28 @@ class Ui_MainWindow(object):
         Sets StatusTip and TootTip to the info given by the json file
         """
         _translate = QCoreApplication.translate
-        lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
+        lines = [
+            [self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i]
+            for i in self.FormulaLabelNames
+        ]
         for line in lines:
             for i in self.FormulaInfo:
                 FormulaInfoList = self.FormulaInfoDict[i].split("|")
                 if FormulaInfoList[0] == line[1]:
-                    line[0].setStatusTip(_translate("MainWindow", f"{FormulaInfoList[1]}, mäts i {FormulaInfoList[2]}"))
+                    line[0].setStatusTip(
+                        _translate(
+                            "MainWindow",
+                            f"{FormulaInfoList[1]}, mäts i {FormulaInfoList[2]}",
+                        )
+                    )
                     line[0].setToolTip(_translate("MainWindow", FormulaInfoList[1]))
                 elif FormulaInfoList[0].split(";")[0] == line[1]:
-                    line[0].setStatusTip(_translate("MainWindow", f"{FormulaInfoList[1]}, mäts i {FormulaInfoList[2]}"))
+                    line[0].setStatusTip(
+                        _translate(
+                            "MainWindow",
+                            f"{FormulaInfoList[1]}, mäts i {FormulaInfoList[2]}",
+                        )
+                    )
                     line[0].setToolTip(_translate("MainWindow", FormulaInfoList[1]))
                     line[0].setText(FormulaInfoList[0].split(";")[1])
 
@@ -710,7 +765,9 @@ class Ui_MainWindow(object):
         self.FormulaLabelNames = self.FormulaSymbolsList
         self.FormulaLabelPos = [[i, 0] for i in range(len(self.FormulaLabelNames))]
         self.FormulaLinePos = [[i, 1] for i in range(len(self.FormulaLabelNames))]
-        for self.FormulaNameLabel, FormulaPosLabel, FormulaPosLine in zip(self.FormulaLabelNames, self.FormulaLabelPos, self.FormulaLinePos):
+        for self.FormulaNameLabel, FormulaPosLabel, FormulaPosLine in zip(
+            self.FormulaLabelNames, self.FormulaLabelPos, self.FormulaLinePos
+        ):
             self.FormulaLabel = QLabel(self.FormulaScrollArea)
             self.FormulaLabel.setText(self.FormulaNameLabel)
             self.FormulaGrid2.addWidget(self.FormulaLabel, *FormulaPosLabel)
@@ -753,14 +810,26 @@ class Ui_MainWindow(object):
             outputType = 3
 
         try:
-            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
+            lines = [
+                [self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i]
+                for i in self.FormulaLabelNames
+            ]
         except:
             self.show_error_box("Error: select a formula")
 
         values_string = self.selectedTreeItem.split("=")
 
-
-        self.WorkerCAS = CASWorker("prev_formula", [lines, values_string, self.FormulaExact.toPlainText(), outputType, self.use_unicode, self.line_wrap])
+        self.WorkerCAS = CASWorker(
+            "prev_formula",
+            [
+                lines,
+                values_string,
+                self.FormulaExact.toPlainText(),
+                outputType,
+                self.use_unicode,
+                self.line_wrap,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -783,22 +852,28 @@ class Ui_MainWindow(object):
             solve_type = 1
 
         try:
-            lines = [[self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i] for i in self.FormulaLabelNames]
+            lines = [
+                [self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i]
+                for i in self.FormulaLabelNames
+            ]
         except:
             self.show_error_box("Error: select a formula")
 
         values_string = self.selectedTreeItem.split("=")
 
-        self.WorkerCAS = CASWorker("calc_formula", [
-            lines,
-            values_string,
-            solve_type,
-            output_type,
-            self.use_unicode,
-            self.line_wrap,
-            self.use_scientific,
-            self.accuracy
-        ])
+        self.WorkerCAS = CASWorker(
+            "calc_formula",
+            [
+                lines,
+                values_string,
+                solve_type,
+                output_type,
+                self.use_unicode,
+                self.line_wrap,
+                self.use_scientific,
+                self.accuracy,
+            ],
+        )
         self.WorkerCAS.signals.output.connect(self.update_ui)
         self.WorkerCAS.signals.finished.connect(self.stop_thread)
 
@@ -1161,7 +1236,7 @@ class Ui_MainWindow(object):
         self.EqOut.setObjectName("EqOut")
         self.gridLayout_5.addWidget(self.EqOut, 0, 2, 6, 1)
         self.horizontalLayoutEq = QHBoxLayout()
-        self.horizontalLayoutEq.setObjectName("horizontalLayoutEq")l
+        self.horizontalLayoutEq.setObjectName("horizontalLayoutEq")
         self.EqSolve = QRadioButton(self.Eq)
         self.EqSolve.setChecked(True)
         self.EqSolve.setObjectName("EqSolve")
@@ -1449,16 +1524,18 @@ class Ui_MainWindow(object):
         """
         Setups variables and information.
         """
-        self.current_code = "This is a very simple shell using 'exec' commands, so it has some limitations.\n" \
-                           "Every variable declared and function defined will be saved until the program is closed" \
-                           " or when the 'clear commands' button in the menubar is pressed.\n" \
-                           "It will automatically output to the shell, but it can't use 'print' commands. To copy" \
-                           " output, press the 'copy exact answer' in the menubar\nTheses commands were executed:\n" \
-                           "from __future__ import division\n" \
-                           "from sympy import *\n" \
-                           "from sympy.parsing.sympy_parser import parse_expr\n" \
-                           "from sympy.abc import _clash1\nimport math as m\nx, y, z, t = symbols('x y z t')\n" \
-                           "k, m, n = symbols('k m n', integer=True)\nf, g, h = symbols('f g h', cls=Function)\n\n>>> "
+        self.current_code = (
+            "This is a very simple shell using 'exec' commands, so it has some limitations.\n"
+            "Every variable declared and function defined will be saved until the program is closed"
+            " or when the 'clear commands' button in the menubar is pressed.\n"
+            "It will automatically output to the shell, but it can't use 'print' commands. To copy"
+            " output, press the 'copy exact answer' in the menubar\nTheses commands were executed:\n"
+            "from __future__ import division\n"
+            "from sympy import *\n"
+            "from sympy.parsing.sympy_parser import parse_expr\n"
+            "from sympy.abc import _clash1\nimport math as m\nx, y, z, t = symbols('x y z t')\n"
+            "k, m, n = symbols('k m n', integer=True)\nf, g, h = symbols('f g h', cls=Function)\n\n>>> "
+        )
         self.ShellGrid = QGridLayout(self.Shell)
         self.ShellGrid.setObjectName("ShellGrid")
         self.consoleIn = QPlainTextEdit(self.centralwidget)
@@ -1505,7 +1582,9 @@ class Ui_MainWindow(object):
         self.actionCopy_exact_answer = QAction(MainWindow)
         self.actionCopy_exact_answer.setObjectName("actionCopy_exact_answer")
         self.actionCopy_approximate_answer = QAction(MainWindow)
-        self.actionCopy_approximate_answer.setObjectName("actionCopy_approximate_answer")
+        self.actionCopy_approximate_answer.setObjectName(
+            "actionCopy_approximate_answer"
+        )
         self.actionNext_Tab = QAction(MainWindow)
         self.actionNext_Tab.setObjectName("actionNext_Tab")
         self.actionPrevious_Tab = QAction(MainWindow)
@@ -1550,18 +1629,24 @@ class Ui_MainWindow(object):
         self.tabWidget.setToolTip(_translate("MainWindow", "Tabs"))
         self.tabWidget.setStatusTip(_translate("MainWindow", "Tabs for actions"))
         self.tabWidget.setWhatsThis(_translate("MainWindow", "Tabs for actions"))
-        self.Deriv.setToolTip(_translate("MainWindow", "<html><head/><body><p><br/></p></body></html>"))
+        self.Deriv.setToolTip(
+            _translate("MainWindow", "<html><head/><body><p><br/></p></body></html>")
+        )
         self.DerivPrev.setToolTip(_translate("MainWindow", "Preview"))
         self.DerivPrev.setStatusTip(_translate("MainWindow", "Preview the expression"))
         self.DerivPrev.setWhatsThis(_translate("MainWindow", "Preview"))
         self.DerivPrev.setText(_translate("MainWindow", "Preview"))
         self.DerivCalc.setToolTip(_translate("MainWindow", "Calculate"))
-        self.DerivCalc.setStatusTip(_translate("MainWindow", "Calculate the derivative"))
+        self.DerivCalc.setStatusTip(
+            _translate("MainWindow", "Calculate the derivative")
+        )
         self.DerivCalc.setWhatsThis(_translate("MainWindow", "Calculate"))
         self.DerivCalc.setText(_translate("MainWindow", "Calculate"))
         self.label_9.setText(_translate("MainWindow", "At point"))
         self.DerivExp.setToolTip(_translate("MainWindow", "Your expression"))
-        self.DerivExp.setStatusTip(_translate("MainWindow", "Type in your expression here"))
+        self.DerivExp.setStatusTip(
+            _translate("MainWindow", "Type in your expression here")
+        )
         self.DerivExp.setWhatsThis(_translate("MainWindow", "Input expression"))
         self.DerivExp.setPlaceholderText(_translate("MainWindow", "Expression"))
         self.label.setText(_translate("MainWindow", "Order"))
@@ -1578,27 +1663,55 @@ class Ui_MainWindow(object):
         self.DerivNormal.setStatusTip(_translate("MainWindow", "Normal"))
         self.DerivNormal.setWhatsThis(_translate("MainWindow", "Normal"))
         self.DerivNormal.setText(_translate("MainWindow", "Normal"))
-        self.DerivOrder.setToolTip(_translate("MainWindow", "The order of the derivative"))
-        self.DerivOrder.setStatusTip(_translate("MainWindow", "The order of the derivative, default is 1, max is 999"))
-        self.DerivOrder.setWhatsThis(_translate("MainWindow", "The order of the derivative"))
+        self.DerivOrder.setToolTip(
+            _translate("MainWindow", "The order of the derivative")
+        )
+        self.DerivOrder.setStatusTip(
+            _translate(
+                "MainWindow", "The order of the derivative, default is 1, max is 999"
+            )
+        )
+        self.DerivOrder.setWhatsThis(
+            _translate("MainWindow", "The order of the derivative")
+        )
         self.DerivVar.setToolTip(_translate("MainWindow", "Variable"))
-        self.DerivVar.setStatusTip(_translate("MainWindow", "Derivative with respect to variable"))
+        self.DerivVar.setStatusTip(
+            _translate("MainWindow", "Derivative with respect to variable")
+        )
         self.DerivVar.setWhatsThis(_translate("MainWindow", "Variable"))
-        self.DerivPoint.setToolTip(_translate("MainWindow", "Calculate the derivative at a point"))
+        self.DerivPoint.setToolTip(
+            _translate("MainWindow", "Calculate the derivative at a point")
+        )
         self.DerivPoint.setStatusTip(
-            _translate("MainWindow", "Calculate the derivative at a point, leave blank for at point x"))
-        self.DerivPoint.setWhatsThis(_translate("MainWindow", "Calculate the derivative at a point"))
+            _translate(
+                "MainWindow",
+                "Calculate the derivative at a point, leave blank for at point x",
+            )
+        )
+        self.DerivPoint.setWhatsThis(
+            _translate("MainWindow", "Calculate the derivative at a point")
+        )
         self.label_3.setText(_translate("MainWindow", "Variable"))
         self.DerivOut.setToolTip(_translate("MainWindow", "Output"))
         self.DerivOut.setStatusTip(_translate("MainWindow", "Output in exact form"))
         self.DerivOut.setWhatsThis(_translate("MainWindow", "Output in exact form"))
         self.DerivApprox.setToolTip(_translate("MainWindow", "Output"))
-        self.DerivApprox.setStatusTip(_translate("MainWindow",
-                                                 "Output in approximate form, will only show when the derivative is calculated at a certain point"))
-        self.DerivApprox.setWhatsThis(_translate("MainWindow", "Output in approximate form"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Deriv), _translate("MainWindow", "Derivative"))
+        self.DerivApprox.setStatusTip(
+            _translate(
+                "MainWindow",
+                "Output in approximate form, will only show when the derivative is calculated at a certain point",
+            )
+        )
+        self.DerivApprox.setWhatsThis(
+            _translate("MainWindow", "Output in approximate form")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Deriv), _translate("MainWindow", "Derivative")
+        )
         self.IntegExp.setToolTip(_translate("MainWindow", "Your expression"))
-        self.IntegExp.setStatusTip(_translate("MainWindow", "Type in your expression here"))
+        self.IntegExp.setStatusTip(
+            _translate("MainWindow", "Type in your expression here")
+        )
         self.IntegExp.setWhatsThis(_translate("MainWindow", "Input expression"))
         self.IntegExp.setPlaceholderText(_translate("MainWindow", "Expression"))
         self.IntegOut.setToolTip(_translate("MainWindow", "Output"))
@@ -1607,16 +1720,26 @@ class Ui_MainWindow(object):
         self.label_2.setText(_translate("MainWindow", "From"))
         self.IntegLower.setToolTip(_translate("MainWindow", "Lower boundry"))
         self.IntegLower.setStatusTip(
-            _translate("MainWindow", "Lower boundry, infinity is \"oo\", leave empty for indefinite integral"))
+            _translate(
+                "MainWindow",
+                'Lower boundry, infinity is "oo", leave empty for indefinite integral',
+            )
+        )
         self.IntegLower.setWhatsThis(_translate("MainWindow", "Lower boundry"))
         self.label_5.setText(_translate("MainWindow", "To"))
         self.IntegUpper.setToolTip(_translate("MainWindow", "Upper boundry"))
         self.IntegUpper.setStatusTip(
-            _translate("MainWindow", "Upper boundry, infinity is \"oo\", leave empty for indefinite integral"))
+            _translate(
+                "MainWindow",
+                'Upper boundry, infinity is "oo", leave empty for indefinite integral',
+            )
+        )
         self.IntegUpper.setWhatsThis(_translate("MainWindow", "Upper boundry"))
         self.label_4.setText(_translate("MainWindow", "Variable"))
         self.IntegVar.setToolTip(_translate("MainWindow", "Variable"))
-        self.IntegVar.setStatusTip(_translate("MainWindow", "Integral with respect to variable"))
+        self.IntegVar.setStatusTip(
+            _translate("MainWindow", "Integral with respect to variable")
+        )
         self.IntegVar.setWhatsThis(_translate("MainWindow", "Variable"))
         self.IntegPrev.setText(_translate("MainWindow", "Preview"))
         self.IntegCalc.setToolTip(_translate("MainWindow", "Calculate"))
@@ -1637,12 +1760,22 @@ class Ui_MainWindow(object):
         self.IntegNormal.setWhatsThis(_translate("MainWindow", "Normal"))
         self.IntegNormal.setText(_translate("MainWindow", "Normal"))
         self.IntegApprox.setToolTip(_translate("MainWindow", "Output"))
-        self.IntegApprox.setStatusTip(_translate("MainWindow",
-                                                 "Output in approximate form, will only show when a definite integral is calculated"))
-        self.IntegApprox.setWhatsThis(_translate("MainWindow", "Output in approximate form"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Integ), _translate("MainWindow", "Integral"))
+        self.IntegApprox.setStatusTip(
+            _translate(
+                "MainWindow",
+                "Output in approximate form, will only show when a definite integral is calculated",
+            )
+        )
+        self.IntegApprox.setWhatsThis(
+            _translate("MainWindow", "Output in approximate form")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Integ), _translate("MainWindow", "Integral")
+        )
         self.LimExp.setToolTip(_translate("MainWindow", "Your expression"))
-        self.LimExp.setStatusTip(_translate("MainWindow", "Type in your expression here"))
+        self.LimExp.setStatusTip(
+            _translate("MainWindow", "Type in your expression here")
+        )
         self.LimExp.setWhatsThis(_translate("MainWindow", "Input expression"))
         self.LimExp.setPlaceholderText(_translate("MainWindow", "Expression"))
         self.LimOut.setToolTip(_translate("MainWindow", "Output"))
@@ -1654,7 +1787,9 @@ class Ui_MainWindow(object):
         self.LimSide.setItemText(2, _translate("MainWindow", "Right"))
         self.label_7.setText(_translate("MainWindow", "Variable"))
         self.LimVar.setToolTip(_translate("MainWindow", "Variable"))
-        self.LimVar.setStatusTip(_translate("MainWindow", "Limit with respect to variable"))
+        self.LimVar.setStatusTip(
+            _translate("MainWindow", "Limit with respect to variable")
+        )
         self.LimVar.setWhatsThis(_translate("MainWindow", "Variable"))
         self.label_8.setText(_translate("MainWindow", "As variable approaches"))
         self.LimOutType.setText(_translate("MainWindow", "Output type"))
@@ -1668,24 +1803,38 @@ class Ui_MainWindow(object):
         self.LimNormal.setWhatsThis(_translate("MainWindow", "Normal"))
         self.LimNormal.setText(_translate("MainWindow", "Normal"))
         self.LimApprox.setToolTip(_translate("MainWindow", "Output"))
-        self.LimApprox.setStatusTip(_translate("MainWindow", "Output in approximate form"))
-        self.LimApprox.setWhatsThis(_translate("MainWindow", "Output in approximate form"))
+        self.LimApprox.setStatusTip(
+            _translate("MainWindow", "Output in approximate form")
+        )
+        self.LimApprox.setWhatsThis(
+            _translate("MainWindow", "Output in approximate form")
+        )
         self.LimPrev.setText(_translate("MainWindow", "Preview"))
         self.LimCalc.setToolTip(_translate("MainWindow", "Calculate"))
         self.LimCalc.setStatusTip(_translate("MainWindow", "Calculate the limit"))
         self.LimCalc.setWhatsThis(_translate("MainWindow", "Calculate"))
         self.LimCalc.setText(_translate("MainWindow", "Calculate"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Lim), _translate("MainWindow", "Limit"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Lim), _translate("MainWindow", "Limit")
+        )
         self.EqOutType.setText(_translate("MainWindow", "Output type"))
         self.EqPP.setText(_translate("MainWindow", "Pretty"))
         self.EqSolve.setText(_translate("MainWindow", "Solve"))
         self.EqSolve.setToolTip(_translate("MainWindow", "Solve"))
-        self.EqSolve.setStatusTip(_translate("MainWindow", "See Sympy Solve vs Solveset"))
-        self.EqSolve.setWhatsThis(_translate("MainWindow", "See Sympy Solve vs Solveset"))
+        self.EqSolve.setStatusTip(
+            _translate("MainWindow", "See Sympy Solve vs Solveset")
+        )
+        self.EqSolve.setWhatsThis(
+            _translate("MainWindow", "See Sympy Solve vs Solveset")
+        )
         self.EqSolveSet.setText(_translate("MainWindow", "Solveset"))
         self.EqSolveSet.setToolTip(_translate("MainWindow", "Solveset"))
-        self.EqSolveSet.setStatusTip(_translate("MainWindow", "See Sympy Solve vs Solveset"))
-        self.EqSolveSet.setWhatsThis(_translate("MainWindow", "See Sympy Solve vs Solveset"))
+        self.EqSolveSet.setStatusTip(
+            _translate("MainWindow", "See Sympy Solve vs Solveset")
+        )
+        self.EqSolveSet.setWhatsThis(
+            _translate("MainWindow", "See Sympy Solve vs Solveset")
+        )
         self.EqLatex.setToolTip(_translate("MainWindow", "Latex"))
         self.EqLatex.setStatusTip(_translate("MainWindow", "Latex"))
         self.EqLatex.setWhatsThis(_translate("MainWindow", "Latex"))
@@ -1695,10 +1844,16 @@ class Ui_MainWindow(object):
         self.EqNormal.setWhatsThis(_translate("MainWindow", "Normal"))
         self.EqNormal.setText(_translate("MainWindow", "Normal"))
         self.EqApprox.setToolTip(_translate("MainWindow", "Output"))
-        self.EqApprox.setStatusTip(_translate("MainWindow", "Output in approximate form"))
-        self.EqApprox.setWhatsThis(_translate("MainWindow", "Output in approximate form"))
+        self.EqApprox.setStatusTip(
+            _translate("MainWindow", "Output in approximate form")
+        )
+        self.EqApprox.setWhatsThis(
+            _translate("MainWindow", "Output in approximate form")
+        )
         self.EqLeft.setToolTip(_translate("MainWindow", "Left side "))
-        self.EqLeft.setStatusTip(_translate("MainWindow", "Left side of your expression"))
+        self.EqLeft.setStatusTip(
+            _translate("MainWindow", "Left side of your expression")
+        )
         self.EqLeft.setWhatsThis(_translate("MainWindow", "Left side"))
         self.EqLeft.setPlaceholderText(_translate("MainWindow", "Left side"))
         self.EqCalc.setToolTip(_translate("MainWindow", "Calculate"))
@@ -1706,7 +1861,9 @@ class Ui_MainWindow(object):
         self.EqCalc.setWhatsThis(_translate("MainWindow", "Calculate"))
         self.EqCalc.setText(_translate("MainWindow", "Calculate"))
         self.EqRight.setToolTip(_translate("MainWindow", "Right side"))
-        self.EqRight.setStatusTip(_translate("MainWindow", "Right side of your expression"))
+        self.EqRight.setStatusTip(
+            _translate("MainWindow", "Right side of your expression")
+        )
         self.EqRight.setWhatsThis(_translate("MainWindow", "Right side"))
         self.EqRight.setPlaceholderText(_translate("MainWindow", "Right side"))
         self.EqPrev.setText(_translate("MainWindow", "Preview"))
@@ -1716,7 +1873,9 @@ class Ui_MainWindow(object):
         self.EqVar.setToolTip(_translate("MainWindow", "Variable"))
         self.EqVar.setStatusTip(_translate("MainWindow", "Solve for variable"))
         self.EqVar.setWhatsThis(_translate("MainWindow", "Solve for variable"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Eq), _translate("MainWindow", "Equation Solver"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Eq), _translate("MainWindow", "Equation Solver")
+        )
         self.SimpOutType.setText(_translate("MainWindow", "Output type"))
         self.SimpPP.setToolTip(_translate("MainWindow", "Pretty print"))
         self.SimpPP.setStatusTip(_translate("MainWindow", "Pretty print"))
@@ -1735,7 +1894,9 @@ class Ui_MainWindow(object):
         self.SimpCalc.setWhatsThis(_translate("MainWindow", "Simplify the expression"))
         self.SimpCalc.setText(_translate("MainWindow", "Simplify"))
         self.SimpExp.setToolTip(_translate("MainWindow", "Your expression"))
-        self.SimpExp.setStatusTip(_translate("MainWindow", "Type in your expression here"))
+        self.SimpExp.setStatusTip(
+            _translate("MainWindow", "Type in your expression here")
+        )
         self.SimpExp.setWhatsThis(_translate("MainWindow", "Input expression"))
         self.SimpExp.setPlaceholderText(_translate("MainWindow", "Expression"))
         self.SimpPrev.setToolTip(_translate("MainWindow", "Preview"))
@@ -1745,9 +1906,13 @@ class Ui_MainWindow(object):
         self.SimpOut.setToolTip(_translate("MainWindow", "Output"))
         self.SimpOut.setStatusTip(_translate("MainWindow", "Output"))
         self.SimpOut.setWhatsThis(_translate("MainWindow", "Output"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Simp), _translate("MainWindow", "Simplify"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Simp), _translate("MainWindow", "Simplify")
+        )
         self.ExpExp.setToolTip(_translate("MainWindow", "Your expression"))
-        self.ExpExp.setStatusTip(_translate("MainWindow", "Type in your expression here"))
+        self.ExpExp.setStatusTip(
+            _translate("MainWindow", "Type in your expression here")
+        )
         self.ExpExp.setWhatsThis(_translate("MainWindow", "Input expression"))
         self.ExpExp.setPlaceholderText(_translate("MainWindow", "Expression"))
         self.ExpOut.setToolTip(_translate("MainWindow", "Output"))
@@ -1774,9 +1939,13 @@ class Ui_MainWindow(object):
         self.ExpNormal.setStatusTip(_translate("MainWindow", "Normal"))
         self.ExpNormal.setWhatsThis(_translate("MainWindow", "Normal"))
         self.ExpNormal.setText(_translate("MainWindow", "Normal"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Exp), _translate("MainWindow", "Expand"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Exp), _translate("MainWindow", "Expand")
+        )
         self.EvalExp.setToolTip(_translate("MainWindow", "Your expression"))
-        self.EvalExp.setStatusTip(_translate("MainWindow", "Type in your expression here"))
+        self.EvalExp.setStatusTip(
+            _translate("MainWindow", "Type in your expression here")
+        )
         self.EvalExp.setWhatsThis(_translate("MainWindow", "Input expression"))
         self.EvalExp.setPlaceholderText(_translate("MainWindow", "Expression"))
         self.EvalOut.setToolTip(_translate("MainWindow", "Output"))
@@ -1811,31 +1980,55 @@ class Ui_MainWindow(object):
         self.FormulaCalculate.setText(_translate("MainWindow", "Calculate"))
         self.FormulaOutTypeLabel.setText(_translate("MainWindow", "Output type"))
         self.FormulaSolveSolve.setText(_translate("MainWindow", "Solve"))
-        self.FormulaSolveSolve.setStatusTip(_translate("MainWindow", "See Sympy Solve vs Solveset"))
-        self.FormulaSolveSolve.setWhatsThis(_translate("MainWindow", "See Sympy Solve vs Solveset"))
+        self.FormulaSolveSolve.setStatusTip(
+            _translate("MainWindow", "See Sympy Solve vs Solveset")
+        )
+        self.FormulaSolveSolve.setWhatsThis(
+            _translate("MainWindow", "See Sympy Solve vs Solveset")
+        )
         self.FormulaSolveSolveSet.setText(_translate("MainWindow", "Solveset"))
-        self.FormulaSolveSolveSet.setStatusTip(_translate("MainWindow", "See Sympy Solve vs Solveset"))
-        self.FormulaSolveSolveSet.setWhatsThis(_translate("MainWindow", "See Sympy Solve vs Solveset"))
+        self.FormulaSolveSolveSet.setStatusTip(
+            _translate("MainWindow", "See Sympy Solve vs Solveset")
+        )
+        self.FormulaSolveSolveSet.setWhatsThis(
+            _translate("MainWindow", "See Sympy Solve vs Solveset")
+        )
         self.FormulaPP.setText(_translate("MainWindow", "PP"))
         self.FormulaLatex.setText(_translate("MainWindow", "Latex"))
         self.FormulaNormal.setText(_translate("MainWindow", "Normal"))
         self.FormulaTree.headerItem().setText(0, _translate("MainWindow", "Formulas"))
         self.FormulaTree.setSortingEnabled(True)
         self.FormulaTree.sortByColumn(0, Qt.AscendingOrder)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Eval), _translate("MainWindow", "Evaluate"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Eval), _translate("MainWindow", "Evaluate")
+        )
         self.label_32.setText(_translate("MainWindow", "Number"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Pf), _translate("MainWindow", "Prime Factors"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Pf), _translate("MainWindow", "Prime Factors")
+        )
         self.ShellRun.setText(_translate("MainWindow", "Run"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Shell), _translate("MainWindow", "Shell"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Shell), _translate("MainWindow", "Shell")
+        )
         self.menuCopy.setTitle(_translate("MainWindow", "Copy"))
         self.menuTab.setTitle(_translate("MainWindow", "Tab"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Web), _translate("MainWindow", "Web"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.Formula), _translate("MainWindow", "Formulas"))
-        self.actionCopy_exact_answer.setText(_translate("MainWindow", "Copy exact answer"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Web), _translate("MainWindow", "Web")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.Formula), _translate("MainWindow", "Formulas")
+        )
+        self.actionCopy_exact_answer.setText(
+            _translate("MainWindow", "Copy exact answer")
+        )
         self.actionCopy_exact_answer.setShortcut(_translate("MainWindow", "Ctrl+E"))
         self.actionCopy_exact_answer.triggered.connect(self.copy_exact_ans)
-        self.actionCopy_approximate_answer.setText(_translate("MainWindow", "Copy approximate answer"))
-        self.actionCopy_approximate_answer.setShortcut(_translate("MainWindow", "Ctrl+A"))
+        self.actionCopy_approximate_answer.setText(
+            _translate("MainWindow", "Copy approximate answer")
+        )
+        self.actionCopy_approximate_answer.setShortcut(
+            _translate("MainWindow", "Ctrl+A")
+        )
         self.actionCopy_approximate_answer.triggered.connect(self.copy_approx_ans)
         self.actionNext_Tab.setText(_translate("MainWindow", "Next Tab"))
         self.actionNext_Tab.setShortcut(_translate("MainWindow", "Alt+Right"))
@@ -1861,6 +2054,7 @@ class Ui_MainWindow(object):
         self.clearShell.setStatusTip(_translate("MainWIndow", "Ctrl+Shift+C"))
         self.clearShell.triggered.connect(self.clear_shell)
         self.menuWeb.setTitle(_translate("MainWindow", "Web"))
+
 
 """
 if __name__ == "__main__":

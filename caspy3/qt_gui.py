@@ -21,6 +21,7 @@ from .qt_assets.main import launch_app
 
 def main() -> None:
     import sys
+
     sys._excepthook = sys.excepthook
 
     def exception_hook(exctype, value, traceback):
@@ -32,5 +33,5 @@ def main() -> None:
     launch_app()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -18,33 +18,34 @@ class ParseDiffTextTester(BaseTester):
     def test_parse_diff_text_no_apostrophe(self):
         command = "parse_diff_text"
         params = ["f(x)"]
-        solution = {'answer': 'f(x)'}
+        solution = {"answer": "f(x)"}
         return command, params, solution
 
     @BaseTester.call_worker(EquationsWorker)
     def test_parse_diff_text_one_apostrophe(self):
         command = "parse_diff_text"
         params = ["f'(x)"]
-        solution = {'answer': "f(x).diff(x,1)"}
+        solution = {"answer": "f(x).diff(x,1)"}
         return command, params, solution
 
     @BaseTester.call_worker(EquationsWorker)
     def test_parse_diff_text_two_apostrophe(self):
         command = "parse_diff_text"
         params = ["g''(u)"]
-        solution = {'answer': "g(u).diff(u,2)"}
+        solution = {"answer": "g(u).diff(u,2)"}
         return command, params, solution
 
     @BaseTester.call_worker(EquationsWorker)
     def test_parse_diff_text_five_apostrophe(self):
         command = "parse_diff_text"
         params = ["ok'''''(hi)"]
-        solution = {'answer': "ok(hi).diff(hi,5)"}
+        solution = {"answer": "ok(hi).diff(hi,5)"}
         return command, params, solution
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     tester = ParseDiffTextTester()
     tester.test_text_diff_parse()

@@ -28,11 +28,11 @@ from ..dialogs.dialog_remove_website import RemoveWebsite
 
 class WebEnginePage(QWebEnginePage):
     def javaScriptConsoleMessage(
-            self,
-            level: 'QWebEnginePage.JavaScriptConsoleMessageLevel',
-            message: str,
-            lineNumber: int,
-            sourceID: str
+        self,
+        level: "QWebEnginePage.JavaScriptConsoleMessageLevel",
+        message: str,
+        lineNumber: int,
+        sourceID: str,
     ) -> None:
         pass
 
@@ -50,15 +50,25 @@ class WebTab(QWidget):
         self.web.setPage(page)
 
         if "selected_web_index" in list(self.main_window.settings_data.keys()):
-            self.selected_web_index = self.main_window.settings_data["selected_web_index"]
+            self.selected_web_index = self.main_window.settings_data[
+                "selected_web_index"
+            ]
         else:
             self.selected_web_index = 0
-        self.main_window.add_to_save_settings({"selected_web_index": self.selected_web_index})
+        self.main_window.add_to_save_settings(
+            {"selected_web_index": self.selected_web_index}
+        )
 
         self.init_web_menu()
         self.main_window.latex_text = ""
 
-        self.web.load(QUrl(list(self.main_window.websites_data[self.selected_web_index].values())[0]))
+        self.web.load(
+            QUrl(
+                list(self.main_window.websites_data[self.selected_web_index].values())[
+                    0
+                ]
+            )
+        )
 
     def init_web_menu(self) -> None:
         self.menuWeb = self.main_window.menubar.addMenu("Web")
@@ -72,7 +82,10 @@ class WebTab(QWidget):
         for i in self.web_list:
             for key in i:
                 webAction = QAction(key, self.menuWeb, checkable=True)
-                if webAction.text() == list(self.web_list[self.selected_web_index].keys())[0]:
+                if (
+                    webAction.text()
+                    == list(self.web_list[self.selected_web_index].keys())[0]
+                ):
                     webAction.setChecked(True)
                 self.menuWeb.addAction(webAction)
                 self.web_menu_action_group.addAction(webAction)
@@ -103,7 +116,9 @@ class WebTab(QWidget):
                 if action.text() == key:
                     self.web.load(QUrl(i[key]))
                     self.selected_web_index = self.web_list.index(i)
-                    self.main_window.update_save_settings({"selected_web_index": self.selected_web_index})
+                    self.main_window.update_save_settings(
+                        {"selected_web_index": self.selected_web_index}
+                    )
 
     def add_website_window(self) -> None:
         self.website_window_add = AddWebsite(self.main_window, self)

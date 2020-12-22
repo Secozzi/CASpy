@@ -19,7 +19,7 @@
 from PyQt5.QtCore import QObject, QThreadPool
 from PyQt5.QtWidgets import QApplication
 
-from typing import Type
+import typing as ty
 from .qt_assets.tabs.worker import BaseWorker
 
 import traceback
@@ -29,11 +29,7 @@ import sys
 
 class Cli(QObject):
     def __init__(
-            self,
-            command: str,
-            params: list,
-            copy: int,
-            worker: Type[BaseWorker]
+        self, command: str, params: list, copy: int, worker: ty.Type[BaseWorker]
     ) -> None:
         super(Cli, self).__init__()
 
@@ -76,6 +72,7 @@ class Cli(QObject):
 
 def suppress_qt_warnings() -> None:
     from os import environ
+
     environ["QT_DEVICE_PIXEL_RATIO"] = "0"
     environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     environ["QT_SCREEN_SCALE_FACTORS"] = "1"
@@ -85,15 +82,46 @@ def suppress_qt_warnings() -> None:
 class EncloseNegative(click.Command):
     def __init__(self, *args, **kwargs) -> None:
         super(EncloseNegative, self).__init__(*args, **kwargs)
-        self.params.insert(0, click.core.Option(("--dont-suppress", ), is_flag=True, default=False,
-                                                help="Set flag to suppress setting envirmental "
-                                                     "varables in order to suppress the error "
-                                                     "message QT_DEVICE_PIXEL_RATIO."))
+        self.params.insert(
+            0,
+            click.core.Option(
+                ("--dont-suppress",),
+                is_flag=True,
+                default=False,
+                help="Set flag to suppress setting envirmental "
+                "varables in order to suppress the error "
+                "message QT_DEVICE_PIXEL_RATIO.",
+            ),
+        )
 
     def parse_args(self, ctx: click.core.Context, args: list) -> list:
-        """Enclose every negative number in parentheses so click doesn't think it's an option"""
-        if '--dont-suppress' not in args:
+        """Enclose every negative number in parentheses so click doesn't think it's an option.
+        Everything inside parentheses will concatenate following string until the parentheses matches.
+        For example:
+        args before:
+            ["caspy", "sin(x**2", " + ", "x**(", " 1/3)", "-1", ")", "-1", "x"]
+        args after:
+            ["caspy", "sin(x**2 + x**( 1/3) -1)", "-1", "x"]
+        """
+        if "--dont-suppress" not in args:
             suppress_qt_warnings()
+
+        # Throw error if parentheses doesn't match
+        if ("".join(args).count(")") - "".join(args).count("(")) != 0:
+            raise Exception("Parentheses not matching") from SyntaxError
+
+        fixed = []
+        i = 0
+        while i < len(args):
+            temp = args[i]
+            temp_c = 0
+            while (temp.count(")") - temp.count("(")) != 0:
+                temp_c += 1
+                temp += args[i + temp_c]
+            i += temp_c + 1
+            fixed.append(temp)
+
+        args = fixed
 
         for arg in args:
             if len(arg) > 1:
@@ -109,31 +137,64 @@ class EncloseNegative(click.Command):
 
 # Default flags, these flags are added to a command by using the decorator '@add_options(DEFAULT_FLAGS)'.
 DEFAULT_FLAGS = [
-    click.option("--preview", "-p", is_flag=True, default=False, help="Previews instead of evaluates"),
-    click.option("--output-type", "-o", default=1, type=click.IntRange(1, 3),
-                 help="Select output type, 1 for pretty; 2 for latex and 3 for normal"),
-    click.option("--use-unicode", "-u", is_flag=True, default=False, help="Use unicode"),
-    click.option("--line-wrap", "-l", is_flag=True, default=False, help="Use line wrap"),
-    click.option("--copy", "-c", type=click.IntRange(1, 3),
-                 help="Copies the answer. 1 for exact_ans, 2 for approx_ans, and 3 for a list of [exact_ans, "
-                      "approx_ans].")
+    click.option(
+        "--preview",
+        "-p",
+        is_flag=True,
+        default=False,
+        help="Previews instead of evaluates",
+    ),
+    click.option(
+        "--output-type",
+        "-o",
+        default=1,
+        type=click.IntRange(1, 3),
+        help="Select output type, 1 for pretty; 2 for latex and 3 for normal",
+    ),
+    click.option(
+        "--use-unicode", "-u", is_flag=True, default=False, help="Use unicode"
+    ),
+    click.option(
+        "--line-wrap", "-l", is_flag=True, default=False, help="Use line wrap"
+    ),
+    click.option(
+        "--copy",
+        "-c",
+        type=click.IntRange(1, 3),
+        help="Copies the answer. 1 for exact_ans, 2 for approx_ans, and 3 for a list of [exact_ans, "
+        "approx_ans].",
+    ),
 ]
 
 # Default argument(s), these argument(s) are added
 # to a command by using the decorator '@add_options(DEFAULT_ARGUMENTS)'.
 DEFAULT_ARGUMENTS = [
-    click.option("--use-scientific", "-s", type=int, default=None,
-                 help="Notate approximate answer with scientific notation, argument is accuracy"),
-    click.option("--accuracy", "-a", type=int, default=10, help="Accuracy of evaluation")
+    click.option(
+        "--use-scientific",
+        "-s",
+        type=int,
+        default=None,
+        help="Notate approximate answer with scientific notation, argument is accuracy",
+    ),
+    click.option(
+        "--accuracy", "-a", type=int, default=10, help="Accuracy of evaluation"
+    ),
 ]
 
 # Options used by equations (This includes formula), added to command by using the decorator '@add_options(EQ_FLAGS)'.
 EQ_FLAGS = [
-    click.option("--domain", "-d", default="Complexes", help="Give domain to solve for"),
-    click.option("--verify-domain", "-v", is_flag=True, default=False,
-                 help="Filter out any solutions that isn't in domain. Doesn't work with solveset. "
-                      "This flag must be set in order for domain to work if it solves with solve and not"
-                      "solveset. Needed for system of equations")
+    click.option(
+        "--domain", "-d", default="Complexes", help="Give domain to solve for"
+    ),
+    click.option(
+        "--verify-domain",
+        "-v",
+        is_flag=True,
+        default=False,
+        help="Filter out any solutions that isn't in domain. Doesn't work with solveset. "
+        "This flag must be set in order for domain to work if it solves with solve and not"
+        "solveset. Needed for system of equations",
+    ),
 ]
 
 
@@ -163,10 +224,7 @@ def list_merge(default_params: list, input_params: list) -> list:
 
 
 def validate_inputs(
-        input_kwargs: dict,
-        default_params: list,
-        input_params: tuple,
-        name: str
+    input_kwargs: dict, default_params: list, input_params: tuple, name: str
 ) -> dict:
     """
     Validates and restricts some of the inputs:
@@ -187,11 +245,15 @@ def validate_inputs(
     """
 
     if input_kwargs["output_type"] not in range(1, 4):
-        return {"error": "Output type must be integer between 1 and 3 inclusive. 1 for pretty; 2 for latex and 3 for "
-                         "normal."}
+        return {
+            "error": "Output type must be integer between 1 and 3 inclusive. 1 for pretty; 2 for latex and 3 for "
+            "normal."
+        }
 
     if len(input_params) > len(default_params):
-        return {"error": f"'{name}' commad doesn't take more than {len(default_params)} parameters."}
+        return {
+            "error": f"'{name}' commad doesn't take more than {len(default_params)} parameters."
+        }
 
     if len(input_params) == 0:
         return {"error": f"'{name}' command requires at least one parameter."}
@@ -208,6 +270,7 @@ def add_options(options: list):
     :return: function
         returns wrapper
     """
+
     def _add_options(func):
         for option in reversed(options):
             func = option(func)
@@ -227,6 +290,7 @@ def start() -> None:
     Start the GUI
     """
     from .qt_gui import main
+
     main()
 
 
@@ -243,6 +307,7 @@ def deriv(params: list, **kwargs: dict) -> None:
     >>> caspy deriv sin(1/x) x 3 pi
     """
     from .qt_assets.tabs.derivative import DerivativeWorker
+
     default_params = ["x", "x", "1", None]
 
     validate_input_dict = validate_inputs(kwargs, default_params, params, "deriv")
@@ -255,8 +320,13 @@ def deriv(params: list, **kwargs: dict) -> None:
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = "calc_"
-        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"],
-                   kwargs["accuracy"]]
+        options = [
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+            kwargs["use_scientific"],
+            kwargs["accuracy"],
+        ]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -267,9 +337,18 @@ def deriv(params: list, **kwargs: dict) -> None:
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
-@click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE [LOWER_BOUND UPPER_BOUND] [APPROXIMATE]")
-@click.option("--approximate-integral", "-A", is_flag=True, default=False,
-              help="Set flag to approximate integral. This overrides the normal calculation")
+@click.argument(
+    "params",
+    nargs=-1,
+    metavar="EXPRESSION VARIABLE [LOWER_BOUND UPPER_BOUND] [APPROXIMATE]",
+)
+@click.option(
+    "--approximate-integral",
+    "-A",
+    is_flag=True,
+    default=False,
+    help="Set flag to approximate integral. This overrides the normal calculation",
+)
 def integ(params: list, **kwargs: dict) -> None:
     """Calculate definite and indefinite integrals of expressions.
 
@@ -279,6 +358,7 @@ def integ(params: list, **kwargs: dict) -> None:
     >>> caspy integ x**x x -1 1 -A
     """
     from .qt_assets.tabs.integral import IntegralWorker
+
     default_params = ["x", "x", None, None]
 
     validate_input_dict = validate_inputs(kwargs, default_params, params, "integ")
@@ -291,9 +371,14 @@ def integ(params: list, **kwargs: dict) -> None:
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = "calc_"
-        options = [kwargs["approximate_integral"], kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"],
-                   kwargs["use_scientific"],
-                   kwargs["accuracy"]]
+        options = [
+            kwargs["approximate_integral"],
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+            kwargs["use_scientific"],
+            kwargs["accuracy"],
+        ]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -314,6 +399,7 @@ def sum(params: list, **kwargs: dict) -> None:
     >>> caspy sum k**2 k 1 m
     """
     from .qt_assets.tabs.summation import SummationWorker
+
     default_params = ["k", "k", 1, 2]
 
     validate_input_dict = validate_inputs(kwargs, default_params, params, "sum")
@@ -326,9 +412,13 @@ def sum(params: list, **kwargs: dict) -> None:
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = "calc_"
-        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"],
-                   kwargs["use_scientific"],
-                   kwargs["accuracy"]]
+        options = [
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+            kwargs["use_scientific"],
+            kwargs["accuracy"],
+        ]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -339,7 +429,9 @@ def sum(params: list, **kwargs: dict) -> None:
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
-@click.argument("params", nargs=-1, metavar="EXPRESSION VARIABLE AS_VARIABLE_IS_APPROACHING [SIDE]")
+@click.argument(
+    "params", nargs=-1, metavar="EXPRESSION VARIABLE AS_VARIABLE_IS_APPROACHING [SIDE]"
+)
 def limit(params: list, **kwargs: dict) -> None:
     """Calculate the limit of an expression.
 
@@ -349,6 +441,7 @@ def limit(params: list, **kwargs: dict) -> None:
     >>> caspy limit n!**(1/n) n 0 -
     """
     from .qt_assets.tabs.limit import LimitWorker
+
     default_params = ["x", "x", 0, "+-"]
 
     validate_input_dict = validate_inputs(kwargs, default_params, params, "limit")
@@ -361,8 +454,13 @@ def limit(params: list, **kwargs: dict) -> None:
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = "calc_"
-        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"],
-                   kwargs["accuracy"]]
+        options = [
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+            kwargs["use_scientific"],
+            kwargs["accuracy"],
+        ]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -374,11 +472,25 @@ def limit(params: list, **kwargs: dict) -> None:
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @add_options(EQ_FLAGS)
-@click.argument("params", nargs=-1, metavar="LEFT_EXPRESSION RIGHT_EXPRESSION VARIABLE_TO_SOLVE_FOR [SOLVE_TYPE]")
-@click.option("--solve-type", "-st", is_flag=True, default=False, help= "Solves an equation with either solve or "
-                                                                        "solveset (see SymPy solve vs solveset). "
-                                                                        "Default is solve, set flag to solve with "
-                                                                        "solveset.")
+@click.argument(
+    "params",
+    nargs=-1,
+    metavar="LEFT_EXPRESSION RIGHT_EXPRESSION VARIABLE_TO_SOLVE_FOR [SOLVE_TYPE]",
+)
+@click.option(
+    "--approximate-equation", "-A", type=str,
+    help="Approximate answer to equation. Argument is starting vector"
+)
+@click.option(
+    "--solve-type",
+    "-st",
+    is_flag=True,
+    default=False,
+    help="Solves an equation with either solve or "
+    "solveset (see SymPy solve vs solveset). "
+    "Default is solve, set flag to solve with "
+    "solveset.",
+)
 def eq(params: list, **kwargs: dict) -> None:
     """Solves a normal equation.
 
@@ -390,6 +502,7 @@ def eq(params: list, **kwargs: dict) -> None:
     >>> caspy eq sin(x)=1 x -st
     """
     from .qt_assets.tabs.equations import EquationsWorker
+
     default_params = ["x", 0, "x"]
 
     if "=" in params[0]:
@@ -405,11 +518,25 @@ def eq(params: list, **kwargs: dict) -> None:
 
     if kwargs["preview"]:
         prefix = "prev_"
-        options = [kwargs["domain"], kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
+        options = [
+            kwargs["domain"],
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+        ]
     else:
         prefix = "calc_"
-        options = [kwargs["solve_type"], kwargs["domain"], kwargs["output_type"], kwargs["use_unicode"],
-                   kwargs["line_wrap"], kwargs["use_scientific"], kwargs["accuracy"], kwargs["verify_domain"]]
+        options = [
+            kwargs["solve_type"],
+            kwargs["domain"],
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+            kwargs["use_scientific"],
+            kwargs["accuracy"],
+            kwargs["verify_domain"],
+            kwargs["approximate_equation"],
+        ]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -420,8 +547,14 @@ def eq(params: list, **kwargs: dict) -> None:
 @main.command(cls=EncloseNegative)
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
-@click.option("--hint", "-h", default="", help="The solving method that you want dsolve to use.")
-@click.argument("params", nargs=-1, metavar="LEFT_EXPRESSION RIGHT_EXPRESSION FUNCTION_TO_SOLVE_FOR [HINT]")
+@click.option(
+    "--hint", "-h", default="", help="The solving method that you want dsolve to use."
+)
+@click.argument(
+    "params",
+    nargs=-1,
+    metavar="LEFT_EXPRESSION RIGHT_EXPRESSION FUNCTION_TO_SOLVE_FOR [HINT]",
+)
 def diff_eq(params: list, **kwargs: dict) -> None:
     """Solves a differential equation equation.
     Separate equation by either a space or a =, but not both.
@@ -432,6 +565,7 @@ def diff_eq(params: list, **kwargs: dict) -> None:
     >>> caspy diff-eq f''(x)+3*f'(x)=x**2 f(x)
     """
     from .qt_assets.tabs.equations import EquationsWorker
+
     default_params = ["f(x)", "f(x)", "f(x)"]
 
     if "=" in params[0]:
@@ -450,8 +584,13 @@ def diff_eq(params: list, **kwargs: dict) -> None:
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = "calc_"
-        options = [kwargs["output_type"], kwargs["use_unicode"],
-                   kwargs["line_wrap"], kwargs["use_scientific"], kwargs["accuracy"]]
+        options = [
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+            kwargs["use_scientific"],
+            kwargs["accuracy"],
+        ]
 
     params_to_send = list_merge(default_params, list(params))
 
@@ -467,9 +606,14 @@ def diff_eq(params: list, **kwargs: dict) -> None:
 @add_options(DEFAULT_FLAGS)
 @add_options(DEFAULT_ARGUMENTS)
 @add_options(EQ_FLAGS)
-@click.option("--solve_type", "-st", is_flag=True, default=False,
-              help="Solve either a system of normal equations or a system of differential equations. Defualt if normal,"
-                   " set flag to solve a system of differential equations.")
+@click.option(
+    "--solve_type",
+    "-st",
+    is_flag=True,
+    default=False,
+    help="Solve either a system of normal equations or a system of differential equations. Defualt if normal,"
+    " set flag to solve a system of differential equations.",
+)
 @click.argument("no_of_eq", type=int, metavar="sys-eq NO_OF_EQUATIONS [SOLVE_TYPE]")
 def sys_eq(no_of_eq: int, **kwargs: dict) -> None:
     """Solves a system of either normal or differential equations.
@@ -492,17 +636,37 @@ def sys_eq(no_of_eq: int, **kwargs: dict) -> None:
         equation = input(f"Enter equation number {i + 1} of {no_of_eq}: ")
         equations.append(equation)
 
-    variables = input(f"Enter variables to solve for separated by anything other than a-z, 0-9, (), and _: ")
+    variables = input(
+        f"Enter variables to solve for separated by anything other than a-z, 0-9, (), and _: "
+    )
 
     if kwargs["preview"]:
         prefix = "prev_"
-        options = [kwargs["domain"], solve_type, kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
+        options = [
+            kwargs["domain"],
+            solve_type,
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+        ]
     else:
         prefix = "calc_"
-        options = [kwargs["domain"], solve_type, kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"],
-                   kwargs["use_scientific"], kwargs["accuracy"], kwargs["verify_domain"]]
+        options = [
+            kwargs["domain"],
+            solve_type,
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+            kwargs["use_scientific"],
+            kwargs["accuracy"],
+            kwargs["verify_domain"],
+        ]
 
-    to_send = [prefix + "system_eq", [equations] + [variables] + options, kwargs["copy"]]
+    to_send = [
+        prefix + "system_eq",
+        [equations] + [variables] + options,
+        kwargs["copy"],
+    ]
 
     send_to_thread(to_send, EquationsWorker)
 
@@ -518,6 +682,7 @@ def simp(expression: str, **kwargs: dict) -> None:
     >>> caspy simp sin(x)**2+cos(x)**2
     """
     from .qt_assets.tabs.simplify import SimpWorker
+
     expression = tuple([expression])
 
     default_params = ["x"]
@@ -550,6 +715,7 @@ def exp(expression: str, **kwargs: dict) -> None:
     >>> caspy exp (a+b-c)**3
     """
     from .qt_assets.tabs.expand import ExpandWorker
+
     default_params = ["x"]
     expression = tuple([expression])
     validate_input_dict = validate_inputs(kwargs, default_params, expression, "exp")
@@ -592,6 +758,7 @@ def eval(expression: str, vars_sub: list, **kwargs: dict) -> None:
     >>> caspy eval 3**x x 3
     """
     from .qt_assets.tabs.evaluate import EvaluateWorker
+
     default_params = ["1+1"]
     expression = tuple([expression])
     validate_input_dict = validate_inputs(kwargs, default_params, expression, "eval")
@@ -600,8 +767,10 @@ def eval(expression: str, vars_sub: list, **kwargs: dict) -> None:
         return
 
     if len(vars_sub) % 2 != 0:
-        print("Variable substitution must consist of an even number of arguments, see 'eval --help' for more "
-              "information")
+        print(
+            "Variable substitution must consist of an even number of arguments, see 'eval --help' for more "
+            "information"
+        )
         return
 
     var_sub = ""
@@ -613,20 +782,33 @@ def eval(expression: str, vars_sub: list, **kwargs: dict) -> None:
         options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"]]
     else:
         prefix = ""
-        options = [kwargs["output_type"], kwargs["use_unicode"], kwargs["line_wrap"], kwargs["use_scientific"],
-                   kwargs["accuracy"]]
+        options = [
+            kwargs["output_type"],
+            kwargs["use_unicode"],
+            kwargs["line_wrap"],
+            kwargs["use_scientific"],
+            kwargs["accuracy"],
+        ]
 
     params_to_send = list_merge(default_params, list(expression))
-    to_send = [prefix + "eval_exp", params_to_send + [var_sub] + options, kwargs["copy"]]
+    to_send = [
+        prefix + "eval_exp",
+        params_to_send + [var_sub] + options,
+        kwargs["copy"],
+    ]
 
     send_to_thread(to_send, EvaluateWorker)
 
 
 @main.command(cls=EncloseNegative)
 @click.argument("number", type=int)
-@click.option("-c", "--copy", type=click.IntRange(1, 3),
-              help="Copies the answer. 1 for exact_ans, 2 for approx_ans, and 3 for a list of [exact_ans, "
-                   "approx_ans].")
+@click.option(
+    "-c",
+    "--copy",
+    type=click.IntRange(1, 3),
+    help="Copies the answer. 1 for exact_ans, 2 for approx_ans, and 3 for a list of [exact_ans, "
+    "approx_ans].",
+)
 def pf(number: int, **kwargs: dict) -> None:
     """Retreives the prime factors of an positive integer.
 
@@ -638,6 +820,7 @@ def pf(number: int, **kwargs: dict) -> None:
     >>> caspy pf 372
     """
     from .qt_assets.tabs.pf import PfWorker
+
     to_send = ["calc_pf", [number], kwargs["copy"]]
     send_to_thread(to_send, PfWorker)
 
@@ -656,7 +839,12 @@ def web(website_index: int, list_websites: bool, **kwargs: dict) -> None:
     """
     import json
     import pkg_resources
-    with open(pkg_resources.resource_filename('caspy3', "data/websites.json"), "r", encoding="utf8") as json_f:
+
+    with open(
+        pkg_resources.resource_filename("caspy3", "data/websites.json"),
+        "r",
+        encoding="utf8",
+    ) as json_f:
         json_data = json_f.read()
         web_list = json.loads(json_data)
 
@@ -671,12 +859,13 @@ def web(website_index: int, list_websites: bool, **kwargs: dict) -> None:
 
     else:
         import webbrowser
+
         url = next(iter(web_list[website_index - 1].values()))
         webbrowser.open(url)
 
 
-def send_to_thread(input_list: list, worker: Type[BaseWorker]) -> None:
-    def excepthook(exc_type, exc_value, exc_tb):
+def send_to_thread(input_list: list, worker: ty.Type[BaseWorker]) -> None:
+    def excepthook(exc_type, exc_value, exc_tb) -> None:
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         print("error catched!:")
         print("error message:\n", tb)

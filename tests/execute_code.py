@@ -16,27 +16,28 @@ class ExecuteCodeTester(BaseTester):
     @BaseTester.call_worker(ShellWorker)
     def test_execute_code(self):
         command = "execute_code"
-        params = ['ok = 5;print(ok)', {}]
-        solution = {'exec': ['5', 0]}
+        params = ["ok = 5;print(ok)", {}]
+        solution = {"exec": ["5", 0]}
         return command, params, solution
 
     @BaseTester.call_worker(ShellWorker)
     def test_execute_code_namespace(self):
         command = "execute_code"
         params = ["ok", {"ok": 4}]
-        solution = {'exec': ['4', 0]}
+        solution = {"exec": ["4", 0]}
         return command, params, solution
-
 
     @BaseTester.call_worker(ShellWorker)
     def test_execute_code_loop(self):
         command = "execute_code"
-        params = ['for i in range(5):\n\tprint(i**2)', {}]
-        solution = {'exec': ['0\n1\n4\n9\n16', 0]}
+        params = ["for i in range(5):\n\tprint(i**2)", {}]
+        solution = {"exec": ["0\n1\n4\n9\n16", 0]}
         return command, params, solution
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     tester = ExecuteCodeTester()
     tester.test_code_execute()

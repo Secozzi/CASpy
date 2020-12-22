@@ -91,8 +91,9 @@ class PrevSumTester(BaseTester):
         return command, params, solution
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     app = QApplication(sys.argv)
     tester = PrevSumTester()
     tester.test_sum_prev()

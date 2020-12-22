@@ -43,7 +43,9 @@
         "f_m_u": "u|Hastighet|m/s (Meter per sekund)",
         "f_m_v": "v|Hastighet|m/s (Meter per sekund)",
         "f_m_W": "W|Arbete|Nm (Newtonmeter)",
-        "f_m_wo": "ω|Vinkelhastighet|rad/s (Radianer per sekund)"
+        "f_m_wo": "ω|Vinkelhastighet|rad/s (Radianer per sekund)",
+
+        "kf_akp_p": "p|Rörelsemängd"
     },
     [
         {

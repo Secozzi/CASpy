@@ -79,7 +79,7 @@ class CASWorker(QRunnable):
             func(self, *args, **kwargs)
 
             if type(self.result) == str:
-                self.result = {'answer': self.result}
+                self.result = {"answer": self.result}
 
             first_key = list(self.result.keys())[0]
             first_value = list(self.result.values())[0]
@@ -98,18 +98,22 @@ class CASWorker(QRunnable):
             if "latex" in list(self.result.keys()):
                 answer_dict["latex"] = self.result["latex"]
 
-            copy(f"        params = {str(self.params)}\n        solution = {answer_dict}")
+            copy(
+                f"        params = {str(self.params)}\n        solution = {answer_dict}"
+            )
 
         return wrapper
 
-    #@debug_output
-    #@get_test_output
+    # @debug_output
+    # @get_test_output
     @pyqtSlot()
     def run(self):
         try:
             self.result = getattr(self, self.type)(*self.params)
         except Exception:
-            return {"error": f"Error calling function from worker thread: \n{traceback.format_exc()}"}
+            return {
+                "error": f"Error calling function from worker thread: \n{traceback.format_exc()}"
+            }
 
         # For tests
         if type(self.result) == list:
@@ -238,8 +242,16 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def prev_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode,
-                   line_wrap):
+    def prev_deriv(
+        self,
+        input_expression,
+        input_variable,
+        input_order,
+        input_point,
+        output_type,
+        use_unicode,
+        line_wrap,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -270,8 +282,18 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def calc_deriv(self, input_expression, input_variable, input_order, input_point, output_type, use_unicode,
-                   line_wrap, use_scientific, accuracy):
+    def calc_deriv(
+        self,
+        input_expression,
+        input_variable,
+        input_order,
+        input_point,
+        output_type,
+        use_unicode,
+        line_wrap,
+        use_scientific,
+        accuracy,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -287,17 +309,23 @@ class CASWorker(QRunnable):
             return {"error": ["Enter a variable"]}
 
         try:
-            self.exact_ans = diff(parse_expr(input_expression), parse_expr(input_variable), input_order)
+            self.exact_ans = diff(
+                parse_expr(input_expression), parse_expr(input_variable), input_order
+            )
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
         self.latex_answer = str(latex(self.exact_ans))
 
         if input_point:
-            calc_deriv_point = str(self.exact_ans).replace(input_variable, f"({input_point})")
+            calc_deriv_point = str(self.exact_ans).replace(
+                input_variable, f"({input_point})"
+            )
 
             if use_scientific:
                 try:
-                    self.approx_ans = self.to_scientific_notation(str(N(calc_deriv_point, accuracy)), use_scientific)
+                    self.approx_ans = self.to_scientific_notation(
+                        str(N(calc_deriv_point, accuracy)), use_scientific
+                    )
                 except Exception:
                     return {"error": [f"Failed to parse {input_point}"]}
             else:
@@ -325,8 +353,16 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def prev_integ(self, input_expression, input_variable, input_lower, input_upper, output_type, use_unicode,
-                   line_wrap):
+    def prev_integ(
+        self,
+        input_expression,
+        input_variable,
+        input_lower,
+        input_upper,
+        output_type,
+        use_unicode,
+        line_wrap,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -341,13 +377,17 @@ class CASWorker(QRunnable):
 
         if input_lower:
             try:
-                self.exact_ans = Integral(parse_expr(input_expression), (parse_expr(input_variable),
-                                                                         input_lower, input_upper))
+                self.exact_ans = Integral(
+                    parse_expr(input_expression),
+                    (parse_expr(input_variable), input_lower, input_upper),
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
         else:
             try:
-                self.exact_ans = Integral(parse_expr(input_expression), parse_expr(input_variable))
+                self.exact_ans = Integral(
+                    parse_expr(input_expression), parse_expr(input_variable)
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -363,8 +403,19 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def calc_integ(self, input_expression, input_variable, input_lower, input_upper, approx_integ, output_type,
-                   use_unicode, line_wrap, use_scientific, accuracy):
+    def calc_integ(
+        self,
+        input_expression,
+        input_variable,
+        input_lower,
+        input_upper,
+        approx_integ,
+        output_type,
+        use_unicode,
+        line_wrap,
+        use_scientific,
+        accuracy,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -383,8 +434,10 @@ class CASWorker(QRunnable):
 
         if input_lower:
             try:
-                self.exact_ans = Integral(parse_expr(input_expression),
-                                          (parse_expr(input_variable), input_lower, input_upper))
+                self.exact_ans = Integral(
+                    parse_expr(input_expression),
+                    (parse_expr(input_variable), input_lower, input_upper),
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -400,7 +453,9 @@ class CASWorker(QRunnable):
 
             try:
                 if use_scientific:
-                    self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
+                    self.approx_ans = self.to_scientific_notation(
+                        str(N(self.exact_ans, accuracy)), use_scientific
+                    )
                 else:
                     self.approx_ans = str(simplify(N(self.exact_ans, accuracy)))
             except Exception:
@@ -408,13 +463,17 @@ class CASWorker(QRunnable):
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
             else:
                 if use_scientific:
-                    self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
+                    self.approx_ans = self.to_scientific_notation(
+                        str(N(self.exact_ans, accuracy)), use_scientific
+                    )
                 else:
                     self.approx_ans = str(N(self.exact_ans, accuracy))
 
         else:
             try:
-                self.exact_ans = integrate(parse_expr(input_expression), parse_expr(input_variable))
+                self.exact_ans = integrate(
+                    parse_expr(input_expression), parse_expr(input_variable)
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
             self.latex_answer = str(latex(self.exact_ans))
@@ -435,8 +494,16 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def prev_limit(self, input_expression, input_variable, input_approach, input_side, output_type,
-                   use_unicode, line_wrap):
+    def prev_limit(
+        self,
+        input_expression,
+        input_variable,
+        input_approach,
+        input_side,
+        output_type,
+        use_unicode,
+        line_wrap,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -450,7 +517,12 @@ class CASWorker(QRunnable):
             return {"error": ["Enter a variable"]}
 
         try:
-            self.exact_ans = Limit(parse_expr(input_expression), parse_expr(input_variable), input_approach, input_side)
+            self.exact_ans = Limit(
+                parse_expr(input_expression),
+                parse_expr(input_variable),
+                input_approach,
+                input_side,
+            )
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
         self.latex_answer = str(latex(self.exact_ans))
@@ -466,8 +538,18 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def calc_limit(self, input_expression, input_variable, input_approach, input_side, output_type,
-                   use_unicode, line_wrap, use_scientific, accuracy):
+    def calc_limit(
+        self,
+        input_expression,
+        input_variable,
+        input_approach,
+        input_side,
+        output_type,
+        use_unicode,
+        line_wrap,
+        use_scientific,
+        accuracy,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -485,13 +567,20 @@ class CASWorker(QRunnable):
             return {"error": ["Enter a variable"]}
 
         try:
-            self.exact_ans = limit(parse_expr(input_expression), parse_expr(input_variable), input_approach, input_side)
+            self.exact_ans = limit(
+                parse_expr(input_expression),
+                parse_expr(input_variable),
+                input_approach,
+                input_side,
+            )
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
         self.latex_answer = str(latex(self.exact_ans))
 
         if use_scientific:
-            self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
+            self.approx_ans = self.to_scientific_notation(
+                str(N(self.exact_ans, accuracy)), use_scientific
+            )
         else:
             self.approx_ans = str(N(self.exact_ans, accuracy))
 
@@ -506,8 +595,16 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def prev_normal_eq(self, left_expression, right_expression, input_variable, domain,
-                       output_type, use_unicode, line_wrap):
+    def prev_normal_eq(
+        self,
+        left_expression,
+        right_expression,
+        input_variable,
+        domain,
+        output_type,
+        use_unicode,
+        line_wrap,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -533,7 +630,9 @@ class CASWorker(QRunnable):
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
         try:
-            full_equation = Eq(parse_expr(left_expression), parse_expr(right_expression))
+            full_equation = Eq(
+                parse_expr(left_expression), parse_expr(right_expression)
+            )
         except Exception:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -552,7 +651,15 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def prev_diff_eq(self, left_expression, right_expression, function_solve, output_type, use_unicode, line_wrap):
+    def prev_diff_eq(
+        self,
+        left_expression,
+        right_expression,
+        function_solve,
+        output_type,
+        use_unicode,
+        line_wrap,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
 
         self.approx_ans = 0
@@ -610,7 +717,9 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def prev_system_eq(self, equations, variables, domain, output_type, use_unicode, line_wrap):
+    def prev_system_eq(
+        self, equations, variables, domain, output_type, use_unicode, line_wrap
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
 
         self.approx_ans = 0
@@ -619,9 +728,13 @@ class CASWorker(QRunnable):
 
         equations = self.get_equations(equations)
         if equations[0] == "error":
-            return {"error": [f"Error: \nEnter only one '=' on line {equations[1] + 1}"]}
+            return {
+                "error": [f"Error: \nEnter only one '=' on line {equations[1] + 1}"]
+            }
         if equations[0] == "traceback":
-            return {"error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]}
+            return {
+                "error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]
+            }
 
         variables = self.get_vars(variables)
         if variables[0] == "error":
@@ -646,12 +759,27 @@ class CASWorker(QRunnable):
             self.latex_answer += str(latex(eq)) + " \\ "
 
         self.exact_ans += f"Variables to solve for: {variables}"
-        return {"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer[:-3]}
+        return {
+            "eq": [self.exact_ans, self.approx_ans],
+            "latex": self.latex_answer[:-3],
+        }
 
     @catch_thread
     @pyqtSlot()
-    def calc_normal_eq(self, left_expression, right_expression, input_variable, solve_type, domain,
-                       output_type, use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
+    def calc_normal_eq(
+        self,
+        left_expression,
+        right_expression,
+        input_variable,
+        solve_type,
+        domain,
+        output_type,
+        use_unicode,
+        line_wrap,
+        use_scientific,
+        accuracy,
+        verify_domain,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -682,15 +810,22 @@ class CASWorker(QRunnable):
 
         if solve_type == 1:
             try:
-                self.exact_ans = solveset(Eq(parse_expr(left_expression), parse_expr(right_expression)),
-                                          parse_expr(input_variable), domain=domain)
+                self.exact_ans = solveset(
+                    Eq(parse_expr(left_expression), parse_expr(right_expression)),
+                    parse_expr(input_variable),
+                    domain=domain,
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
         else:
             try:
-                self.exact_ans = solve(Eq(parse_expr(left_expression), parse_expr(right_expression)),
-                                       parse_expr(input_variable), domain=domain, rational=True)
+                self.exact_ans = solve(
+                    Eq(parse_expr(left_expression), parse_expr(right_expression)),
+                    parse_expr(input_variable),
+                    domain=domain,
+                    rational=True,
+                )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
@@ -703,7 +838,10 @@ class CASWorker(QRunnable):
             approx_list = [str(N(i, accuracy)) for i in self.exact_ans]
 
             if use_scientific:
-                approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
+                approx_list = [
+                    self.to_scientific_notation(str(i), use_scientific)
+                    for i in approx_list
+                ]
 
             self.approx_ans = approx_list[0] if len(approx_list) == 1 else approx_list
 
@@ -719,8 +857,18 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def calc_diff_eq(self, left_expression, right_expression, hint, function_solve,
-                     output_type, use_unicode, line_wrap, use_scientific, accuracy):
+    def calc_diff_eq(
+        self,
+        left_expression,
+        right_expression,
+        hint,
+        function_solve,
+        output_type,
+        use_unicode,
+        line_wrap,
+        use_scientific,
+        accuracy,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -736,7 +884,9 @@ class CASWorker(QRunnable):
                     right_side = parse_expr(self.parse_diff_text(eq[1]))
             else:
                 if not left_expression or not right_expression:
-                    return {"error": ["Enter an expression both in left and right side"]}
+                    return {
+                        "error": ["Enter an expression both in left and right side"]
+                    }
 
                 left_side = parse_expr(self.parse_diff_text(left_expression))
                 right_side = parse_expr(self.parse_diff_text(right_expression))
@@ -752,7 +902,7 @@ class CASWorker(QRunnable):
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
         if not hint:
-            hint = 'default'
+            hint = "default"
 
         if use_scientific:
             if use_scientific > accuracy:
@@ -772,7 +922,11 @@ class CASWorker(QRunnable):
 
         approx_list = [N(i, accuracy) for i in self.exact_ans]
         if use_scientific:
-            return {"error": ["Scientific notation not supported for differential equations"]}
+            return {
+                "error": [
+                    "Scientific notation not supported for differential equations"
+                ]
+            }
 
         self.approx_ans = approx_list[0] if len(approx_list) == 1 else approx_list
 
@@ -790,8 +944,18 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def calc_system_eq(self, equations, variables, domain, output_type,
-                       use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
+    def calc_system_eq(
+        self,
+        equations,
+        variables,
+        domain,
+        output_type,
+        use_unicode,
+        line_wrap,
+        use_scientific,
+        accuracy,
+        verify_domain,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = []
         self.exact_ans = []
@@ -799,9 +963,13 @@ class CASWorker(QRunnable):
 
         equations = self.get_equations(equations)
         if equations[0] == "error":
-            return {"error": [f"Error: \nEnter only one '=' on line {equations[1] + 1}"]}
+            return {
+                "error": [f"Error: \nEnter only one '=' on line {equations[1] + 1}"]
+            }
         if equations[0] == "traceback":
-            return {"error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]}
+            return {
+                "error": [f"Error: \nEquation number {equations[1] + 1} is invalid"]
+            }
 
         variables = self.get_vars(variables)
         if variables[0] == "error":
@@ -840,7 +1008,10 @@ class CASWorker(QRunnable):
             approx_list = [N(j, accuracy) for j in sol_list]
 
             if use_scientific:
-                approx_list = [self.to_scientific_notation(str(i), use_scientific) for i in approx_list]
+                approx_list = [
+                    self.to_scientific_notation(str(i), use_scientific)
+                    for i in approx_list
+                ]
 
             for j, sol in enumerate(sol_list):
                 temp_sol.append(Eq(var_list[j], sol))
@@ -876,7 +1047,9 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = str(self.exact_ans)
 
-        self.approx_ans = self.approx_ans[0] if len(self.approx_ans) == 1 else self.approx_ans
+        self.approx_ans = (
+            self.approx_ans[0] if len(self.approx_ans) == 1 else self.approx_ans
+        )
 
         return {"eq": [self.exact_ans, self.approx_ans], "latex": self.latex_answer}
 
@@ -936,7 +1109,9 @@ class CASWorker(QRunnable):
             if len(value.free_symbols) != 0:
                 output.append(value)
             else:
-                if type(domain.contains(value)) == Contains or not domain.contains(value):
+                if type(domain.contains(value)) == Contains or not domain.contains(
+                    value
+                ):
                     pass
                 else:
                     output.append(value)
@@ -1178,7 +1353,16 @@ class CASWorker(QRunnable):
 
     @catch_thread
     @pyqtSlot()
-    def eval_exp(self, expression, var_sub, output_type, use_unicode, line_wrap, use_scientific, accuracy):
+    def eval_exp(
+        self,
+        expression,
+        var_sub,
+        output_type,
+        use_unicode,
+        line_wrap,
+        use_scientific,
+        accuracy,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         self.approx_ans = 0
         self.exact_ans = ""
@@ -1195,7 +1379,11 @@ class CASWorker(QRunnable):
 
         if var_sub:
             if ":" not in var_sub:
-                return {"error": ["A ':' must be present after variable to indicate end of variable"]}
+                return {
+                    "error": [
+                        "A ':' must be present after variable to indicate end of variable"
+                    ]
+                }
 
             var_sub = self.parse_var_sub(var_sub)
             if "error" in list(var_sub.keys()):
@@ -1213,7 +1401,9 @@ class CASWorker(QRunnable):
             expression = str(expression)
             self.exact_ans = simplify(parse_expr(expression))
             if use_scientific:
-                self.approx_ans = self.to_scientific_notation(str(N(self.exact_ans, accuracy)), use_scientific)
+                self.approx_ans = self.to_scientific_notation(
+                    str(N(self.exact_ans, accuracy)), use_scientific
+                )
             else:
                 self.approx_ans = str(N(self.exact_ans, accuracy))
         except Exception:
@@ -1241,7 +1431,11 @@ class CASWorker(QRunnable):
             return {"error": [f"Error: {input_number} is not an integer."]}
 
         if input_number < 2:
-            return {"error": [f"Error: {input_number} is lower than 2, only number 2 and above is accepted."]}
+            return {
+                "error": [
+                    f"Error: {input_number} is lower than 2, only number 2 and above is accepted."
+                ]
+            }
 
         try:
             self.exact_ans = factorint(input_number)
@@ -1253,7 +1447,10 @@ class CASWorker(QRunnable):
             self.approx_ans += f"({base}**{self.exact_ans[base]})*"
 
         self.latex_answer = latex(parse_expr(self.latex_answer[0:-1], evaluate=False))
-        return {"pf": [self.exact_ans, self.approx_ans[0:-1]], "latex": self.latex_answer}
+        return {
+            "pf": [self.exact_ans, self.approx_ans[0:-1]],
+            "latex": self.latex_answer,
+        }
 
     @catch_thread
     @pyqtSlot()
@@ -1265,6 +1462,7 @@ class CASWorker(QRunnable):
 
         class Capturing(list):
             from io import StringIO
+
             def __enter__(self):
                 self._stdout = sys.stdout
                 sys.stdout = self._stringio = self.StringIO()
@@ -1294,11 +1492,17 @@ class CASWorker(QRunnable):
         else:
             self.exact_ans = self.output
 
-        return {"exec": [self.exact_ans, self.approx_ans], "latex": self.latex_answer, "new_namespace": new_namespace}
+        return {
+            "exec": [self.exact_ans, self.approx_ans],
+            "latex": self.latex_answer,
+            "new_namespace": new_namespace,
+        }
 
     @catch_thread
     @pyqtSlot()
-    def prev_formula(self, lines, value_string, domain, output_type, use_unicode, line_wrap):
+    def prev_formula(
+        self, lines, value_string, domain, output_type, use_unicode, line_wrap
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         empty_var_list, var_list, values = [], [], []
         self.exact_ans = ""
@@ -1324,12 +1528,18 @@ class CASWorker(QRunnable):
 
         if len(var_list) > 1:
             return {
-                "error": ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+                "error": [
+                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"
+                ]
+            }
 
         if len(empty_var_list) > 1:
             if len(var_list) != 1:
-                return {"error": [
-                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+                return {
+                    "error": [
+                        "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"
+                    ]
+                }
 
         if len(var_list) == 1:
             final_var = var_list[0]
@@ -1339,13 +1549,32 @@ class CASWorker(QRunnable):
         left_side = value_string[0]
         right_side = value_string[1]
 
-        result = self.prev_normal_eq(left_side, right_side, final_var, domain, output_type, use_unicode, line_wrap)
+        result = self.prev_normal_eq(
+            left_side,
+            right_side,
+            final_var,
+            domain,
+            output_type,
+            use_unicode,
+            line_wrap,
+        )
         return result
 
     @catch_thread
     @pyqtSlot()
-    def calc_formula(self, lines, value_string, solve_type, domain, output_type,
-                     use_unicode, line_wrap, use_scientific, accuracy, verify_domain):
+    def calc_formula(
+        self,
+        lines,
+        value_string,
+        solve_type,
+        domain,
+        output_type,
+        use_unicode,
+        line_wrap,
+        use_scientific,
+        accuracy,
+        verify_domain,
+    ):
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         empty_var_list, var_list, values = [], [], []
         self.exact_ans = ""
@@ -1375,12 +1604,18 @@ class CASWorker(QRunnable):
 
         if len(var_list) > 1:
             return {
-                "error": ["Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+                "error": [
+                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"
+                ]
+            }
 
         if len(empty_var_list) > 1:
             if len(var_list) != 1:
-                return {"error": [
-                    "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"]}
+                return {
+                    "error": [
+                        "Solve for only one variable, if multiple empty lines type 'var' to solve for the variable"
+                    ]
+                }
 
         if len(var_list) == 1:
             final_var = var_list[0]
@@ -1397,8 +1632,19 @@ class CASWorker(QRunnable):
         left_side = str(left_side).replace("_i", "(sqrt(-1))")
         right_side = str(right_side).replace("_i", "(sqrt(-1))")
 
-        result = self.calc_normal_eq(left_side, right_side, final_var, solve_type, domain,
-                                     output_type, use_unicode, line_wrap, use_scientific, accuracy, verify_domain)
+        result = self.calc_normal_eq(
+            left_side,
+            right_side,
+            final_var,
+            solve_type,
+            domain,
+            output_type,
+            use_unicode,
+            line_wrap,
+            use_scientific,
+            accuracy,
+            verify_domain,
+        )
         return result
 
     @pyqtSlot()
