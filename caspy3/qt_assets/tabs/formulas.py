@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import (
     QTreeWidgetItem,
     QWidget,
 )
-from PyQt5.QtGui import QFont, QCursor
+from PyQt5.QtGui import QFont, QCursor, QImage, QPixmap
 from PyQt5.uic import loadUi
 
 import typing as ty
@@ -34,7 +34,43 @@ import typing as ty
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
+#TODO
+USE_LATEX = True
+if USE_LATEX:
+    import matplotlib.pyplot as mpl
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+
 from .worker import BaseWorker
+
+
+
+def mathTex_to_QPixmap(mathTex, fs):
+    fig = mpl.figure()
+    fig.patch.set_facecolor('none')
+    fig.set_canvas(FigureCanvasAgg(fig))
+    renderer = fig.canvas.get_renderer()
+
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis('off')
+    ax.patch.set_facecolor('none')
+    t = ax.text(0, 0, mathTex, ha='left', va='bottom', fontsize=fs, fontfamily=['STIXGeneral'])
+
+    fwidth, fheight = fig.get_size_inches()
+    fig_bbox = fig.get_window_extent(renderer)
+
+    text_bbox = t.get_window_extent(renderer)
+
+    tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
+    tight_fheight = text_bbox.height * fheight / fig_bbox.height
+
+    fig.set_size_inches(tight_fwidth, tight_fheight)
+
+    buf, size = fig.canvas.print_to_buffer()
+    qimage = QImage.rgbSwapped(QImage(buf, size[0], size[1],
+                                      QImage.Format_ARGB32))
+    qpixmap = QPixmap(qimage)
+
+    return qpixmap
 
 
 class FormulaWorker(BaseWorker):
