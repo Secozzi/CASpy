@@ -6,6 +6,7 @@ All changes will be documented in this file
 
 ### Added
 
+- Formulas are now displayed in LaTeX
 - Fixed error 'QT_DEVICE_PIXEL_RATIO is deprecated' by setting enviromental variables
 - Added option '--dont-suppress' in order to not set enviromental variables
 - Added option '--approximate-equation' to normal equation and formulae using nsolve()
@@ -18,6 +19,7 @@ All changes will be documented in this file
 ### Changed
 
 - Removed support for python 3.7 and below
+- LaTeX renderer has been changed from mathjax to matplotlib, eliminating QWebEngineView
 
 ## [2.1.2] - 2020-08-31
 

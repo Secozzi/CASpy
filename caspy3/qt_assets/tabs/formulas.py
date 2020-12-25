@@ -34,13 +34,15 @@ import typing as ty
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
-#TODO
+from .worker import BaseWorker
+
 USE_LATEX = True
 if USE_LATEX:
+    import matplotlib
     import matplotlib.pyplot as mpl
     from matplotlib.backends.backend_agg import FigureCanvasAgg
 
-from .worker import BaseWorker
+    matplotlib.rcParams['mathtext.fontset'] = 'cm'
 
 
 
