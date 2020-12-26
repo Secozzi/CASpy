@@ -2,7 +2,7 @@
 
 All changes will be documented in this file
 
-## [2.2.0] - 2020-12-16
+## [2.2.0] - Not released
 
 ### Added
 

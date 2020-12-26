@@ -16,38 +16,52 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from PyQt5.QtCore import pyqtSlot, QCoreApplication, QEvent, Qt
+from PyQt5.QtCore import (
+    pyqtSignal,
+    pyqtSlot,
+    QCoreApplication,
+    QEvent,
+    QObject,
+    QRunnable,
+    QSize,
+    Qt,
+)
 from PyQt5.QtWidgets import (
     QAction,
     QApplication,
     QGridLayout,
     QLabel,
     QLineEdit,
+    QShortcut,
     QTreeWidgetItem,
     QWidget,
 )
-from PyQt5.QtGui import QFont, QCursor, QImage, QPixmap
+from PyQt5.QtGui import (
+    QCursor,
+    QFont,
+    QImage,
+    QKeySequence,
+    QPixmap,
+    QPixmapCache,
+)
 from PyQt5.uic import loadUi
 
 import typing as ty
+import re as pyreg
 
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
 from .worker import BaseWorker
 
-USE_LATEX = True
-if USE_LATEX:
-    import matplotlib
-    import matplotlib.pyplot as mpl
-    from matplotlib.backends.backend_agg import FigureCanvasAgg
-
-    matplotlib.rcParams['mathtext.fontset'] = 'cm'
+import matplotlib
+import matplotlib.pyplot as mpl
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+matplotlib.rcParams['mathtext.fontset'] = 'cm'
 
 
-
-def mathTex_to_QPixmap(mathTex, fs):
-    fig = mpl.figure()
+def mathTex_to_QPixmap(mathTex, fs, fig):
+    fig.clf()
     fig.patch.set_facecolor('none')
     fig.set_canvas(FigureCanvasAgg(fig))
     renderer = fig.canvas.get_renderer()
@@ -73,6 +87,42 @@ def mathTex_to_QPixmap(mathTex, fs):
     qpixmap = QPixmap(qimage)
 
     return qpixmap
+
+
+class LaTeXSignals(QObject):
+    finished = pyqtSignal()
+    current = pyqtSignal(int)
+    output = pyqtSignal(list)
+
+
+class LaTeXWorker(QRunnable):
+    def __init__(self, latex_list, fig):
+        super(LaTeXWorker, self).__init__()
+
+        self.latex_list = latex_list
+        self.fig = fig
+
+        self.signals = LaTeXSignals()
+
+    @pyqtSlot()
+    def run(self) -> None:
+        out = []
+        for i, formula in enumerate(self.latex_list):
+            expr = formula.split("=")
+
+            left = parse_expr(expr[0], evaluate=False)
+            right = parse_expr(expr[1], evaluate=False)
+            latex_pixmap = mathTex_to_QPixmap(
+                f"${latex(Eq(left, right))}$",
+                15,
+                fig=self.fig,
+            )
+
+            out.append(latex_pixmap)
+            self.signals.current.emit(i)
+
+        self.signals.output.emit(out)
+        self.signals.finished.emit()
 
 
 class FormulaWorker(BaseWorker):
@@ -249,6 +299,19 @@ class FormulaTab(QWidget):
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/formulas.ui"), self)
 
+        cshortcut = QShortcut(QKeySequence("Shift+Return"), self)
+        cshortcut.activated.connect(self.calc_formula)
+        pshortcut = QShortcut(QKeySequence("Ctrl+Shift+Return"), self)
+        pshortcut.activated.connect(self.prev_formula)
+
+        self.info = self.main_window.formulas_data[0]
+        self.data = self.main_window.formulas_data[1]
+
+        # TODO
+        self.use_latex = True
+        self.imag = pyreg.compile("\b_i\b")
+
+        self.fig = mpl.figure()
         self.init_ui()
 
         if "verify_domain_formula" in list(self.main_window.settings_data.keys()):
@@ -257,11 +320,11 @@ class FormulaTab(QWidget):
             ]
         else:
             self.verify_domain_formula = False
+
         self.main_window.add_to_save_settings(
             {"verify_domain_formula": self.verify_domain_formula}
         )
 
-        self.install_event_filter()
         self.init_formula_menu()
         self.init_bindings()
         self.add_formulas()
@@ -270,6 +333,7 @@ class FormulaTab(QWidget):
         self.FormulaTree.sortByColumn(0, Qt.AscendingOrder)
         self.grid_scroll_area = QGridLayout(self.FormulaScrollArea)
         self.grid_scroll_area.setObjectName("grid_scroll_area")
+        self.splitter_2.setSizes([int(self.height() * 0.45), int(self.height() * 0.55)])
 
     def init_formula_menu(self) -> None:
         self.menuFormula = self.main_window.menubar.addMenu("Formulas")
@@ -288,26 +352,11 @@ class FormulaTab(QWidget):
             {"verify_domain_formula": self.verify_domain_formula}
         )
 
-    def install_event_filter(self) -> None:
-        self.FormulaScrollArea.installEventFilter(self)
-
-    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
-        QModifiers = QApplication.keyboardModifiers()
-        modifiers = []
-        if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append("shift")
-
-        if event.type() == QEvent.KeyPress:
-            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                if modifiers:
-                    if modifiers[0] == "shift":
-                        self.calc_formula()
-                        return True
-
-        return super(FormulaTab, self).eventFilter(obj, event)
-
     def init_bindings(self) -> None:
         self.FormulaTree.itemDoubleClicked.connect(self.formula_tree_selected)
+        self.FormulaTree.itemExpanded.connect(self.expanded_sub)
+        self.FormulaTree.itemCollapsed.connect(self.collapsed_sub)
+
         self.FormulaPreview.clicked.connect(self.prev_formula)
         self.FormulaCalculate.clicked.connect(self.calc_formula)
 
@@ -328,133 +377,197 @@ class FormulaTab(QWidget):
         self.FormulaStartV.setEnabled(_state)
 
     def add_formulas(self) -> None:
-        self.formula_info_dict = self.main_window.formulas_data[0]
-        self.formula_tree_data = self.main_window.formulas_data[1]
-
-        for branch in self.formula_tree_data:
+        """
+        Create QTreeWidgetItems and QLabels
+        """
+        for branch in self.data:
             parent = QTreeWidgetItem(self.FormulaTree)
-            branch_name = str(list(branch.keys())[0])
-            parent.setText(0, branch_name)
+            parent.setText(0, branch)
 
-            for sub_branch in list(branch[branch_name].keys()):
+            for sub_branch in self.data[branch]:
                 child = QTreeWidgetItem(parent)
                 child.setText(0, sub_branch)
 
-                for formula in branch[branch_name][sub_branch]:
+                for formula in self.data[branch][sub_branch]:
                     formula_child = QTreeWidgetItem(child)
-                    formula_child.setText(0, formula)
+                    formula_label = QLabel()
 
-    def formula_tree_selected(self) -> None:
-        """
-        Retrieves formula and information about formula that user double clicked.
-        Splits equation into left side of equals symbol and right side.
-        Uses _i as imaginary unit instead of I and removes other similar functions/variables so they can be used as variables in formula.
-        """
-        get_selected = self.FormulaTree.selectedItems()
-        if get_selected:
-            base_node = get_selected[0]
-            self.selected_tree_item = base_node.text(0)
-            if "=" in self.selected_tree_item:
-                expr = self.selected_tree_item.split("=")
-                expr = list(map(lambda x: x.replace("_i", "(sqrt(-1))"), expr))
-                self.formula_symbols_list = [
-                    str(i)
-                    for i in list(
-                        self.S(expr[0], locals=self._clash1).atoms(self.Symbol)
-                    )
+                    formula_label.setObjectName(f"{formula}")
+                    if not self.use_latex:
+                        formula_label.setText(formula)
+                    self.FormulaTree.setItemWidget(formula_child, 0, formula_label)
+
+    def expanded_sub(self, item):
+        # Collapse everything else
+        if self.use_latex:
+            root = self.FormulaTree.invisibleRootItem()
+            for i in range(root.childCount()):
+                branch = root.child(i)
+                for j in range(branch.childCount()):
+                    sub_branch = branch.child(j)
+                    if sub_branch != item:
+                        self.FormulaTree.collapseItem(sub_branch)
+
+            # Get formulas and start worker
+            if item.parent():
+                formulas = [
+                    self.FormulaTree.itemWidget(item.child(i), 0).objectName()
+                    for i in range(item.childCount())
                 ]
-                self.formula_symbols_list.extend(
-                    (
-                        str(i)
-                        for i in list(
-                            self.S(expr[1], locals=self._clash1).atoms(self.Symbol)
-                        )
-                    )
-                )
-                self.formula_symbols_list = list(set(self.formula_symbols_list))
-                self.formula_symbols_list.sort()
+                formulas = [self.imag.sub("(sqrt(-1))", f) for f in formulas]
+                title = item.text(0)
+                total = len(formulas)
 
-                self.formula_update_vars()
-                self.formula_info = self.formula_get_info(
-                    self.selected_tree_item, self.formula_tree_data
+                worker = LaTeXWorker(formulas, fig=self.fig)
+                worker.signals.current.connect(
+                    lambda current: self.update_current(current, total, title, item)
                 )
-                self.formula_set_tool_tip()
+                worker.signals.output.connect(lambda output: self.set_pixmap(output, item))
+                worker.signals.finished.connect(lambda: item.setText(0, title))
 
-    def formula_update_vars(self) -> None:
+                self.main_window.threadpool.start(worker)
+
+    def collapsed_sub(self, item):
+        """
+        In order to save memory, LaTeX QPixmaps are generated when shown
+        and cleared once the user clicks on another sub-branch.
+
+        :param item: QTreeWidgetItem
+            The item the user clicked at
+        :return:
+        """
+        if self.use_latex:
+            if item.parent():
+                for i in range(item.childCount()):
+                    qlabel = self.FormulaTree.itemWidget(item.child(i), 0)
+                    qlabel.clear()
+
+            QPixmapCache.clear()
+
+
+    def update_current(self, curr, total, title, item):
+        """
+        Updates title of sub-branch
+
+        :param curr: int
+            Index of the LaTeX image being processed
+        :param total: int
+            Total number of formulas to be processed
+        :param title: str
+            Title of sub-branch
+        :param item: QTreeWidgetItem
+            QTreeWidgetItem being expanded
+        """
+        item.setText(
+            0, f"{title} - Generating LaTeX [{curr}/{total}] {int((curr/total)*100)}%"
+        )
+
+    def set_pixmap(self, qp_list, item):
+        """
+        Sets pixmaps to respective QLabels
+
+        :param qp_list: list
+            List of QPixmaps
+        :param item: QTreeWidgetItem
+            QTreeWidgetItem being expanded
+        """
+        for i in range(item.childCount()):
+            pixmap = qp_list[i]
+
+            qlabel = self.FormulaTree.itemWidget(item.child(i), 0)
+            item.child(i).setSizeHint(
+                0, QSize(self.FormulaTree.width(), pixmap.height())
+            )
+            qlabel.setPixmap(pixmap)
+            self.FormulaTree.updateGeometries()
+
+        QPixmapCache.clear()
+
+    def formula_tree_selected(self):
+        """
+        Retrieve symbols from formula.
+        self.formula_symbol_list contains strings of symbols
+        """
+        selected = self.FormulaTree.selectedItems()
+        if selected:
+            widget = selected[0]
+            qlabel = self.FormulaTree.itemWidget(widget, 0)
+
+            formula = qlabel.objectName()
+            formula = self.imag.sub("(sqrt(-1))", formula)
+            expr = formula.split("=")
+
+            self.formula_symbol_list = [
+                list(i)
+                for i in [
+                    self.S(expr[j], locals=self._clash1).atoms(self.Symbol)
+                    for j in (0, 1)
+                ]
+            ]
+            self.formula_symbol_list = [
+                str(i) for j in self.formula_symbol_list for i in j
+            ]
+            self.formula_symbol_list.sort()
+
+            self.formula_update_vars()
+            self.formula_info = self.formula_get_info(
+                qlabel.objectName(), self.data
+            )
+            self.formula_set_tool_tip()
+
+    def formula_update_vars(self):
+        """
+        Clear QScrollArea, then set a Qlabel and QLineEdit
+        for every symbol present in the formula.
+        """
         for i in reversed(range(self.grid_scroll_area.count())):
             self.grid_scroll_area.itemAt(i).widget().setParent(None)
-        self.formula_label_names = self.formula_symbols_list
-        self.formula_label_pos = [[i, 0] for i in range(len(self.formula_label_names))]
-        self.formula_line_pos = [[i, 1] for i in range(len(self.formula_label_names))]
 
-        for self.formula_name_label, formula_pos_label, formula_pos_line in zip(
-            self.formula_label_names, self.formula_label_pos, self.formula_line_pos
-        ):
+        for i in range(len(self.formula_symbol_list)):
+            symbol = self.formula_symbol_list[i]
             self.formula_label = QLabel(self.FormulaScrollArea)
-            self.formula_label.setText(self.formula_name_label)
-            self.formula_label.setObjectName(self.formula_name_label + "line")
-            self.grid_scroll_area.addWidget(self.formula_label, *formula_pos_label)
-            self.formula_QLine = QLineEdit(self.FormulaScrollArea)
-            self.formula_QLine.setFixedHeight(30)
-            self.formula_QLine.setObjectName(self.formula_name_label + "line")
-            self.formula_QLine.setFont(QFont("Courier New", 8))
-            self.grid_scroll_area.addWidget(self.formula_QLine, *formula_pos_line)
+            self.formula_label.setText(symbol)
+            self.formula_label.setObjectName(symbol + "label")
 
-    def formula_set_tool_tip(self) -> None:
-        """
-        Retrieves info from json file, set tooltip and set value of constants if needed
-        """
-        _translate = QCoreApplication.translate
+            self.formula_qline = QLineEdit(self.FormulaScrollArea)
+            self.formula_qline.setFixedHeight(30)
+            self.formula_qline.setObjectName(symbol + "line")
+            self.formula_qline.setFont(QFont("Courier New", 8))
 
-        lines = []
-        for name in self.formula_label_names:
-            info = self.formula_info[name]
+            self.grid_scroll_area.addWidget(self.formula_label, i, 0)
+            self.grid_scroll_area.addWidget(self.formula_qline, i, 1)
 
-            if info in list(self.formula_info_dict.keys()):
-                full_info = self.formula_info_dict[info]
+    def formula_set_tool_tip(self):
+        for name in self.formula_symbol_list:
+            label = self.FormulaScrollArea.findChild(QLabel, f"{name}label")
+            qline = self.FormulaScrollArea.findChild(QLineEdit, f"{name}line")
+
+            _info = self.formula_info[name]
+            if type(_info) == list:
+                info = _info[0]
+                _, unit = self.info[_info[1]]
             else:
-                full_info = f"{info}|N/A|N/A"
-            lines.append(
-                [
-                    self.FormulaScrollArea.findChild(QLineEdit, str(name) + "line"),
-                    full_info,
-                ]
-            )
+                info, unit = self.info[self.formula_info[name]]
+            qline.setToolTip(f"{info}, mäts i {unit}")
+            label.setToolTip(f"{unit}")
 
-        for line in lines:
-            info_list = line[1].split("|")
-
-            name = info_list[0]
-            unit_info = info_list[1]
-            unit = info_list[2]
-
-            if ";" in name:
-                line[0].setText(name.split(";")[1])
-
-            line[0].setToolTip(_translate("MainWindow", f"{unit_info}, mäts i {unit}"))
-
-    def formula_get_info(self, text: str, data: dict) -> str:
+    @staticmethod
+    def formula_get_info(text: str, data: dict) -> dict:
         """
         Retrieves info that's correlated with given formula
 
-        Parameters
-        -------------
-        text: string
-            Formula whose information is requested.
-        data: JSON file
-            Data that stores formulas and respective information.
-
-        Returns
-        ------------
-        formula[1]: string
-            Information correlated to formula.
+        :param text: str
+            Formula whose information is requested
+        :param data: dict
+            Dictionary that holds all information
+        :return: dict
+            Information about formula
         """
-
         for branch in data:
-            branch_name = str(list(branch.keys())[0])
-            for sub_branch in list(branch[branch_name].keys()):
-                if text in list(branch[branch_name][sub_branch].keys()):
-                    return branch[branch_name][sub_branch][text]
+            for subbranch in data[branch]:
+                for formula in data[branch][subbranch]:
+                    if formula == text:
+                        return data[branch][subbranch][formula]
 
     def stop_thread(self) -> None:
         pass
