@@ -16,9 +16,9 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from PyQt5.QtCore import pyqtSlot, QEvent, Qt
-from PyQt5.QtWidgets import QAction, QApplication, QWidget
-from PyQt5.QtGui import QCursor
+from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtWidgets import QAction, QShortcut, QWidget
+from PyQt5.QtGui import QCursor, QKeySequence
 from PyQt5.uic import loadUi
 
 import typing as ty
@@ -192,12 +192,14 @@ class IntegralTab(QWidget):
             self.approx_integ = False
         self.main_window.add_to_save_settings({"approx_integ": self.approx_integ})
 
-        self.install_event_filters()
+        # Shortcuts
+        cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
+        cshortcut.activated.connect(self.calc_integ)
+        pshortcut = QShortcut(QKeySequence("Ctrl+Shift+Return"), self)
+        pshortcut.activated.connect(self.prev_integ)
+
         self.init_integral_menu()
         self.init_bindings()
-
-    def install_event_filters(self) -> None:
-        self.IntegExp.installEventFilter(self)
 
     def init_integral_menu(self) -> None:
         self.menuInteg = self.main_window.menubar.addMenu("Integral")
@@ -217,21 +219,6 @@ class IntegralTab(QWidget):
             self.approx_integ = False
 
         self.main_window.update_save_settings({"approx_integ": self.approx_integ})
-
-    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
-        QModifiers = QApplication.keyboardModifiers()
-        modifiers = []
-        if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append("shift")
-
-        if event.type() == QEvent.KeyPress:
-            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                if modifiers:
-                    if modifiers[0] == "shift":
-                        self.calc_integ()
-                        return True
-
-        return super(IntegralTab, self).eventFilter(obj, event)
 
     def init_bindings(self) -> None:
         self.IntegPrev.clicked.connect(self.prev_integ)

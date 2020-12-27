@@ -16,9 +16,9 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from PyQt5.QtCore import pyqtSlot, QEvent, Qt
-from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtGui import QCursor
+from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtWidgets import QShortcut, QWidget
+from PyQt5.QtGui import QCursor, QKeySequence
 from PyQt5.uic import loadUi
 
 from sympy import *
@@ -167,29 +167,13 @@ class DerivativeTab(QWidget):
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/derivative.ui"), self)
 
-        self.install_event_filters()
+        # Shortcuts
+        cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
+        cshortcut.activated.connect(self.calc_deriv)
+        pshortcut = QShortcut(QKeySequence("Ctrl+Shift+Return"), self)
+        pshortcut.activated.connect(self.prev_deriv)
+
         self.init_bindings()
-
-    def install_event_filters(self) -> None:
-        self.DerivExp.installEventFilter(self)
-
-    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
-        """
-        Add modifiers and if shift + enter or shift + return is pressed, run calc_deriv()
-        """
-        QModifiers = QApplication.keyboardModifiers()
-        modifiers = []
-        if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append("shift")
-
-        if event.type() == QEvent.KeyPress:
-            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                if modifiers:
-                    if modifiers[0] == "shift":
-                        self.calc_deriv()
-                        return True
-
-        return super(DerivativeTab, self).eventFilter(obj, event)
 
     def init_bindings(self) -> None:
         self.DerivPrev.clicked.connect(self.prev_deriv)
@@ -213,6 +197,10 @@ class DerivativeTab(QWidget):
 
             self.DerivOut.setText(self.main_window.exact_ans)
             self.DerivApprox.setText(str(self.main_window.approx_ans))
+
+        # TODO: This
+        self.DerivOut.selectAll()
+        self.DerivOut.setFocus()
 
     def prev_deriv(self) -> None:
         self.DerivOut.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))

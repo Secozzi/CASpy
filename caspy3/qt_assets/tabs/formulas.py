@@ -16,11 +16,10 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+# PyQt5
 from PyQt5.QtCore import (
     pyqtSignal,
     pyqtSlot,
-    QCoreApplication,
-    QEvent,
     QObject,
     QRunnable,
     QSize,
@@ -28,7 +27,6 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtWidgets import (
     QAction,
-    QApplication,
     QGridLayout,
     QLabel,
     QLineEdit,
@@ -39,54 +37,26 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import (
     QCursor,
     QFont,
-    QImage,
     QKeySequence,
-    QPixmap,
     QPixmapCache,
 )
 from PyQt5.uic import loadUi
 
+# Misc
 import typing as ty
 import re as pyreg
 
+# SymPy
 from sympy import *
 from sympy.parsing.sympy_parser import parse_expr
 
-from .worker import BaseWorker
-
-import matplotlib
+# matplotlib
 import matplotlib.pyplot as mpl
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-matplotlib.rcParams['mathtext.fontset'] = 'cm'
 
-
-def mathTex_to_QPixmap(mathTex, fs, fig):
-    fig.clf()
-    fig.patch.set_facecolor('none')
-    fig.set_canvas(FigureCanvasAgg(fig))
-    renderer = fig.canvas.get_renderer()
-
-    ax = fig.add_axes([0, 0, 1, 1])
-    ax.axis('off')
-    ax.patch.set_facecolor('none')
-    t = ax.text(0, 0, mathTex, ha='left', va='bottom', fontsize=fs, fontfamily=['STIXGeneral'])
-
-    fwidth, fheight = fig.get_size_inches()
-    fig_bbox = fig.get_window_extent(renderer)
-
-    text_bbox = t.get_window_extent(renderer)
-
-    tight_fwidth = text_bbox.width * fwidth / fig_bbox.width
-    tight_fheight = text_bbox.height * fheight / fig_bbox.height
-
-    fig.set_size_inches(tight_fwidth, tight_fheight)
-
-    buf, size = fig.canvas.print_to_buffer()
-    qimage = QImage.rgbSwapped(QImage(buf, size[0], size[1],
-                                      QImage.Format_ARGB32))
-    qpixmap = QPixmap(qimage)
-
-    return qpixmap
+# Relative
+from .worker import BaseWorker
+from .drag_label import DragLabel
+from .latex import mathTex_to_QPixmap
 
 
 class LaTeXSignals(QObject):
@@ -299,7 +269,7 @@ class FormulaTab(QWidget):
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/formulas.ui"), self)
 
-        cshortcut = QShortcut(QKeySequence("Shift+Return"), self)
+        cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
         cshortcut.activated.connect(self.calc_formula)
         pshortcut = QShortcut(QKeySequence("Ctrl+Shift+Return"), self)
         pshortcut.activated.connect(self.prev_formula)
@@ -390,7 +360,7 @@ class FormulaTab(QWidget):
 
                 for formula in self.data[branch][sub_branch]:
                     formula_child = QTreeWidgetItem(child)
-                    formula_label = QLabel()
+                    formula_label = DragLabel(self, formula)
 
                     formula_label.setObjectName(f"{formula}")
                     if not self.use_latex:
@@ -444,7 +414,6 @@ class FormulaTab(QWidget):
 
             QPixmapCache.clear()
 
-
     def update_current(self, curr, total, title, item):
         """
         Updates title of sub-branch
@@ -479,8 +448,7 @@ class FormulaTab(QWidget):
                 0, QSize(self.FormulaTree.width(), pixmap.height())
             )
             qlabel.setPixmap(pixmap)
-            self.FormulaTree.updateGeometries()
-
+        self.FormulaTree.updateGeometries()
         QPixmapCache.clear()
 
     def formula_tree_selected(self):
@@ -528,6 +496,7 @@ class FormulaTab(QWidget):
             self.formula_label = QLabel(self.FormulaScrollArea)
             self.formula_label.setText(symbol)
             self.formula_label.setObjectName(symbol + "label")
+            self.formula_label.setFont(QFont("Courier New", 8))
 
             self.formula_qline = QLineEdit(self.FormulaScrollArea)
             self.formula_qline.setFixedHeight(30)

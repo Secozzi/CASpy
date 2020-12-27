@@ -160,6 +160,9 @@
     <addaction name="actionAccuracy"/>
     <addaction name="separator"/>
     <addaction name="actionTab_List"/>
+    <addaction name="separator"/>
+    <addaction name="actionUseLatex"/>
+    <addaction name="actionLatexFs"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -292,6 +295,9 @@
    <property name="toolTip">
     <string>Pretty Print</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
   </action>
   <action name="actionLatex">
    <property name="checkable">
@@ -299,6 +305,9 @@
    </property>
    <property name="text">
     <string>Latex</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
    </property>
   </action>
   <action name="actionNormal">
@@ -310,6 +319,9 @@
    </property>
    <property name="toolTip">
     <string>Normal - No special format</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
    </property>
   </action>
   <action name="actionExact_Answer">
@@ -342,6 +354,33 @@
   <action name="actionTab_List">
    <property name="text">
     <string>Tab List</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="actionLaTeX_resolution">
+   <property name="text">
+    <string>LaTeX resolution</string>
+   </property>
+  </action>
+  <action name="actionUseLatex">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use LaTeX renderer</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
+   </property>
+  </action>
+  <action name="actionLatexFs">
+   <property name="text">
+    <string>LaTeX font-size</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

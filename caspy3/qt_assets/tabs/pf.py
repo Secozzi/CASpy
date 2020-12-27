@@ -17,8 +17,8 @@
 #
 
 from PyQt5.QtCore import pyqtSlot, QRegExp, Qt
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtGui import QCursor, QRegExpValidator
+from PyQt5.QtWidgets import QShortcut, QWidget
+from PyQt5.QtGui import QCursor, QKeySequence, QRegExpValidator
 from PyQt5.uic import loadUi
 
 import typing as ty
@@ -76,6 +76,10 @@ class PfTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/pf.ui"), self)
+
+        # Shortcuts
+        cshortcut = QShortcut(QKeySequence("Shift+Return"), self)
+        cshortcut.activated.connect(self.calc_pf)
 
         self.init_menu()
         self.init_bindings()

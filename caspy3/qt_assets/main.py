@@ -70,6 +70,8 @@ class CASpyGUI(QMainWindow):
         self.line_wrap = self.settings_data["linewrap"]
         self.use_scientific = self.settings_data["scientific"]
         self.accuracy = self.settings_data["accuracy"]
+        self.use_latex = self.settings_data["use_latex"]
+        self.latex_fs = self.settings_data["latex_fs"]
         self.save_settings_data = {}
 
         # Start threadppol
@@ -134,7 +136,7 @@ class CASpyGUI(QMainWindow):
 
     def init_menu(self) -> None:
         """For the QActionGroup Output Type -> Pretty - Latex - Normal.
-        This couldn't be done in Qt Designer since it doesn't support QActionGroup."""
+        This couldn't be done in Qt Designer since AFAIK it doesn't support QActionGroup."""
         self.output_type_group = QActionGroup(self.menuOutput_Type)
         self.output_type_group.addAction(self.actionPretty)
         self.output_type_group.addAction(self.actionLatex)
@@ -155,9 +157,11 @@ class CASpyGUI(QMainWindow):
             "actionPrevious_Tab": self.previous_tab,
             "actionExact_Answer": self.view_exact_ans,
             "actionApproximate_Answer": self.view_approx_ans,
+            "actionLatexFs": self.change_latex_fs
         }
 
         checkable_actions = {
+            "actionUseLatex": self.toggle_use_latex,
             "actionUnicode": self.use_unicode,
             "actionLinewrap": self.line_wrap,
         }
@@ -186,6 +190,9 @@ class CASpyGUI(QMainWindow):
 
         self.actionAccuracy.setText(
             _translate("MainWindow", f"Accuracy - {self.accuracy}")
+        )
+        self.actionLatexFs.setText(
+            _translate("MainWindow", f"LaTeX font-size - {self.latex_fs}")
         )
 
         if self.output_type == 1:
@@ -239,7 +246,7 @@ class CASpyGUI(QMainWindow):
         else:
             return None
 
-    def get_accuracy(self) -> int:
+    def get_accuracy(self) -> None:
         # Get accuracy with QInputDialog
         number, confirmed = QInputDialog.getInt(
             self,
@@ -291,6 +298,33 @@ class CASpyGUI(QMainWindow):
             self.actionScientific_Notation.setText(
                 _translate("MainWindow", "Scientific Notation")
             )
+
+    def toggle_use_latex(self, state: bool) -> None:
+        if state:
+            self.use_latex = True
+        else:
+            self.use_latex = False
+
+    def get_latex_fs(self) -> None:
+        # Get LaTeX resolution with QInputDialog
+        number, confirmed = QInputDialog.getInt(
+            self,
+            "LaTex Resolution",
+            "Enter font-size for LaTeX renderer. Higher font-size equals greater resolution",
+            self.latex_fs,
+            1,
+            999999,
+            1,
+        )
+        if confirmed:
+            self.latex_fs = number
+
+    def change_latex_fs(self) -> None:
+        _translate = QCoreApplication.translate
+        self.get_latex_fs()
+        self.actionAccuracy.setText(
+            _translate("MainWindow", f"Accuracy - {self.accuracy}")
+        )
 
     def change_accuracy(self) -> None:
         # Changes accuracy of all evaluations
@@ -394,6 +428,8 @@ class CASpyGUI(QMainWindow):
             "output": self.output_type,
             "scientific": self.use_scientific,
             "accuracy": self.accuracy,
+            "use_latex": self.use_latex,
+            "latex_fs": self.latex_fs
         }
 
         # add data called from add_to_save_settings()

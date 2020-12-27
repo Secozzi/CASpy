@@ -524,6 +524,7 @@ class EquationsTab(QWidget):
         self.init_ui()
         self.init_equation_menu()
         self.install_event_filters()
+        # TODO: Shortcuts
         self.init_bindings()
         self.update_eq_line()
 

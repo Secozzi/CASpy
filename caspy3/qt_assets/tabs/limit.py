@@ -16,9 +16,9 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from PyQt5.QtCore import pyqtSlot, QEvent, Qt
-from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtGui import QCursor
+from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtWidgets import QShortcut, QWidget
+from PyQt5.QtGui import QCursor, QKeySequence
 from PyQt5.uic import loadUi
 
 import typing as ty
@@ -146,26 +146,13 @@ class LimitTab(QWidget):
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/limit.ui"), self)
 
-        self.install_event_filters()
+        # Shortcuts
+        cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
+        cshortcut.activated.connect(self.calc_limit)
+        pshortcut = QShortcut(QKeySequence("Ctrl+Shift+Return"), self)
+        pshortcut.activated.connect(self.prev_limit)
+
         self.init_bindings()
-
-    def install_event_filters(self) -> None:
-        self.LimExp.installEventFilter(self)
-
-    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
-        QModifiers = QApplication.keyboardModifiers()
-        modifiers = []
-        if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append("shift")
-
-        if event.type() == QEvent.KeyPress:
-            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                if modifiers:
-                    if modifiers[0] == "shift":
-                        self.calc_limit()
-                        return True
-
-        return super(LimitTab, self).eventFilter(obj, event)
 
     def init_bindings(self) -> None:
         self.LimPrev.clicked.connect(self.prev_limit)
