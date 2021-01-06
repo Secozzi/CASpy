@@ -185,6 +185,8 @@ class IntegralTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/integral.ui"), self)
+        self.eout = self.IntegOut
+        self.aout = self.IntegApprox
 
         if "approx_integ" in list(self.main_window.settings_data.keys()):
             self.approx_integ = self.main_window.settings_data["approx_integ"]
@@ -223,6 +225,8 @@ class IntegralTab(QWidget):
     def init_bindings(self) -> None:
         self.IntegPrev.clicked.connect(self.prev_integ)
         self.IntegCalc.clicked.connect(self.calc_integ)
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.aout.mousePressEvent = lambda _: self.aout.selectAll()
 
     def stop_thread(self) -> None:
         pass

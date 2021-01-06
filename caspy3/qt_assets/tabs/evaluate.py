@@ -197,6 +197,8 @@ class EvaluateTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/evaluate.ui"), self)
+        self.eout = self.EvalOut
+        self.aout = self.EvalApprox
 
         # Shortcuts
         cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
@@ -209,6 +211,8 @@ class EvaluateTab(QWidget):
     def init_bindings(self) -> None:
         self.EvalPrev.clicked.connect(self.prev_eval_exp)
         self.EvalCalc.clicked.connect(self.eval_exp)
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.aout.mousePressEvent = lambda _: self.aout.selectAll()
 
     def stop_thread(self) -> None:
         pass

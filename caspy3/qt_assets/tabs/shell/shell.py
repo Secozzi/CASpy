@@ -1,16 +1,38 @@
 from PyQt5.QtCore import pyqtSlot, QCoreApplication, QEvent, QRegularExpression, Qt
-from PyQt5.QtWidgets import QAction, QApplication, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QAction, QApplication, QVBoxLayout, QWidget
 from PyQt5.QtGui import QCursor, QFont, QTextCursor
 
 import sys
 import traceback
 import typing as ty
 
-from ..highlight import TextEdit
+from ...highlight import TextEdit
 from .syntax_pars import PythonHighlighter
 from .start_code_dialog import StartCodeDialog
 
 from ..worker import BaseWorker
+
+# -------------- TESTING --------------
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtconsole.manager import QtKernelManager
+
+USE_KERNEL = 'python3'
+
+
+def make_jupyter_widget_with_kernel():
+    """Start a kernel, connect to it, and create a RichJupyterWidget to use it
+    """
+    kernel_manager = QtKernelManager(kernel_name=USE_KERNEL)
+    kernel_manager.start_kernel()
+
+    kernel_client = kernel_manager.client()
+    kernel_client.start_channels()
+
+    jupyter_widget = RichJupyterWidget()
+    jupyter_widget.kernel_manager = kernel_manager
+    jupyter_widget.kernel_client = kernel_client
+    return jupyter_widget
+# -------------- TESTING --------------
 
 
 class ShellWorker(BaseWorker):
@@ -254,25 +276,31 @@ class ShellTab(QWidget):
         self.add_to_menu()
 
     def init_ui(self) -> None:
+        self.setObjectName("ShellTab")
+        #self.shell_layout = QVBoxLayout()
+        #self.start_text = (
+        #    "# This is a very simple shell using 'exec' commands, so it has some limitations. Every variable "
+        #    "declared and function defined will be saved until the program is closed or when the 'clear "
+        #    "commands' button in the menubar is pressed. It will automatically output to the shell. To copy "
+        #    "output, press the 'copy exact answer' in the "
+        #    "menubar.\n# These commands were executed:\n"
+        #)
+        #
+        #self.consoleIn = Console(self.start_text, self.start_code, self.main_window)
+        #self.ShellRun = QPushButton()
+        #self.ShellRun.setText("Run (Enter)")
+        #
+        #self.shell_layout.addWidget(self.consoleIn)
+        #self.shell_layout.addWidget(self.ShellRun)
+        #self.setLayout(self.shell_layout)
+        self.jupyter_widget = make_jupyter_widget_with_kernel()
         self.shell_layout = QVBoxLayout()
-        self.start_text = (
-            "# This is a very simple shell using 'exec' commands, so it has some limitations. Every variable "
-            "declared and function defined will be saved until the program is closed or when the 'clear "
-            "commands' button in the menubar is pressed. It will automatically output to the shell. To copy "
-            "output, press the 'copy exact answer' in the "
-            "menubar.\n# These commands were executed:\n"
-        )
-
-        self.consoleIn = Console(self.start_text, self.start_code, self.main_window)
-        self.ShellRun = QPushButton()
-        self.ShellRun.setText("Run (Enter)")
-
-        self.shell_layout.addWidget(self.consoleIn)
-        self.shell_layout.addWidget(self.ShellRun)
+        self.shell_layout.addWidget(self.jupyter_widget)
         self.setLayout(self.shell_layout)
 
     def install_event_filter(self) -> None:
-        self.consoleIn.installEventFilter(self)
+        pass
+        #self.consoleIn.installEventFilter(self)
 
     def eventFilter(self, obj: 'QObject', event: 'QEvent') -> bool:
         QModifiers = QApplication.keyboardModifiers()
@@ -335,7 +363,8 @@ class ShellTab(QWidget):
         return super(ShellTab, self).eventFilter(obj, event)
 
     def init_bindings(self) -> None:
-        self.ShellRun.clicked.connect(self.execute_code)
+        pass
+        #self.ShellRun.clicked.connect(self.execute_code)
 
     def stop_thread(self) -> None:
         pass

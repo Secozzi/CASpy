@@ -102,6 +102,8 @@ class SimplifyTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/simplify.ui"), self)
+        self.eout = self.SimpOut
+        self.aout = None
 
         # Shortcuts
         cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
@@ -114,6 +116,7 @@ class SimplifyTab(QWidget):
     def init_bindings(self) -> None:
         self.SimpPrev.clicked.connect(self.prev_simp_exp)
         self.SimpCalc.clicked.connect(self.simp_exp)
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
 
     def stop_thread(self) -> None:
         pass

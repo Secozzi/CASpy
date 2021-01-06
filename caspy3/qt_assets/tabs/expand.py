@@ -101,6 +101,8 @@ class ExpandTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/expand.ui"), self)
+        self.eout = self.ExpOut
+        self.aout = None
 
         # Shortcuts
         cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
@@ -113,6 +115,7 @@ class ExpandTab(QWidget):
     def init_bindings(self) -> None:
         self.ExpPrev.clicked.connect(self.prev_expand_exp)
         self.ExpCalc.clicked.connect(self.expand_exp)
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
 
     def stop_thread(self) -> None:
         pass

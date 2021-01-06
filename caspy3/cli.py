@@ -19,9 +19,9 @@
 from PyQt5.QtCore import QObject, QThreadPool
 from PyQt5.QtWidgets import QApplication
 
-import typing as ty
 from .qt_assets.tabs.worker import BaseWorker
 
+import typing as ty
 import traceback
 import click
 import sys
@@ -135,7 +135,8 @@ class EncloseNegative(click.Command):
         return super(EncloseNegative, self).parse_args(ctx, args)
 
 
-# Default flags, these flags are added to a command by using the decorator '@add_options(DEFAULT_FLAGS)'.
+# Default flags, these flags are added
+# to a command by using the decorator '@add_options(DEFAULT_FLAGS)'.
 DEFAULT_FLAGS = [
     click.option(
         "--preview",
@@ -181,7 +182,8 @@ DEFAULT_ARGUMENTS = [
     ),
 ]
 
-# Options used by equations (This includes formula), added to command by using the decorator '@add_options(EQ_FLAGS)'.
+# Options used by equations (This includes formula),
+# added to command by using the decorator '@add_options(EQ_FLAGS)'.
 EQ_FLAGS = [
     click.option(
         "--domain", "-d", default="Complexes", help="Give domain to solve for"
@@ -243,12 +245,6 @@ def validate_inputs(
     :return:
         Returns either error along with message if validation failed, or True along with 'pass' if validation passed
     """
-
-    if input_kwargs["output_type"] not in range(1, 4):
-        return {
-            "error": "Output type must be integer between 1 and 3 inclusive. 1 for pretty; 2 for latex and 3 for "
-            "normal."
-        }
 
     if len(input_params) > len(default_params):
         return {

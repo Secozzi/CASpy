@@ -24,7 +24,7 @@ from PyQt5.uic import loadUi
 
 class AddWebsite(QDialog):
     def __init__(self, main_window: "CASpyGUI", web_tab: "WebTab", parent=None) -> None:
-        super(AddWebsite, self).__init__(parent=None)
+        super(AddWebsite, self).__init__(parent=parent)
         self.main_window = main_window
         self.web_list = self.main_window.websites_data
         self.web_tab = web_tab

@@ -55,8 +55,8 @@ import matplotlib.pyplot as mpl
 
 # Relative
 from .worker import BaseWorker
-from .drag_label import DragLabel
-from .latex import mathTex_to_QPixmap
+from ..drag_label import DragLabel
+from ..latex import mathTex_to_QPixmap
 
 
 class LaTeXSignals(QObject):
@@ -181,7 +181,7 @@ class FormulaWorker(BaseWorker):
         use_scientific: ty.Union[int, None],
         accuracy: int,
         verify_domain: bool,
-        approximate: ty.Union[str, None],
+        approximate: ty.Union[str, None] = None,
     ) -> ty.Dict[str, ty.List[str]]:
         init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
         empty_var_list, var_list, values = [], [], []
@@ -268,7 +268,10 @@ class FormulaTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/formulas.ui"), self)
+        self.eout = self.FormulaExact
+        self.aout = self.FormulaApprox
 
+        # Shortcuts
         cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
         cshortcut.activated.connect(self.calc_formula)
         pshortcut = QShortcut(QKeySequence("Ctrl+Shift+Return"), self)
@@ -277,8 +280,7 @@ class FormulaTab(QWidget):
         self.info = self.main_window.formulas_data[0]
         self.data = self.main_window.formulas_data[1]
 
-        # TODO
-        self.use_latex = True
+        self.use_latex = self.main_window.use_latex
         self.imag = pyreg.compile("\b_i\b")
 
         self.fig = mpl.figure()
@@ -333,6 +335,9 @@ class FormulaTab(QWidget):
         self.FormulaDomain.currentIndexChanged.connect(self.set_interval)
         self.FormulaNsolve.stateChanged.connect(self.approximate_state)
 
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.aout.mousePressEvent = lambda _: self.aout.selectAll()
+
     def set_interval(self, index: int) -> None:
         if index >= 5:
             self.FormulaDomain.setEditable(True)
@@ -361,7 +366,6 @@ class FormulaTab(QWidget):
                 for formula in self.data[branch][sub_branch]:
                     formula_child = QTreeWidgetItem(child)
                     formula_label = DragLabel(self, formula)
-
                     formula_label.setObjectName(f"{formula}")
                     if not self.use_latex:
                         formula_label.setText(formula)
@@ -409,7 +413,7 @@ class FormulaTab(QWidget):
         if self.use_latex:
             if item.parent():
                 for i in range(item.childCount()):
-                    qlabel = self.FormulaTree.itemWidget(item.child(i), 0)
+                    qlabel: QLabel = self.FormulaTree.itemWidget(item.child(i), 0)
                     qlabel.clear()
 
             QPixmapCache.clear()
@@ -443,7 +447,7 @@ class FormulaTab(QWidget):
         for i in range(item.childCount()):
             pixmap = qp_list[i]
 
-            qlabel = self.FormulaTree.itemWidget(item.child(i), 0)
+            qlabel: QLabel = self.FormulaTree.itemWidget(item.child(i), 0)
             item.child(i).setSizeHint(
                 0, QSize(self.FormulaTree.width(), pixmap.height())
             )
@@ -458,11 +462,11 @@ class FormulaTab(QWidget):
         """
         selected = self.FormulaTree.selectedItems()
         if selected:
-            widget = selected[0]
-            qlabel = self.FormulaTree.itemWidget(widget, 0)
+            widget: QTreeWidgetItem = selected[0]
+            qlabel: QLabel = self.FormulaTree.itemWidget(widget, 0)
 
-            formula = qlabel.objectName()
-            formula = self.imag.sub("(sqrt(-1))", formula)
+            self.formula = qlabel.objectName()
+            formula = self.imag.sub("(sqrt(-1))", self.formula)
             expr = formula.split("=")
 
             self.formula_symbol_list = [
@@ -508,8 +512,8 @@ class FormulaTab(QWidget):
 
     def formula_set_tool_tip(self):
         for name in self.formula_symbol_list:
-            label = self.FormulaScrollArea.findChild(QLabel, f"{name}label")
-            qline = self.FormulaScrollArea.findChild(QLineEdit, f"{name}line")
+            label: QLabel = self.FormulaScrollArea.findChild(QLabel, f"{name}label")
+            qline: QLineEdit = self.FormulaScrollArea.findChild(QLineEdit, f"{name}line")
 
             _info = self.formula_info[name]
             if type(_info) == list:
@@ -561,12 +565,12 @@ class FormulaTab(QWidget):
         try:
             lines = [
                 [self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i]
-                for i in self.formula_label_names
+                for i in self.formula_symbol_list
             ]
         except:
             self.main_window.show_error_box("Error: select a formula")
         else:
-            values_string = self.selected_tree_item.split("=")
+            values_string = self.formula.split("=")
 
             self.FormulaExact.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
             self.FormulaApprox.viewport().setProperty("cursor", QCursor(Qt.WaitCursor))
@@ -596,10 +600,11 @@ class FormulaTab(QWidget):
         try:
             lines = [
                 [self.FormulaScrollArea.findChild(QLineEdit, str(i) + "line"), i]
-                for i in self.formula_label_names
+                for i in self.formula_symbol_list
             ]
-            values_string = self.selected_tree_item.split("=")
-        except:
+            values_string = self.formula.split("=")
+        except Exception as e:
+            print(e)
             self.main_window.show_error_box("Error: select a formula")
             return
 

@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QGridLayout
 from PyQt5.QtGui import QIcon
 
-from ..highlight import TextEdit
+from ...highlight import TextEdit
 from .syntax_pars import PythonHighlighter
 
 

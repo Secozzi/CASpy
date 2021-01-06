@@ -45,6 +45,8 @@ class WebTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/web.ui"), self)
+        self.eout = None
+        self.aout = None
 
         page = WebEnginePage(self.web)
         self.web.setPage(page)

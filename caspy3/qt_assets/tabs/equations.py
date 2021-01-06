@@ -512,6 +512,8 @@ class EquationsTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/equations.ui"), self)
+        self.eout = self.EqOut
+        self.aout = self.EqApprox
 
         if "verify_domain_eq" in list(self.main_window.settings_data.keys()):
             self.verify_domain_eq = self.main_window.settings_data["verify_domain_eq"]
@@ -571,6 +573,10 @@ class EquationsTab(QWidget):
         return super(EquationsTab, self).eventFilter(obj, event)
 
     def init_bindings(self) -> None:
+        # Clicking on output textbrowser
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.aout.mousePressEvent = lambda _: self.aout.selectAll()
+
         # Setting up buttons for selecting equation mode
         self.normalNormal.setChecked(True)
         self.EqNormalDomain.currentIndexChanged.connect(self.set_normal_interval)

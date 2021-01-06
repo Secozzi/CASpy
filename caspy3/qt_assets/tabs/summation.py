@@ -144,6 +144,8 @@ class SummationTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/summation.ui"), self)
+        self.eout = self.SumOut
+        self.aout = self.SumApprox
 
         # Shortcuts
         cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
@@ -156,6 +158,8 @@ class SummationTab(QWidget):
     def init_bindings(self) -> None:
         self.SumPrev.clicked.connect(self.prev_sum)
         self.SumCalc.clicked.connect(self.calc_sum)
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.aout.mousePressEvent = lambda _: self.aout.selectAll()
 
     def stop_thread(self) -> None:
         pass

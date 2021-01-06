@@ -20,6 +20,12 @@ All changes will be documented in this file
 
 - Removed support for python 3.7 and below
 - LaTeX renderer has been changed from mathjax to matplotlib, eliminating QWebEngineView
+- Shell tab has been replaced with Jupyter QtConsole
+- Changed some shortcuts
+
+### Removed
+
+- Removed view exact and approximate answer dialog
 
 ## [2.1.2] - 2020-08-31
 

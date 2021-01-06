@@ -145,6 +145,8 @@ class LimitTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/limit.ui"), self)
+        self.eout = self.LimOut
+        self.aout = self.LimApprox
 
         # Shortcuts
         cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
@@ -157,6 +159,8 @@ class LimitTab(QWidget):
     def init_bindings(self) -> None:
         self.LimPrev.clicked.connect(self.prev_limit)
         self.LimCalc.clicked.connect(self.calc_limit)
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.aout.mousePressEvent = lambda _: self.aout.selectAll()
 
     def stop_thread(self) -> None:
         pass

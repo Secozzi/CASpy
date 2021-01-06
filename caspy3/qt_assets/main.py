@@ -23,8 +23,6 @@ import pkg_resources
 
 import typing as ty
 
-from .dialogs.dialog_view import View
-from .dialogs.dialog_view_text import ViewText
 from .dialogs.tab_list import TabList
 
 from .tabs import TABS
@@ -39,6 +37,8 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QShortcut,
+    QTabWidget,
+    QWidget,
 )
 
 from PyQt5.QtGui import QCloseEvent
@@ -79,7 +79,7 @@ class CASpyGUI(QMainWindow):
         self.threadpool.setMaxThreadCount(1)
 
         # Define tabs used
-        self.TABS = TABS
+        self.TABS: ty.List[QWidget] = TABS
 
         # Initialize ui
         self.init_ui()
@@ -155,13 +155,12 @@ class CASpyGUI(QMainWindow):
             "actionCopy_Approximate_Answer": self.copy_approx_ans,
             "actionNext_Tab": self.next_tab,
             "actionPrevious_Tab": self.previous_tab,
-            "actionExact_Answer": self.view_exact_ans,
-            "actionApproximate_Answer": self.view_approx_ans,
-            "actionLatexFs": self.change_latex_fs
+            "actionLatexFs": self.change_latex_fs,
+            "actionUseLatex": self.toggle_use_latex,
         }
 
         checkable_actions = {
-            "actionUseLatex": self.toggle_use_latex,
+            "actionUseLatex": self.use_latex,
             "actionUnicode": self.use_unicode,
             "actionLinewrap": self.line_wrap,
         }
@@ -171,7 +170,6 @@ class CASpyGUI(QMainWindow):
             self.menuSettings.actions()
             + self.menuCopy.actions()
             + self.menuTab.actions()
-            + self.menuView.actions()
         ):
             object_name = action.objectName()
 
@@ -206,8 +204,10 @@ class CASpyGUI(QMainWindow):
         """
         Iterate through self.TABS and add the tab to tab_manager and pass self as main_window
         """
+        self.tab_manager: QTabWidget
         self.tab_manager.clear()
         for tab in self.TABS:
+            tab: "sip.wrappertype"
             self.tab_manager.addTab(tab(main_window=self), tab.display_name)
 
     @staticmethod
@@ -342,6 +342,9 @@ class CASpyGUI(QMainWindow):
         else:
             copy(str(self.exact_ans))
 
+        if self.tab_manager.currentWidget().eout:
+            self.tab_manager.currentWidget().eout.selectAll()
+
     def copy_approx_ans(self) -> None:
         # Copies self.approx_ans to clipboard.
         if type(self.approx_ans) == list:
@@ -349,6 +352,9 @@ class CASpyGUI(QMainWindow):
                 copy(str(self.approx_ans[0]))
         else:
             copy(str(self.approx_ans))
+
+        if self.tab_manager.currentWidget().aout:
+            self.tab_manager.currentWidget().aout.selectAll()
 
     def next_tab(self) -> None:
         # Goes to next tab.
@@ -363,14 +369,6 @@ class CASpyGUI(QMainWindow):
             self.tab_manager.setCurrentIndex(self.tab_manager.count() - 1)
         else:
             self.tab_manager.setCurrentIndex(self.tab_manager.currentIndex() - 1)
-
-    def view_exact_ans(self) -> None:
-        # Open QDialog with exact answer
-        self.v = View(str(self.exact_ans), self.latex_text)
-
-    def view_approx_ans(self) -> None:
-        # Open QDialog with approximate answer
-        self.v = ViewText(str(self.approx_ans))
 
     def add_to_save_settings(self, data: dict) -> None:
         """
@@ -431,6 +429,13 @@ class CASpyGUI(QMainWindow):
             "use_latex": self.use_latex,
             "latex_fs": self.latex_fs
         }
+
+        # Going through each tab
+        for i in range(self.tab_manager.count()):
+            tab: QWidget = self.tab_manager.widget(i)
+            if tab.objectName() == "ShellTab":  # Shut down kernal
+                tab.jupyter_widget.kernel_client.stop_channels()
+                tab.jupyter_widget.kernel_manager.shutdown_kernel()
 
         # add data called from add_to_save_settings()
         for key in list(self.save_settings_data.keys()):

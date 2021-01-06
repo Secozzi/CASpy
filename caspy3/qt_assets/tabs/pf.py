@@ -76,6 +76,8 @@ class PfTab(QWidget):
         super().__init__()
         self.main_window = main_window
         loadUi(self.main_window.get_resource_path("qt_assets/tabs/pf.ui"), self)
+        self.eout = self.PfOut
+        self.aout = self.PfApprox
 
         # Shortcuts
         cshortcut = QShortcut(QKeySequence("Shift+Return"), self)
@@ -92,6 +94,8 @@ class PfTab(QWidget):
 
     def init_bindings(self) -> None:
         self.PfCalc.clicked.connect(self.calc_pf)
+        self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.aout.mousePressEvent = lambda _: self.aout.selectAll()
 
     def stop_thread(self) -> None:
         pass

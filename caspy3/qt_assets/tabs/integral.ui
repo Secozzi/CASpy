@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>IntegralTab</class>
+ <widget class="QWidget" name="IntegralTab">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -240,7 +240,7 @@
   <customwidget>
    <class>TextEdit</class>
    <extends>QPlainTextEdit</extends>
-   <header>caspy3/qt_assets/tabs/highlight.h</header>
+   <header>caspy3/qt_assets/highlight.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

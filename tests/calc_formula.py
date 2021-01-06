@@ -24,6 +24,7 @@ class CalcFormulaTester(BaseTester):
         self.test_calc_formula_scientific_notation()
         self.test_calc_formula_verify_domain()
         self.test_calc_formula_solveset()
+        self.test_calc_formula_approx()
         self.test_calc_formula_domain()
 
     @BaseTester.call_worker(FormulaWorker)
@@ -384,6 +385,36 @@ class CalcFormulaTester(BaseTester):
         solution = {
             "eq": ["{-1.73205080756888}", 0],
             "latex": "\\left\\{-1.73205080756888\\right\\}",
+        }
+        return command, params, solution
+
+    @BaseTester.call_worker(FormulaWorker)
+    def test_calc_formula_approx(self):
+        line_1 = [QLineEdit(self), "Ek"]
+        line_2 = [QLineEdit(self), "m"]
+        line_3 = [QLineEdit(self), "v"]
+
+        line_1[0].setText("3")
+        line_2[0].setText("")
+        line_3[0].setText("5")
+
+        command = "calc_formula"
+        params = [
+            [line_1, line_2, line_3],
+            self.formula,
+            2,
+            "Complexes",
+            1,
+            False,
+            False,
+            False,
+            10,
+            False,
+            "2.3",
+        ]
+        solution = {
+            "eq": ['0.2400000000', '0.2400000000'],
+            "latex": "\\mathtt{\\text{0.2400000000}}",
         }
         return command, params, solution
 

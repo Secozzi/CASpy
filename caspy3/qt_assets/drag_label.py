@@ -1,13 +1,33 @@
-from PyQt5.QtWidgets import QApplication, QLabel, QMenu
+from PyQt5.QtWidgets import (
+    QApplication,
+    QColorDialog,
+    QDialog,
+    QFileDialog,
+    QLabel,
+    QMenu
+)
 from PyQt5.QtCore import QMimeData, Qt, QTemporaryDir, QUrl
 from PyQt5.QtGui import QDrag, QPixmapCache
+from PyQt5.uic import loadUi
 
+import pkg_resources
 from sympy.parsing import parse_expr
 from sympy import Eq, latex
+from pathlib import Path
 import string
 import random
 
 from .latex import mathTex_to_QPixmap
+
+
+class SaveDialog(QDialog):
+    def __init__(self, drag_label, parent=None) -> None:
+        super(SaveDialog, self).__init__(parent=parent)
+        self.drag_label = drag_label
+
+        loadUi(pkg_resources.resource_filename("caspy3", "qt_assets/dialogs/save_dialog.ui"), self)
+
+        self.show()
 
 
 class DragLabel(QLabel):
@@ -22,22 +42,36 @@ class DragLabel(QLabel):
         self.parent = parent
         self.formula = formula
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect (lambda pos: self.customMenuEvent(self, pos))
+        self.customContextMenuRequested.connect(lambda pos: self.customMenuEvent(self, pos))
 
-    def customMenuEvent(self, child, eventPosition):
-        contextMenu = QMenu(self)
-        copy = contextMenu.addAction("Copy")
-        copy_fs = contextMenu.addAction("Copy with font-size")
-        save = contextMenu.addAction("Save image")
+    def customMenuEvent(self, child: "DragLabel", eventPosition: "QPoint") -> None:
+        context_menu = QMenu(self)
+        copy = context_menu.addAction("Copy")
+        copy_fs = context_menu.addAction("Copy with font-size")
+        save = context_menu.addAction("Save image")
 
-        action = contextMenu.exec_(child.mapToGlobal(eventPosition))
+        action = context_menu.exec_(child.mapToGlobal(eventPosition))
 
         if action == copy:
             QApplication.clipboard().setPixmap(child.pixmap())
+
         elif action == copy_fs:
             QApplication.setOverrideCursor(Qt.WaitCursor)
             QApplication.clipboard().setPixmap(self.get_latex_pixmap(self.formula))
             QApplication.restoreOverrideCursor()
+
+        elif action == save:
+            self._preview = SaveDialog(self)
+
+    def save_image(self, image_path):
+        formula = self.formula.translate(str.maketrans("", "", '<>:"/\\|?*'))
+        dialog = QFileDialog()
+        fileName, _ = dialog.getSaveFileName(
+            self, "Save Image", str(Path.home()) + f"/{formula}.png", "Images (*.png)",
+            options=QFileDialog.DontUseNativeDialog
+        )
+        if fileName:
+            print(fileName)
 
     def get_latex_pixmap(self, formula):
         expr = formula.split("=")
@@ -53,7 +87,7 @@ class DragLabel(QLabel):
         return pixmap
 
     def mouseMoveEvent(self, ev: "QtGui.QMouseEvent") -> None:
-        if ev.button() == Qt.LeftButton and self.geometry().contains(ev.pos()):
+        if ev.buttons() == Qt.LeftButton:
             drag = QDrag(self)
             mimeData = QMimeData()
             QApplication.setOverrideCursor(Qt.WaitCursor)

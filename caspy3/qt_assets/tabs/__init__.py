@@ -20,6 +20,7 @@ import json
 import sys
 import pkg_resources
 
+# Import each Tab
 from .derivative import DerivativeTab
 from .equations import EquationsTab
 from .evaluate import EvaluateTab
