@@ -23,9 +23,10 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QLabel,
     QLineEdit,
+    QShortcut,
     QWidget,
 )
-from PyQt5.QtGui import QCursor, QFont
+from PyQt5.QtGui import QCursor, QFont, QKeySequence
 from PyQt5.uic import loadUi
 
 from sympy import *
@@ -523,10 +524,14 @@ class EquationsTab(QWidget):
             {"verify_domain_eq": self.verify_domain_eq}
         )
 
+        # Shortcuts
+        cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
+        cshortcut.activated.connect(self.calc_eq)
+        pshortcut = QShortcut(QKeySequence("Ctrl+Shift+Return"), self)
+        pshortcut.activated.connect(self.prev_eq)
+
         self.init_ui()
         self.init_equation_menu()
-        self.install_event_filters()
-        # TODO: Shortcuts
         self.init_bindings()
         self.update_eq_line()
 
@@ -550,27 +555,6 @@ class EquationsTab(QWidget):
         self.main_window.update_save_settings(
             {"verify_domain_eq": self.verify_domain_eq}
         )
-
-    def install_event_filters(self) -> None:
-        self.EqNormalLeft.installEventFilter(self)
-        self.EqNormalRight.installEventFilter(self)
-        self.EqDiffLeft.installEventFilter(self)
-        self.EqDiffRight.installEventFilter(self)
-
-    def eventFilter(self, obj: "QObject", event: "QEvent") -> bool:
-        QModifiers = QApplication.keyboardModifiers()
-        modifiers = []
-        if (QModifiers & Qt.ShiftModifier) == Qt.ShiftModifier:
-            modifiers.append("shift")
-
-        if event.type() == QEvent.KeyPress:
-            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-                if modifiers:
-                    if modifiers[0] == "shift":
-                        self.calc_eq()
-                        return True
-
-        return super(EquationsTab, self).eventFilter(obj, event)
 
     def init_bindings(self) -> None:
         # Clicking on output textbrowser
@@ -612,6 +596,16 @@ class EquationsTab(QWidget):
 
         # Approximate
         self.EqNormalNsolve.stateChanged.connect(self.approximate_state)
+
+        # Focus out
+        self.eout.focusOutEvent = lambda _: self.deselect(self.eout)
+        self.aout.focusOutEvent = lambda _: self.deselect(self.aout)
+
+    @staticmethod
+    def deselect(textbrowser: "QTextBrowser") -> None:
+        cursor = textbrowser.textCursor()
+        cursor.clearSelection()
+        textbrowser.setTextCursor(cursor)
 
     def set_normal_interval(self, index: int) -> None:
         if index >= 5:

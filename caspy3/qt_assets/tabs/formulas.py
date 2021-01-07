@@ -305,7 +305,7 @@ class FormulaTab(QWidget):
         self.FormulaTree.sortByColumn(0, Qt.AscendingOrder)
         self.grid_scroll_area = QGridLayout(self.FormulaScrollArea)
         self.grid_scroll_area.setObjectName("grid_scroll_area")
-        self.splitter_2.setSizes([int(self.height() * 0.45), int(self.height() * 0.55)])
+        self.splitter_2.setSizes([int(self.height() * 0.7), int(self.height() * 0.3)])
 
     def init_formula_menu(self) -> None:
         self.menuFormula = self.main_window.menubar.addMenu("Formulas")
@@ -337,6 +337,14 @@ class FormulaTab(QWidget):
 
         self.eout.mousePressEvent = lambda _: self.eout.selectAll()
         self.aout.mousePressEvent = lambda _: self.aout.selectAll()
+        self.eout.focusOutEvent = lambda _: self.deselect(self.eout)
+        self.aout.focusOutEvent = lambda _: self.deselect(self.aout)
+
+    @staticmethod
+    def deselect(textbrowser: "QTextBrowser") -> None:
+        cursor = textbrowser.textCursor()
+        cursor.clearSelection()
+        textbrowser.setTextCursor(cursor)
 
     def set_interval(self, index: int) -> None:
         if index >= 5:
@@ -603,8 +611,7 @@ class FormulaTab(QWidget):
                 for i in self.formula_symbol_list
             ]
             values_string = self.formula.split("=")
-        except Exception as e:
-            print(e)
+        except:
             self.main_window.show_error_box("Error: select a formula")
             return
 

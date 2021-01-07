@@ -23,6 +23,8 @@ To start the GUI
 caspy start
 ```
 
+Note: If the application uses too much memory, uncheck "WebTab" and/or "ShellTab" from the tab list as they due to their nature, consume twice as much memory as everything else.
+
 ### Command-line tool
 
 ```

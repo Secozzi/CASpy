@@ -1,6 +1,7 @@
 PyQt5>=5.15.0
 PyQtWebEngine>=5.15.0
-sympy>=1.5.1
+sympy>=1.6.1
 pyperclip>=1.7.0
 click>=7.1.1
 colored>=1.4.2
+qtconsole>=5.0.0

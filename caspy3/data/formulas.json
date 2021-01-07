@@ -59,9 +59,9 @@
                     "b": ["Bas för parallellogram", "le"],
                     "h": ["Höjd för parallellogram", "le"]
                 },
-                "A_rektangel = a*b": {"a": "le", "b": "le"},
+                "A_rektangel = a*b": {"A_rektangel": "area", "a": "le", "b": "le"},
                 "O_rektangel = 2*(a+b)": {
-                    "O_rektangek": "omkrets",
+                    "O_rektangel": "omkrets",
                     "a": "le",
                     "b": "le"
                 },

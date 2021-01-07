@@ -117,6 +117,13 @@ class SimplifyTab(QWidget):
         self.SimpPrev.clicked.connect(self.prev_simp_exp)
         self.SimpCalc.clicked.connect(self.simp_exp)
         self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.eout.focusOutEvent = lambda _: self.deselect(self.eout)
+
+    @staticmethod
+    def deselect(textbrowser: "QTextBrowser") -> None:
+        cursor = textbrowser.textCursor()
+        cursor.clearSelection()
+        textbrowser.setTextCursor(cursor)
 
     def stop_thread(self) -> None:
         pass

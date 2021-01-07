@@ -2,7 +2,7 @@
 
 All changes will be documented in this file
 
-## [2.2.0] - Not released
+## [2.2.0] - 2021-01-07
 
 ### Added
 
@@ -15,6 +15,7 @@ All changes will be documented in this file
 - Added parentheses highlighting for textedits
 - Pressing Alt+"NUMBER" goes to tab number "NUMBER"
 - Anything inside parentheses will be merged in the CLI
+- Minor improvements to the user experience and GUI
 
 ### Changed
 

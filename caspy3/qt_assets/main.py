@@ -322,8 +322,8 @@ class CASpyGUI(QMainWindow):
     def change_latex_fs(self) -> None:
         _translate = QCoreApplication.translate
         self.get_latex_fs()
-        self.actionAccuracy.setText(
-            _translate("MainWindow", f"Accuracy - {self.accuracy}")
+        self.actionLatexFs.setText(
+            _translate("MainWindow", f"LaTeX font-size - {self.latex_fs}")
         )
 
     def change_accuracy(self) -> None:

@@ -29,8 +29,9 @@ class TabList(QListWidget):
         self.main_window = main_window
         self.setFixedWidth(340)
         self.setWindowTitle("CASPy Tab List")
-        self.setWindowIcon(QIcon("assets/logo.png"))
+        self.setWindowIcon(QIcon(self.main_window.get_resource_path("assets/logo.png")))
         self.setToolTip("Settings take into effect on application launch.")
+        self.setWindowModality(Qt.ApplicationModal)
 
         self.setAlternatingRowColors(True)
         self.setDragDropMode(QAbstractItemView.InternalMove)

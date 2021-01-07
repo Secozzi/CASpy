@@ -116,6 +116,13 @@ class ExpandTab(QWidget):
         self.ExpPrev.clicked.connect(self.prev_expand_exp)
         self.ExpCalc.clicked.connect(self.expand_exp)
         self.eout.mousePressEvent = lambda _: self.eout.selectAll()
+        self.eout.focusOutEvent = lambda _: self.deselect(self.eout)
+
+    @staticmethod
+    def deselect(textbrowser: "QTextBrowser") -> None:
+        cursor = textbrowser.textCursor()
+        cursor.clearSelection()
+        textbrowser.setTextCursor(cursor)
 
     def stop_thread(self) -> None:
         pass

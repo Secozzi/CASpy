@@ -161,6 +161,14 @@ class LimitTab(QWidget):
         self.LimCalc.clicked.connect(self.calc_limit)
         self.eout.mousePressEvent = lambda _: self.eout.selectAll()
         self.aout.mousePressEvent = lambda _: self.aout.selectAll()
+        self.eout.focusOutEvent = lambda _: self.deselect(self.eout)
+        self.aout.focusOutEvent = lambda _: self.deselect(self.aout)
+
+    @staticmethod
+    def deselect(textbrowser: "QTextBrowser") -> None:
+        cursor = textbrowser.textCursor()
+        cursor.clearSelection()
+        textbrowser.setTextCursor(cursor)
 
     def stop_thread(self) -> None:
         pass
