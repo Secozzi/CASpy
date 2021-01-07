@@ -145,7 +145,7 @@ class CalcLimitTester(BaseTester):
         from sympy import __version__
 
         if __version__.split(".")[1] == "7":
-            solution = {'limit': ['zoo', 'zoo'], 'latex': '\\tilde{\\infty}'}
+            solution = {"limit": ["zoo", "zoo"], "latex": "\\tilde{\\infty}"}
         else:
             solution = {"error": ["Error: \nTraceback"]}
         return command, params, solution

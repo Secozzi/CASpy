@@ -2,6 +2,17 @@
 
 All changes will be documented in this file
 
+## [3.0.0] - Not released
+
+### Added
+
+- Added LaTeX renderer to every tab
+- Improved shell
+
+### Changed
+
+- Overall structure changed
+
 ## [2.2.0] - 2021-01-07
 
 ### Added

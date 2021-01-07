@@ -317,7 +317,7 @@ class BaseWorker(QRunnable):
                     Eq(parse_expr(left_expression), parse_expr(right_expression)),
                     parse_expr(input_variable),
                     _startv,
-                    prec=accuracy
+                    prec=accuracy,
                 )
             except Exception:
                 return {"error": [f"Error: \n{traceback.format_exc()}"]}

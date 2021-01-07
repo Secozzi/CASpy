@@ -66,7 +66,7 @@ class LaTeXSignals(QObject):
 
 
 class LaTeXWorker(QRunnable):
-    def __init__(self, latex_list, fig):
+    def __init__(self, latex_list: ty.List[str], fig: "matplotlib.pyplot.figure.Figure") -> None:
         super(LaTeXWorker, self).__init__()
 
         self.latex_list = latex_list
@@ -379,7 +379,7 @@ class FormulaTab(QWidget):
                         formula_label.setText(formula)
                     self.FormulaTree.setItemWidget(formula_child, 0, formula_label)
 
-    def expanded_sub(self, item):
+    def expanded_sub(self, item: QTreeWidgetItem) -> None:
         # Collapse everything else
         if self.use_latex:
             root = self.FormulaTree.invisibleRootItem()
@@ -404,12 +404,14 @@ class FormulaTab(QWidget):
                 worker.signals.current.connect(
                     lambda current: self.update_current(current, total, title, item)
                 )
-                worker.signals.output.connect(lambda output: self.set_pixmap(output, item))
+                worker.signals.output.connect(
+                    lambda output: self.set_pixmap(output, item)
+                )
                 worker.signals.finished.connect(lambda: item.setText(0, title))
 
                 self.main_window.threadpool.start(worker)
 
-    def collapsed_sub(self, item):
+    def collapsed_sub(self, item: QTreeWidgetItem) -> None:
         """
         In order to save memory, LaTeX QPixmaps are generated when shown
         and cleared once the user clicks on another sub-branch.
@@ -426,7 +428,7 @@ class FormulaTab(QWidget):
 
             QPixmapCache.clear()
 
-    def update_current(self, curr, total, title, item):
+    def update_current(self, curr: int, total: int, title: str, item: QTreeWidgetItem) -> None:
         """
         Updates title of sub-branch
 
@@ -443,7 +445,7 @@ class FormulaTab(QWidget):
             0, f"{title} - Generating LaTeX [{curr}/{total}] {int((curr/total)*100)}%"
         )
 
-    def set_pixmap(self, qp_list, item):
+    def set_pixmap(self, qp_list: ty.List["QPixmap"], item: QTreeWidgetItem) -> None:
         """
         Sets pixmaps to respective QLabels
 
@@ -463,7 +465,7 @@ class FormulaTab(QWidget):
         self.FormulaTree.updateGeometries()
         QPixmapCache.clear()
 
-    def formula_tree_selected(self):
+    def formula_tree_selected(self) -> None:
         """
         Retrieve symbols from formula.
         self.formula_symbol_list contains strings of symbols
@@ -490,12 +492,10 @@ class FormulaTab(QWidget):
             self.formula_symbol_list.sort()
 
             self.formula_update_vars()
-            self.formula_info = self.formula_get_info(
-                qlabel.objectName(), self.data
-            )
+            self.formula_info = self.formula_get_info(qlabel.objectName(), self.data)
             self.formula_set_tool_tip()
 
-    def formula_update_vars(self):
+    def formula_update_vars(self) -> None:
         """
         Clear QScrollArea, then set a Qlabel and QLineEdit
         for every symbol present in the formula.
@@ -518,10 +518,12 @@ class FormulaTab(QWidget):
             self.grid_scroll_area.addWidget(self.formula_label, i, 0)
             self.grid_scroll_area.addWidget(self.formula_qline, i, 1)
 
-    def formula_set_tool_tip(self):
+    def formula_set_tool_tip(self) -> None:
         for name in self.formula_symbol_list:
             label: QLabel = self.FormulaScrollArea.findChild(QLabel, f"{name}label")
-            qline: QLineEdit = self.FormulaScrollArea.findChild(QLineEdit, f"{name}line")
+            qline: QLineEdit = self.FormulaScrollArea.findChild(
+                QLineEdit, f"{name}line"
+            )
 
             _info = self.formula_info[name]
             if type(_info) == list:

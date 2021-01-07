@@ -163,10 +163,23 @@ class CalcNormalEqTester(BaseTester):
     @BaseTester.call_worker(EquationsWorker)
     def test_calc_normal_eq_approximate(self):
         command = "calc_normal_eq"
-        params = ["4**x-3**x-2**x", "4", "x", 2, "Complexes", 1, False, False, False, 25, False, "2"]
+        params = [
+            "4**x-3**x-2**x",
+            "4",
+            "x",
+            2,
+            "Complexes",
+            1,
+            False,
+            False,
+            False,
+            25,
+            False,
+            "2",
+        ]
         solution = {
-            'eq': ['2.095889929671676257021721', '2.095889929671676257021721'],
-            'latex': '\\mathtt{\\text{2.095889929671676257021721}}'
+            "eq": ["2.095889929671676257021721", "2.095889929671676257021721"],
+            "latex": "\\mathtt{\\text{2.095889929671676257021721}}",
         }
         return command, params, solution
 

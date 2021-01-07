@@ -13,6 +13,7 @@ from PyQt5.uic import loadUi
 from sympy.parsing import parse_expr
 from sympy import Eq, latex
 from pathlib import Path
+import typing as ty
 import pkg_resources
 import string
 import random
@@ -21,7 +22,7 @@ from .latex import mathTex_to_QPixmap
 
 
 class SaveDialog(QDialog):
-    def __init__(self, drag_label, parent=None) -> None:
+    def __init__(self, drag_label: "DragLabel", parent=None) -> None:
         super(SaveDialog, self).__init__(parent=parent)
         self.drag_label = drag_label
 
@@ -41,13 +42,11 @@ class SaveDialog(QDialog):
         self.pick_color.clicked.connect(self.get_color)
         self.preview.clicked.connect(self.render_label)
         self.cancel.clicked.connect(self.close)
-        self.save.clicked.connect(
-            lambda: self.drag_label.save_image(self.pixmap)
-        )
+        self.save.clicked.connect(lambda: self.drag_label.save_image(self.pixmap))
 
         self.show()
 
-    def get_color(self):
+    def get_color(self) -> None:
         color = QColorDialog.getColor()
         if color.isValid():
             self.update_color(color.name())
@@ -57,7 +56,7 @@ class SaveDialog(QDialog):
         self.color_hex_line.setText(color)
         self.color_hex = color
 
-    def render_label(self):
+    def render_label(self) -> None:
         formula = self.drag_label.formula
         self.pixmap = self.drag_label.get_latex_pixmap(
             formula=formula, fs=self.fs_spinbox.value(), color=self.color_hex
@@ -73,7 +72,7 @@ class DragLabel(QLabel):
     QMimeData, and then the QDrag copies it.
     """
 
-    def __init__(self, parent, formula):
+    def __init__(self, parent: "QWidget", formula: str) -> None:
         super(DragLabel, self).__init__(parent)
         self.parent = parent
         self.formula = formula
@@ -102,7 +101,7 @@ class DragLabel(QLabel):
         elif action == save:
             self._preview = SaveDialog(self)
 
-    def save_image(self, qpixmap):
+    def save_image(self, qpixmap: "QPixmap") -> None:
         formula = self.formula.translate(str.maketrans("", "", '<>:"/\\|?*'))
         dialog = QFileDialog()
         fileName, _ = dialog.getSaveFileName(
@@ -118,7 +117,9 @@ class DragLabel(QLabel):
         else:
             self._preview.show()
 
-    def get_latex_pixmap(self, formula, fs=None, color=None):
+    def get_latex_pixmap(
+        self, formula: str, fs: ty.Union[int, None] = None, color: str = None
+    ) -> "QPixmap":
         expr = formula.split("=")
 
         left = parse_expr(expr[0], evaluate=False)

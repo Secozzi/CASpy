@@ -474,8 +474,10 @@ def limit(params: list, **kwargs: dict) -> None:
     metavar="LEFT_EXPRESSION RIGHT_EXPRESSION VARIABLE_TO_SOLVE_FOR [SOLVE_TYPE]",
 )
 @click.option(
-    "--approximate-equation", "-A", type=str,
-    help="Approximate answer to equation. Argument is starting vector"
+    "--approximate-equation",
+    "-A",
+    type=str,
+    help="Approximate answer to equation. Argument is starting vector",
 )
 @click.option(
     "--solve-type",

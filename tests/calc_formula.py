@@ -413,7 +413,7 @@ class CalcFormulaTester(BaseTester):
             "2.3",
         ]
         solution = {
-            "eq": ['0.2400000000', '0.2400000000'],
+            "eq": ["0.2400000000", "0.2400000000"],
             "latex": "\\mathtt{\\text{0.2400000000}}",
         }
         return command, params, solution

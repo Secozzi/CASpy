@@ -413,7 +413,7 @@ class CASpyGUI(QMainWindow):
     @pyqtSlot()
     def goto_tab(self, tab: int) -> None:
         if tab <= self.tab_manager.count():
-            self.tab_manager.setCurrentIndex(tab-1)
+            self.tab_manager.setCurrentIndex(tab - 1)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """
@@ -427,7 +427,7 @@ class CASpyGUI(QMainWindow):
             "scientific": self.use_scientific,
             "accuracy": self.accuracy,
             "use_latex": self.use_latex,
-            "latex_fs": self.latex_fs
+            "latex_fs": self.latex_fs,
         }
 
         # Going through each tab
