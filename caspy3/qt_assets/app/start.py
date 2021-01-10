@@ -15,3 +15,31 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+
+# PyQt5
+from PyQt5.QtWidgets import QApplication
+
+# Relative
+from caspy3.qt_assets.app.mainwindow import MainWindow
+
+
+def main() -> None:
+    import sys
+
+    sys._excepthook = sys.excepthook
+
+    def exception_hook(exctype, value, traceback):
+        print(exctype, value, traceback)
+        sys._excepthook(exctype, value, traceback)
+        sys.exit(1)
+
+    sys.excepthook = exception_hook
+
+    app = QApplication(sys.argv)
+    main_w = MainWindow()
+    main_w.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()

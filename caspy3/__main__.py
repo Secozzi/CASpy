@@ -15,3 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+
+from caspy3.qt_assets.app.start import main
+
+main()

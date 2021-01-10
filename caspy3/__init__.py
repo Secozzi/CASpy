@@ -15,3 +15,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+version = (3, 0, 0, "dev0")
+
+__author__ = "Secozzi"
+__license__ = __doc__
+__title__ = "CASPy"
+__version__ = ".".join(map(str, version))
