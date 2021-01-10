@@ -1,6 +1,6 @@
 #
 #    CASPy - A program that provides both a GUI and a CLI to SymPy.
-#    Copyright (C) 2020 Folke Ishii
+#    Copyright (C) 2021 Folke Ishii
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by

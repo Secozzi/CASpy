@@ -18,11 +18,22 @@
 
 # Standard library
 import typing as ty
-import os
+
+# Third party
+from pkg_resources import resource_filename
 
 # PyQt5
 from PyQt5.QtCore import QSettings, QThreadPool
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt5.QtWidgets import (
+    QAction,
+    QActionGroup,
+    QApplication,
+    QInputDialog,
+    QMainWindow,
+    QMessageBox,
+    QWidget,
+)
+from PyQt5.uic import loadUi
 
 # Relative
 from caspy3.qt_assets.tabs import get_tabs
@@ -42,3 +53,68 @@ class MainWindow(QMainWindow):
         self.qapp = QApplication.instance()
         self.threadpool = QThreadPool()
         self.tab_list: ty.List[QWidget]
+
+        self.init_ui()
+
+    @staticmethod
+    def get_resource(relative_path: str) -> str:
+        """
+        Returns path to a file relative to source directory (CASPy/caspy3)
+        """
+        return resource_filename("caspy3", relative_path)
+
+    @staticmethod
+    def show_error_box(message: str) -> None:
+        """
+        Show a message box containing an error
+
+        :param message: str
+            The message that is to be displayed by the message box
+        """
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Error")
+        msg.setText(message)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+
+    def init_ui(self) -> None:
+        # Load ui
+        loadUi(self.get_resource("qt_assets/app/mainwindow.ui"), self)
+
+        # Displaying icon in taskbar
+        try:
+            from PyQt5.QtWinExtras import QtWin
+            from caspy3 import version
+
+            my_app_id = f"secozzi.caspy3.{''.join(map(str, version))}"
+            QtWin.setCurrentProcessExplicitAppUserModelID(my_app_id)
+        except ImportError:
+            pass
+
+        self.init_menu()
+        self.init_tabs()
+
+    def init_menu(self) -> None:
+        """
+        Initialize menu and add bindings to actions
+        """
+        # For the QActionGroup Output Type -> Pretty - Latex - Normal
+        self.output_type_group = QActionGroup(self.menuOutput_Type)
+        self.output_type_group.addAction(self.actionPretty)
+        self.output_type_group.addAction(self.actionLatex)
+        self.output_type_group.addAction(self.actionNormal)
+        self.output_type_group.setExclusive(True)
+        self.output_type_group.triggered.connect(self.change_output_type)
+
+        # Object name of QAction and function to call when triggered
+        action_bindings = {}
+
+        # Actions that are also checkable
+        checkable_actions = {}
+
+    def change_output_type(self, action: QAction) -> None:
+        ...
+
+    def init_tabs(self) -> None:
+        ...

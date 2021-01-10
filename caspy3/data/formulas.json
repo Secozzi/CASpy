@@ -1,0 +1,104 @@
+[
+    {
+        "ae": ["Areaenhet", "a.e."],
+        "area": ["Area", "m²"],
+        "acc": ["Acceleration", "m/s²"],
+        "hastighet": ["Hastighet", "m/s"],
+        "le": ["Längdenhet", "l.e."],
+        "massa": ["Massa", "kg"],
+        "omkrets": ["Omkrets", "l.e."],
+        "radie": ["Radie", "l.e."],
+        "sträcka": ["Sträcka", "m"],
+        "tid": ["Tid", "s"],
+        "vdeg": ["Vinkel i grader", "°"],
+        "ve": ["Volymenhet", "ve"],
+        "vrad": ["Vinkel i radianer", "rad"]
+    },
+
+    {
+        "Fysik": {
+            "Mekanik - Kinematik": {
+                "v = s/t": {"v": "hastighet", "s": "sträcka", "t": "tid"},
+                "a = v/t": {"a": "acc", "v": "hastighet", "t": "tid"},
+                "v = v0+a*t": {"v": "hastighet", "v0": "hastighet", "a": "acc", "t": "tid"},
+                "s = v0*t+(a*t**2)/2": {
+                    "s": "sträcka",
+                    "v0": "hastighet",
+                    "t": "tid",
+                    "a": "acc"
+                },
+                "s = (v+v0)/2*t": {
+                    "s": "sträcka",
+                    "v0": "hastighet",
+                    "v": "hastighet",
+                    "t": "tid"
+                },
+                "v**2-v0**2=2*a*s": {
+                    "v": "hastighet",
+                    "v0": "hastighet",
+                    "a": "acc",
+                    "s": "sträcka"
+                }
+            }
+        },
+        "Matematik": {
+            "Geometri - Area": {
+                "A_triangel = (b*h)/2": {
+                    "A_triangel": "ae",
+                    "b": ["Bas för triangel", "le"],
+                    "h": ["Höjd för triangel", "le"]
+                },
+                "A_triangel = sqrt(((a+b+c)/2)*(((a+b+c)/2)-a)*(((a+b+c)/2)-b)*(((a+b+c)/2)-c))": {
+                    "A_triangel": "area",
+                    "a": "le",
+                    "b": "le",
+                    "c": "le"
+                },
+                "A_parallellogram = b*h": {
+                    "A_parallellogram": "area",
+                    "b": ["Bas för parallellogram", "le"],
+                    "h": ["Höjd för parallellogram", "le"]
+                },
+                "A_rektangel = a*b": {"A_rektangel": "area", "a": "le", "b": "le"},
+                "O_rektangel = 2*(a+b)": {
+                    "O_rektangel": "omkrets",
+                    "a": "le",
+                    "b": "le"
+                },
+                "A_romb = (d1*d2)/2": {
+                    "A_romb": "area",
+                    "d1": ["Diagonal 1", "le"],
+                    "d2": ["Diagonal 2", "le"]
+                },
+                "A_cirkel = pi*r**2": {"A_cirkel": "area", "r": "radie"},
+                "O_cirkel = 2*pi*r": {"O_cirkel": "omkrets", "r": "radie"},
+                "Båge_cirkelsektor = v*r": {
+                    "Båge_cirkelsektor": "le",
+                    "v": "vrad",
+                    "r": "radie"
+                },
+                "A_cirkelsektor = (v*r**2)/2": {
+                    "A_cirkelsektor": "area",
+                    "v": "vrad",
+                    "r": "radie"
+                }
+            },
+            "Geometri - Volym": {
+                "V_rätblock = a*b*c": {
+                    "V_rätblock": "ve",
+                    "a": "le",
+                    "b": "le",
+                    "c": "le"
+                },
+                "V_prisma = B*h": {"V_prisma": "ve", "B": ["Basarea", "area"], "h": ["höjd", "le"]},
+                "V_klot = (4*pi*r**3)/3": {"V_klot": "ve", "r": "radie"},
+                "A_klot = 4*pi*r**2": {"A_klot": "area", "r": "radie"},
+                "V_klotsegment = (1/3)*pi*h**2*(3*r-h)": {
+                    "V_klotsegment": "ve",
+                    "h": ["Höjd", "le"],
+                    "r": "radie"
+                }
+            }
+        }
+    }
+]
