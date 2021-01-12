@@ -25,7 +25,7 @@ from pyperclip import copy
 
 # PyQt5
 from PyQt5.QtCore import QSettings, QSize, QThreadPool
-from PyQt5.QtGui import QCloseEvent, QKeySequence
+from PyQt5.QtGui import QCloseEvent, QFont, QKeySequence
 from PyQt5.QtWidgets import (
     QAction,
     QActionGroup,
@@ -49,16 +49,25 @@ class MainWindow(QMainWindow):
         # Load ui file
         loadUi(self.get_resource("qt_assets/app/mainwindow.ui"), self)
 
-        # Initalize variables
+        # Initialize variables
         self.approx_ans = ""
         self.exact_ans = ""
         self.latex_ans = ""
 
+        self.output_type: int = 1
+        self.use_unicode: bool = False
+        self.line_wrap: bool = False
+        self.use_scientific: int = 0
+        self.accuracy: int = 0
+        self.use_latex: bool = False
+        self.latex_fs: int = 150
+
         # Qt variables
-        self.settings = QSettings("Secozzi", "CASPy")
-        self.qapp = QApplication.instance()
-        self.threadpool = QThreadPool()
-        self.tab_list: ty.List[QWidget]
+        self.settings: QSettings = QSettings("Secozzi", "CASPy")
+        self.qapp: QApplication = QApplication.instance()
+        self.threadpool: QThreadPool = QThreadPool()
+        self.tab_list: ty.List[QWidget] = get_tabs()
+        self.tabs_font = QFont("Courier New", 8)  # TODO: maybe change font?
 
         self.read_settings()
         self.init_ui()
@@ -87,7 +96,7 @@ class MainWindow(QMainWindow):
 
     def read_settings(self) -> None:
         self.settings.beginGroup("mainwindow")
-        # Variables
+
         self.output_type = self.settings.value("output_type", 1, int)
         self.use_unicode = self.settings.value("use_unicode", False, bool)
         self.line_wrap = self.settings.value("line_wrap", False, bool)
@@ -95,14 +104,14 @@ class MainWindow(QMainWindow):
         self.accuracy = self.settings.value("accuracy", 10, int)
         self.use_latex = self.settings.value("use_latex", False, bool)
         self.latex_fs = self.settings.value("latex_fs", 150, int)
-        # Ui
+
         self.resize(self.settings.value("size", QSize(1500, 900)))
 
         self.settings.endGroup()
 
     def write_settings(self) -> None:
         self.settings.beginGroup("mainwindow")
-        # Variables
+
         self.settings.setValue("output_type", self.output_type)
         self.settings.setValue("use_unicode", self.use_unicode)
         self.settings.setValue("line_wrap", self.line_wrap)
@@ -110,7 +119,7 @@ class MainWindow(QMainWindow):
         self.settings.setValue("accuracy", self.accuracy)
         self.settings.setValue("use_latex", self.use_latex)
         self.settings.setValue("latex_fs", self.latex_fs)
-        # Ui
+
         self.settings.setValue("size", self.size())
         self.settings.endGroup()
 
@@ -335,7 +344,9 @@ class MainWindow(QMainWindow):
         self.tab_list = TabList(self)
 
     def init_tabs(self) -> None:
-        ...
+        self.tab_manager.clear()
+        for tab in self.tab_list:
+            self.tab_manager.addTab(tab(main_window=self), tab.display_name)
 
     def init_shortcuts(self) -> None:
         s1 = QShortcut(QKeySequence("Alt+1"), self)
@@ -363,5 +374,6 @@ class MainWindow(QMainWindow):
             self.tab_manager.setCurrentIndex(tab - 1)
 
     def closeEvent(self, event: QCloseEvent) -> None:
+        print("CLOSING MAIN")
         self.write_settings()
         event.accept()

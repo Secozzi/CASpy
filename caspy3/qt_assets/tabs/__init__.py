@@ -16,8 +16,16 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-tab_list = []
+# Standard library
+import sys
 
+# Relative
+from caspy3.qt_assets.tabs.derivative import DerivativeTab
+
+tab_list = [DerivativeTab]
+
+def str_to_class(classname: str) -> "sip.wrappertype":
+    return getattr(sys.modules[__name__], classname)
 
 def get_tabs():
     return tab_list

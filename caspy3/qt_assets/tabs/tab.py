@@ -19,32 +19,23 @@
 # Standard library
 import typing as ty
 
-# Third party
-import sympy as sy
-
 # PyQt5
 from PyQt5.QtWidgets import QWidget
-from PyQt5.uic import loadUi
 
 # Relative
-from caspy3.qt_assets.tabs.tab import CaspyTab
-# TODO: Worker
 if ty.TYPE_CHECKING:
     from caspy3.qt_assets.app.mainwindow import MainWindow
 
 
-class DerivativeTab(CaspyTab):
+class CaspyTab(QWidget):
+    def __init__(self, main_window: "MainWindow", name: str) -> None:
+        super().__init__()
+        self.main_window = main_window
+        self.main_window.qapp.aboutToQuit.connect(self.close_event)
+        self.setFont(self.main_window.tabs_font)
 
-    display_name = "Derivative"
-    name = "derivative"
-
-    def __init__(self, main_window: "MainWindow") -> None:
-        super().__init__(main_window, self.name)
-        loadUi(self.main_window.get_resource("qt_assets/tabs/derivative.ui"), self)
-
-        self.eout = self.textEdit
-        self.aout = None
-        self.splitter = None
-
-    def close_event(self) -> None:
-        print("CLOSING DERIVATIVE")
+    def update_ui(self, input_dict) -> None: ...
+    def stop_thread(self) -> None: ...
+    def set_splitters(self) -> None:
+        if self.splitter:
+            ...
