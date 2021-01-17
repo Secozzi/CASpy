@@ -158,9 +158,29 @@
      <addaction name="action_latex"/>
      <addaction name="action_normal"/>
     </widget>
+    <widget class="QMenu" name="menu_clashing">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Override variables and functions in SymPy. See SymPy documentation for more.</string>
+     </property>
+     <property name="title">
+      <string>SymPy Clashing</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
+     <addaction name="action_clash1"/>
+     <addaction name="action_clash2"/>
+    </widget>
     <addaction name="action_unicode"/>
     <addaction name="action_linewrap"/>
     <addaction name="menu_output_type"/>
+    <addaction name="menu_clashing"/>
     <addaction name="separator"/>
     <addaction name="action_scientific_notation"/>
     <addaction name="action_accuracy"/>
@@ -379,6 +399,40 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="action_clash1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>_clash1</string>
+   </property>
+   <property name="toolTip">
+    <string>Single letter variables</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+1</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_clash2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>_clash2</string>
+   </property>
+   <property name="toolTip">
+    <string>Multi-letter symbols</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+2</string>
+   </property>
+   <property name="autoRepeat">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

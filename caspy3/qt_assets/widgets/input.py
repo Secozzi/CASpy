@@ -27,10 +27,9 @@ class TextBlockData(QTextBlockUserData):
 
 
 class TextEdit(QPlainTextEdit):
-    def __init__(self, parent: QWidget, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.parent = parent
-        self.setFont(self.parent.font())
+    def __init__(self, parent, **kwargs) -> None:
+        super().__init__(parent, **kwargs)
+        self.setFont(parent.font())
         self.highlighter = ParenMatchHighlighter(self.document())
         self.cursorPositionChanged.connect(self.matchParentheses)
 

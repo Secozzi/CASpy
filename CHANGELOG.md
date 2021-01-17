@@ -6,6 +6,7 @@ All changes will be documented in this file
 
 ### Added
 
+- Added clashing support
 - Added LaTeX renderer to every tab
 - Improved shell
 

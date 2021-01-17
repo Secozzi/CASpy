@@ -50,9 +50,9 @@ class MainWindow(QMainWindow):
         loadUi(self.get_resource("qt_assets/app/mainwindow.ui"), self)
 
         # Initialize variables
-        self.approx_ans = ""
-        self.exact_ans = ""
-        self.latex_ans = ""
+        self.approx_ans: str = ""
+        self.exact_ans: str = ""
+        self.latex_ans: str = ""
 
         self.output_type: int = 1
         self.use_unicode: bool = False
@@ -61,6 +61,8 @@ class MainWindow(QMainWindow):
         self.accuracy: int = 0
         self.use_latex: bool = False
         self.latex_fs: int = 150
+        self.use_clash1: bool = False
+        self.use_clash2: bool = False
 
         # Qt variables
         self.settings: QSettings = QSettings("Secozzi", "CASPy")
@@ -98,6 +100,8 @@ class MainWindow(QMainWindow):
         self.settings.beginGroup("mainwindow")
 
         self.output_type = self.settings.value("output_type", 1, int)
+        self.use_clash1 = self.settings.value("use_clash1", False, bool)
+        self.use_clash2 = self.settings.value("use_clash2", False, bool)
         self.use_unicode = self.settings.value("use_unicode", False, bool)
         self.line_wrap = self.settings.value("line_wrap", False, bool)
         self.use_scientific = self.settings.value("use_scientific", 0, int)
@@ -113,6 +117,8 @@ class MainWindow(QMainWindow):
         self.settings.beginGroup("mainwindow")
 
         self.settings.setValue("output_type", self.output_type)
+        self.settings.setValue("use_clash1", self.use_clash1)
+        self.settings.setValue("use_clash2", self.use_clash2)
         self.settings.setValue("use_unicode", self.use_unicode)
         self.settings.setValue("line_wrap", self.line_wrap)
         self.settings.setValue("use_scientific", self.use_scientific)
@@ -150,6 +156,18 @@ class MainWindow(QMainWindow):
         self.output_type_group.setExclusive(True)
         self.output_type_group.triggered.connect(self.change_output_type)
 
+        # For the QActionGroup SymPy Clashing -> _clash1 - _clash2
+        # TODO: This could be done like every other QAction, for some very weird
+        # reason. Maybe find the cause of it and fix it?
+        self.clash_group = QActionGroup(self.menu_clashing)
+        self.clash_group.addAction(self.action_clash1)
+        self.action_clash1.setChecked(self.use_clash1)
+        self.action_clash1.triggered.connect(self.toggle_clash1)
+        self.clash_group.addAction(self.action_clash2)
+        self.action_clash2.setChecked(self.use_clash2)
+        self.action_clash2.triggered.connect(self.toggle_clash2)
+        self.clash_group.setExclusive(False)
+
         # Object name of QAction and function to call when triggered
         action_bindings = {
             "action_unicode": self.toggle_unicode,
@@ -167,9 +185,9 @@ class MainWindow(QMainWindow):
 
         # Actions that are also checkable, value must be bool
         checkable_actions = {
-            "action_use_latex": self.use_latex,
             "action_unicode": self.use_unicode,
             "action_linewrap": self.line_wrap,
+            "action_use_latex": self.use_latex,
             "action_scientific_notation": bool(self.use_scientific)
         }
 
@@ -185,8 +203,7 @@ class MainWindow(QMainWindow):
                 action.triggered.connect(action_bindings[object_name])
 
             if object_name in checkable_actions.keys():
-                if checkable_actions[object_name]:
-                    action.setChecked(True)
+                action.setChecked(checkable_actions[object_name])
 
         # Set text to QActions
         if self.use_scientific:
@@ -219,6 +236,13 @@ class MainWindow(QMainWindow):
 
     def toggle_line_wrap(self, state: bool) -> None:
         self.line_wrap = state
+
+    def toggle_clash1(self, state: bool) -> None:
+        print("CLASH 1")
+        self.use_clash1 = state
+
+    def toggle_clash2(self, state: bool) -> None:
+        self.use_clash2 = state
 
     def get_scientific_notation(self) -> int:
         """
@@ -349,6 +373,15 @@ class MainWindow(QMainWindow):
             self.tab_manager.addTab(tab(main_window=self), tab.display_name)
 
     def init_shortcuts(self) -> None:
+        cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)
+        cshortcut.activated.connect(
+            lambda: self.tab_manager.currentWidget().calculate()
+        )
+        pshortcut = QShortcut(QKeySequence("Ctrl+Shift+Return"), self)
+        pshortcut.activated.connect(
+            lambda: self.tab_manager.currentWidget().preview()
+        )
+
         s1 = QShortcut(QKeySequence("Alt+1"), self)
         s2 = QShortcut(QKeySequence("Alt+2"), self)
         s3 = QShortcut(QKeySequence("Alt+3"), self)

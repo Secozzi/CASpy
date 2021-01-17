@@ -22,11 +22,9 @@ from PyQt5.QtCore import Qt
 
 
 class OutputWidget(QTextBrowser):
-    def __init__(self, parent: QWidget, placeholder: str = "") -> None:
-        super().__init__()
-        self.parent = parent
-        self.setPlaceholderText(placeholder)
-        self.setFont(self.parent.font())
+    def __init__(self, parent: QWidget, **kwargs) -> None:
+        super().__init__(parent, **kwargs)
+        self.setFont(parent.font())
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         """Select all text"""
