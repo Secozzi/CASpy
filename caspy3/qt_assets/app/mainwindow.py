@@ -20,6 +20,7 @@
 import typing as ty
 
 # Third party
+from sympy.abc import _clash1, _clash2
 from pkg_resources import resource_filename
 from pyperclip import copy
 
@@ -63,6 +64,7 @@ class MainWindow(QMainWindow):
         self.latex_fs: int = 150
         self.use_clash1: bool = False
         self.use_clash2: bool = False
+        self.clashes: dict = {}
 
         # Qt variables
         self.settings: QSettings = QSettings("Secozzi", "CASPy")
@@ -157,8 +159,6 @@ class MainWindow(QMainWindow):
         self.output_type_group.triggered.connect(self.change_output_type)
 
         # For the QActionGroup SymPy Clashing -> _clash1 - _clash2
-        # TODO: This could be done like every other QAction, for some very weird
-        # reason. Maybe find the cause of it and fix it?
         self.clash_group = QActionGroup(self.menu_clashing)
         self.clash_group.addAction(self.action_clash1)
         self.action_clash1.setChecked(self.use_clash1)
@@ -227,6 +227,9 @@ class MainWindow(QMainWindow):
         else:
             self.action_normal.setChecked(True)
 
+        # Other
+        self.update_clashes()
+
     def change_output_type(self, action: QAction) -> None:
         types = ["Pretty", "Latex", "Normal"]
         self.output_type = types.index(action.text()) + 1
@@ -238,11 +241,22 @@ class MainWindow(QMainWindow):
         self.line_wrap = state
 
     def toggle_clash1(self, state: bool) -> None:
-        print("CLASH 1")
         self.use_clash1 = state
+        self.update_clashes()
 
     def toggle_clash2(self, state: bool) -> None:
         self.use_clash2 = state
+        self.update_clashes()
+
+    def update_clashes(self):
+        if self.use_clash1 and self.use_clash2:
+            self.clashes = {**_clash1, **_clash2}
+        elif self.use_clash1 and not self.use_clash2:
+            self.clashes = _clash1
+        elif not self.use_clash1 and self.use_clash2:
+            self.clashes = _clash2
+        else:
+            self.clashes = {}
 
     def get_scientific_notation(self) -> int:
         """
@@ -326,6 +340,7 @@ class MainWindow(QMainWindow):
         )
 
     def copy_exact_ans(self) -> None:
+        print(self.clashes)
         if type(self.exact_ans) == list:
             if len(self.exact_ans) == 1:
                 copy(str(self.exact_ans[0]))

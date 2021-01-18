@@ -57,7 +57,6 @@ class BaseWorker(QRunnable):
 
         self.signals = WorkerSignals()
 
-    @catch_thread
     @pyqtSlot()
     def run(self) -> ty.Union[ty.Dict[str, ty.List[str]], None]:
         try:

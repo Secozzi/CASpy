@@ -20,6 +20,7 @@
 import typing as ty
 
 # PyQt5
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QSplitter, QWidget
 
 # Relative
@@ -35,7 +36,22 @@ class CaspyTab(QWidget):
         self.main_window.qapp.aboutToQuit.connect(self.close_event)
         self.setFont(self.main_window.tabs_font)
 
-    def update_ui(self, input_dict) -> None: ...
+    def update_ui(self, input_dict) -> None:
+        self.eout.set_cursor(Qt.ArrowCursor)
+        self.aout.set_cursor(Qt.ArrowCursor)
+
+        first_key = list(input_dict)[0]
+        if first_key == "error":
+            self.main_window.show_error_box(input_dict[first_key][0])
+            self.main_window.latex_ans = ""
+        else:
+            self.main_window.latex_ans = input_dict["latex"]
+            self.main_window.exact_ans = input_dict[first_key][0]
+            self.main_window.approx_ans = input_dict[first_key][1]
+
+            self.eout.setText(input_dict[first_key][0])
+            self.aout.setText(input_dict[first_key][1])
+
     def stop_thread(self) -> None: ...
 
     def set_splitters(self, splitters: ty.List[QSplitter]) -> None:

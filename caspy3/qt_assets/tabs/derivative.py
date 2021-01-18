@@ -24,7 +24,7 @@ import traceback
 import sympy as sy
 
 # PyQt5
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
@@ -59,6 +59,7 @@ class DerivativeWorker(BaseWorker):
             output_type: int,
             use_unicode: bool,
             line_wrap: bool,
+            clashes: ty.Dict[str, sy.Symbol],
     ) -> ty.Dict[str, ty.List[str]]:
         sy.init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
 
@@ -72,22 +73,25 @@ class DerivativeWorker(BaseWorker):
             return {"error": ["Enter a variable"]}
 
         try:
-            derivative = sy.Derivative(str(input_expression), input_variable, input_order)
+            expr = sy.parse_expr(input_expression, local_dict=clashes)
+            var = sy.parse_expr(input_variable, local_dict=clashes)
+
+            derivative = sy.Derivative(expr, var, input_order)
+            latex_ans = str(sy.latex(derivative))
+
+            if input_point:
+                exact_ans = f"At {input_variable} = {input_point}\n"
+
+            if output_type == 1:
+                exact_ans += str(sy.pretty(derivative))
+            elif output_type == 2:
+                exact_ans += latex_ans
+            else:
+                exact_ans += str(derivative)
+
+            return {"deriv": [exact_ans, approx_ans], "latex": latex_ans}
         except:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
-        latex_ans = str(sy.latex(derivative))
-
-        if input_point:
-            exact_ans = f"At {input_variable} = {input_point}\n"
-
-        if output_type == 1:
-            exact_ans += str(sy.pretty(derivative))
-        elif output_type == 2:
-            exact_ans += latex_ans
-        else:
-            exact_ans += str(derivative)
-
-        return {"deriv": [exact_ans, approx_ans], "latex": latex_ans}
 
     @pyqtSlot()
     def calc_deriv(
@@ -99,12 +103,13 @@ class DerivativeWorker(BaseWorker):
         output_type: int,
         use_unicode: bool,
         line_wrap: bool,
+        clashes: dict,
         use_scientific: int,
         accuracy: int,
     ) -> ty.Dict[str, ty.List[str]]:
         sy.init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
 
-        approx_ans = 0
+        approx_ans = "..."
         exact_ans = ""
         latex_ans = ""
 
@@ -118,33 +123,36 @@ class DerivativeWorker(BaseWorker):
             return {"error": ["Enter a variable"]}
 
         try:
-            expr = sy.parse_expr(input_expression)
-            var = sy.parse_expr(input_variable)
-            point = sy.parse_expr(input_point)
-        except:
-            return {"error": [f"Error: \n{traceback.format_exc()}"]}
+            expr = sy.parse_expr(input_expression, local_dict=clashes)
+            var = sy.parse_expr(input_variable, local_dict=clashes)
 
-        try:
             exact_ans = sy.diff(expr, var, input_order)
-        except:
-            return {"error": [f"Error: \n{traceback.format_exc()}"]}
-        latex_ans = str(sy.latex(exact_ans))
+            latex_ans = str(sy.latex(exact_ans))
 
-        if input_point:
-            exact_ans_point = exact_ans.subs(var, point)
+            if input_point:
+                point = sy.parse_expr(input_point, local_dict=clashes)
+                exact_ans = sy.simplify(exact_ans.subs(var, point))
 
-            try:
-                approx = 2
+                approx_ans = str(sy.N(exact_ans, accuracy))
                 if use_scientific:
                     approx_ans = self.to_scientific_notation(
-
+                        approx_ans, use_scientific
                     )
-            except:
-                pass
+                latex_ans = str(sy.latex(exact_ans))
+            else:
+                exact_ans = sy.simplify(exact_ans)
 
+            if output_type == 1:
+                exact_ans = str(sy.pretty(exact_ans))
+            elif output_type == 2:
+                exact_ans = latex_ans
+            else:
+                exact_ans = str(exact_ans)
 
+            return {"deriv": [exact_ans, approx_ans], "latex": latex_ans}
 
-
+        except:
+            return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
 
 class DerivativeTab(CaspyTab):
@@ -182,10 +190,43 @@ class DerivativeTab(CaspyTab):
         self.splitters: ty.List[QSplitter] = [self.deriv_splitter_0, self.deriv_splitter_1]
 
         self.set_splitters(self.splitters)
+        self.init_bindings()
 
     def calculate(self) -> None:
         """Calculate from input, gets called on Ctrl+Return"""
-        print("Calculating derivative")
+        self.eout.set_cursor(Qt.WaitCursor)
+        self.aout.set_cursor(Qt.WaitCursor)
+
+        # input_expression: str,
+        # input_variable: str,
+        # input_order: int,
+        # input_point: str,
+        # output_type: int,
+        # use_unicode: bool,
+        # line_wrap: bool,
+        # clashes: dict,
+        # use_scientific: int,
+        # accuracy: int,
+
+        worker = DerivativeWorker(
+            "calc_deriv",
+            [
+                self.deriv_input.toPlainText(),
+                self.deriv_var_input.text(),
+                self.deriv_order_input.value(),
+                self.deriv_point_input.text(),
+                self.main_window.output_type,
+                self.main_window.use_unicode,
+                self.main_window.line_wrap,
+                self.main_window.clashes,
+                self.main_window.use_scientific,
+                self.main_window.accuracy,
+            ],
+        )
+        worker.signals.output.connect(self.update_ui)
+        worker.signals.finished.connect(self.stop_thread)
+
+        self.main_window.threadpool.start(worker)
 
     def preview(self) -> None:
         """Preview from input, get called on Ctrl+Shift+Return"""
@@ -193,3 +234,7 @@ class DerivativeTab(CaspyTab):
 
     def close_event(self) -> None:
         self.write_splitters(self.splitters)
+
+    def init_bindings(self):
+        self.deriv_prev.clicked.connect(self.preview)
+        self.deriv_calc.clicked.connect(self.calculate)

@@ -1,8 +1,8 @@
 from collections import namedtuple
 
-from PyQt5.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
+from PyQt5.QtCore import QEvent, QObject, Qt
+from PyQt5.QtWidgets import QApplication, QPlainTextEdit, QTextEdit
 from PyQt5.QtGui import QSyntaxHighlighter, QTextBlockUserData, QTextCursor
-from PyQt5.Qt import Qt
 
 ParenInfo = namedtuple("ParenInfo", "character position")
 BracketInfo = namedtuple("BracketInfo", "character position")
@@ -29,9 +29,16 @@ class TextBlockData(QTextBlockUserData):
 class TextEdit(QPlainTextEdit):
     def __init__(self, parent, **kwargs) -> None:
         super().__init__(parent, **kwargs)
+        QApplication.instance().installEventFilter(self)
         self.setFont(parent.font())
         self.highlighter = ParenMatchHighlighter(self.document())
         self.cursorPositionChanged.connect(self.matchParentheses)
+
+    def eventFilter(self, source: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.ShortcutOverride:
+            event.ignore()
+            return True
+        return super(TextEdit, self).eventFilter(source, event)
 
     def matchParentheses(self) -> None:
         self.setExtraSelections([])
