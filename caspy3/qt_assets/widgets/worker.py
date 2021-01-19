@@ -59,6 +59,7 @@ class BaseWorker(QRunnable):
 
     @pyqtSlot()
     def run(self) -> ty.Union[ty.Dict[str, ty.List[str]], None]:
+        # TODO: Documentation about everything regarding worker
         try:
             result = getattr(self, self.command)(*self.params)
         except:

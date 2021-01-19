@@ -73,6 +73,7 @@ class MainWindow(QMainWindow):
         self.tab_list: ty.List[QWidget] = get_tabs()
         self.tabs_font = QFont("Courier New", 8)  # TODO: maybe change font?
 
+        # Functions
         self.read_settings()
         self.init_ui()
 

@@ -16,17 +16,21 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-# Standard library
-import sys
+from PyQt5.QtWidgets import QComboBox, QCompleter, QLineEdit
 
-# Relative
-from caspy3.qt_assets.tabs.derivative import DerivativeTab
-from caspy3.qt_assets.tabs.integral import IntegralTab
 
-tab_list = [DerivativeTab, IntegralTab]
+class FocusLine(QLineEdit):
+    def __init__(self, parent=None):
+        super(FocusLine, self).__init__(parent)
 
-def str_to_class(classname: str) -> "sip.wrappertype":
-    return getattr(sys.modules[__name__], classname)
+    def mousePressEvent(self, a0) -> None:
+        self.selectAll()
 
-def get_tabs():
-    return tab_list
+
+class SearchableComboBox(QComboBox):
+    def __init__(self, parent=None):
+        super(SearchableComboBox, self).__init__(parent)
+        self.setLineEdit(FocusLine())
+        self.setEditable(True)
+        self.completer().setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+        self.setInsertPolicy(QComboBox.NoInsert)

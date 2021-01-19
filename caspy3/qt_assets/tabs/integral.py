@@ -45,14 +45,14 @@ if ty.TYPE_CHECKING:
     from caspy3.qt_assets.widgets.output import OutputWidget
 
 
-class DerivativeWorker(BaseWorker):
+class IntegralWorker(BaseWorker):
     def __init__(
         self, command: str, params: list, copy: ty.Union[int, None] = None
     ) -> None:
         super().__init__(command, params, copy)
 
     @pyqtSlot()
-    def prev_deriv(
+    def prev_integral(
         self,
         input_expression: str,
         input_variable: str,
@@ -78,25 +78,12 @@ class DerivativeWorker(BaseWorker):
             expr = sy.parse_expr(input_expression, local_dict=clashes)
             var = sy.parse_expr(input_variable, local_dict=clashes)
 
-            derivative = sy.Derivative(expr, var, input_order)
-            latex_ans = str(sy.latex(derivative))
-
-            if input_point:
-                exact_ans = f"At {input_variable} = {input_point}\n"
-
-            if output_type == 1:
-                exact_ans += str(sy.pretty(derivative))
-            elif output_type == 2:
-                exact_ans += latex_ans
-            else:
-                exact_ans += str(derivative)
-
             return {"deriv": [exact_ans, approx_ans], "latex": latex_ans}
         except:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
     @pyqtSlot()
-    def calc_deriv(
+    def calc_function_name(
         self,
         input_expression: str,
         input_variable: str,
@@ -128,37 +115,16 @@ class DerivativeWorker(BaseWorker):
             expr = sy.parse_expr(input_expression, local_dict=clashes)
             var = sy.parse_expr(input_variable, local_dict=clashes)
 
-            exact_ans = sy.diff(expr, var, input_order)
-            latex_ans = str(sy.latex(exact_ans))
-
-            if input_point:
-                point = sy.parse_expr(input_point, local_dict=clashes)
-                exact_ans = sy.simplify(exact_ans.subs(var, point))
-
-                approx_ans = str(sy.N(exact_ans, accuracy))
-                if use_scientific:
-                    approx_ans = self.to_scientific_notation(approx_ans, use_scientific)
-                latex_ans = str(sy.latex(exact_ans))
-            else:
-                exact_ans = sy.simplify(exact_ans)
-
-            if output_type == 1:
-                exact_ans = str(sy.pretty(exact_ans))
-            elif output_type == 2:
-                exact_ans = latex_ans
-            else:
-                exact_ans = str(exact_ans)
-
             return {"deriv": [exact_ans, approx_ans], "latex": latex_ans}
 
         except:
             return {"error": [f"Error: \n{traceback.format_exc()}"]}
 
 
-class DerivativeTab(CaspyTab):
+class IntegralTab(CaspyTab):
 
-    display_name = "Derivative"
-    name = "derivative"
+    display_name = "Integrals"
+    name = "integral"
 
     def __stubs(self) -> None:
         """Stubs for auto-completion"""
@@ -182,22 +148,25 @@ class DerivativeTab(CaspyTab):
 
     def __init__(self, main_window: "MainWindow") -> None:
         super().__init__(main_window, self.name)
-        loadUi(self.main_window.get_resource("qt_assets/tabs/derivative.ui"), self)
+        loadUi(self.main_window.get_resource("qt_assets/tabs/integral.ui"), self)
 
-        self.eout = self.deriv_exact
-        self.aout = self.deriv_approx
+        self.eout = self.integ_exact
+        self.aout = self.integ_approx
 
         self.splitters: ty.List[QSplitter] = [
-            self.deriv_splitter_0,
-            self.deriv_splitter_1,
+            self.integ_splitter_0,
+            self.integ_splitter_1,
         ]
 
-        self.set_splitters(self.splitters)
+        self.methods = ["Integrate", "Fourier Transform", "Mellin Transform"]
+        self.integ_methods_combo.addItems(self.methods)
+
+        #self.set_splitters(self.splitters)
         self.init_bindings()
 
     def init_bindings(self):
-        self.deriv_prev.clicked.connect(self.preview)
-        self.deriv_calc.clicked.connect(self.calculate)
+        self.integ_prev.clicked.connect(self.preview)
+        self.integ_calc.clicked.connect(self.calculate)
 
     def calculate(self) -> None:
         """Calculate from input, gets called on Ctrl+Return"""
@@ -215,26 +184,6 @@ class DerivativeTab(CaspyTab):
         # use_scientific: int,
         # accuracy: int,
 
-        worker = DerivativeWorker(
-            "calc_deriv",
-            [
-                self.deriv_input.toPlainText(),
-                self.deriv_var_input.text(),
-                self.deriv_order_input.value(),
-                self.deriv_point_input.text(),
-                self.main_window.output_type,
-                self.main_window.use_unicode,
-                self.main_window.line_wrap,
-                self.main_window.clashes,
-                self.main_window.use_scientific,
-                self.main_window.accuracy,
-            ],
-        )
-        worker.signals.output.connect(self.update_ui)
-        worker.signals.finished.connect(self.stop_thread)
-
-        self.main_window.threadpool.start(worker)
-
     def preview(self) -> None:
         """Preview from input, get called on Ctrl+Shift+Return"""
         self.eout.set_cursor(Qt.WaitCursor)
@@ -249,23 +198,6 @@ class DerivativeTab(CaspyTab):
         # line_wrap: bool,
         # clashes: ty.Dict[str, sy.Symbol],
 
-        worker = DerivativeWorker(
-            "prev_deriv",
-            [
-                self.deriv_input.toPlainText(),
-                self.deriv_var_input.text(),
-                self.deriv_order_input.value(),
-                self.deriv_point_input.text(),
-                self.main_window.output_type,
-                self.main_window.use_unicode,
-                self.main_window.line_wrap,
-                self.main_window.clashes,
-            ],
-        )
-        worker.signals.output.connect(self.update_ui)
-        worker.signals.finished.connect(self.stop_thread)
-
-        self.main_window.threadpool.start(worker)
-
     def close_event(self) -> None:
-        self.write_splitters(self.splitters)
+        pass
+        #self.write_splitters(self.splitters)

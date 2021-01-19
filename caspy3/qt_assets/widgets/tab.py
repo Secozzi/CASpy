@@ -49,8 +49,8 @@ class CaspyTab(QWidget):
             self.main_window.exact_ans = input_dict[first_key][0]
             self.main_window.approx_ans = input_dict[first_key][1]
 
-            self.eout.setText(input_dict[first_key][0])
-            self.aout.setText(input_dict[first_key][1])
+            self.eout.setText(str(input_dict[first_key][0]))
+            self.aout.setText(str(input_dict[first_key][1]))
 
     def stop_thread(self) -> None: ...
 
