@@ -1,0 +1,59 @@
+[
+  {
+    "name": "Integrate",
+    "fields": ["var", "lower", "upper"],
+    "var": {
+      "label": "Variable",
+      "default": "x",
+      "tooltip": "Integrate with respect to variable"
+    },
+    "lower": {
+      "label": "Lower bound",
+      "default": "",
+      "tooltip": "Indefinite integration with result given with input replacing variable if upper not given. If upper: calculate definite integral."
+    },
+    "upper": {
+      "label": "Upper bound",
+      "default": "",
+      "tooltip": "Upperbound of integral"
+    }
+  },
+  {
+    "name": "Line Integral",
+    "fields": ["field", "curve", "vars"],
+    "field": {
+      "label": "Field",
+      "default": "x+y",
+      "tooltip": "Integrate with respect to variable"
+    },
+    "curve": {
+      "label": "Curve",
+      "default": "Curve((sin(t), cos(t)), (t, 0, 2))",
+      "tooltip": "A curve in space, which is defined by parametric functions for the coordinates, a parameter and the lower and upper bounds for the parameter value"
+    },
+    "vars": {
+      "label": "Variables",
+      "default": "x, y",
+      "tooltip": "List of variables, separate with a comma"
+    }
+  },
+    {
+    "name": "Mellin Transform",
+    "fields": ["func", "var", "s"],
+    "func": {
+      "label": "Function",
+      "default": "x",
+      "tooltip": "Compute the Mellin transform F(s) of f(x)"
+    },
+    "var": {
+      "label": "Variable",
+      "default": "x",
+      "tooltip": "Variable"
+    },
+    "s": {
+      "label": "s",
+      "default": "s",
+      "tooltip": "s"
+    }
+  }
+]

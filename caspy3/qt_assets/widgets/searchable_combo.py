@@ -17,6 +17,7 @@
 #
 
 from PyQt5.QtWidgets import QComboBox, QCompleter, QLineEdit
+from PyQt5.QtCore import Qt
 
 
 class FocusLine(QLineEdit):
@@ -32,5 +33,8 @@ class SearchableComboBox(QComboBox):
         super(SearchableComboBox, self).__init__(parent)
         self.setLineEdit(FocusLine())
         self.setEditable(True)
-        self.completer().setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+        self.setMaxVisibleItems(12)
+        self.completer().setMaxVisibleItems(12)
+        self.completer().setCompletionMode(QCompleter.PopupCompletion)
+        self.completer().setFilterMode(Qt.MatchContains)
         self.setInsertPolicy(QComboBox.NoInsert)

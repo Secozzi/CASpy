@@ -19,6 +19,7 @@
 # Standard library
 import typing as ty
 import traceback
+import json
 
 # Third party
 import sympy as sy
@@ -29,6 +30,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QScrollArea,
     QSpinBox,
     QSplitter,
     QWidget,
@@ -38,6 +40,8 @@ from PyQt5.uic import loadUi
 # Relative
 from caspy3.qt_assets.widgets.tab import CaspyTab
 from caspy3.qt_assets.widgets.worker import BaseWorker
+from caspy3.qt_assets.widgets.searchable_combo import SearchableComboBox
+from caspy3.qt_assets.widgets.fields_scroll import FieldsScrollArea
 
 if ty.TYPE_CHECKING:
     from caspy3.qt_assets.app.mainwindow import MainWindow
@@ -128,20 +132,19 @@ class IntegralTab(CaspyTab):
 
     def __stubs(self) -> None:
         """Stubs for auto-completion"""
-        self.deriv_approx = OutputWidget(self)
-        self.deriv_calc = QPushButton()
-        self.deriv_exact = OutputWidget(self)
-        self.deriv_input = TextEdit(self)
-        self.deriv_order_input = QSpinBox()
-        self.deriv_order_label = QLabel()
-        self.deriv_point_input = QLineEdit()
-        self.deriv_point_label = QLabel()
-        self.deriv_prev = QPushButton()
-        self.deriv_splitter_0 = QSplitter()
-        self.deriv_splitter_1 = QSplitter()
-        self.deriv_tab = QWidget()
-        self.deriv_var_input = QLineEdit()
-        self.deriv_var_label = QLabel()
+        self.integ_approx = OutputWidget(self)
+        self.integ_calc = QPushButton()
+        self.integ_exact = OutputWidget(self)
+        self.integ_input = TextEdit(self)
+        self.integ_methods_combo = SearchableComboBox(self)
+        self.integ_methods_label = QLabel()
+        self.integ_prev = QPushButton()
+        self.integ_splitter_0 = QSplitter()
+        self.integ_splitter_1 = QSplitter()
+        self.integ_splitter_2 = QSplitter()
+        self.integral_tab = QWidget()
+        self.methods_scroll_area = FieldsScrollArea()
+        self.methods_scroll_area_contents = QWidget()
         self.verticalLayoutWidget = QWidget()
 
         raise AssertionError("This should never be called")
@@ -156,15 +159,27 @@ class IntegralTab(CaspyTab):
         self.splitters: ty.List[QSplitter] = [
             self.integ_splitter_0,
             self.integ_splitter_1,
+            self.integ_splitter_2,
         ]
 
-        self.methods = ["Integrate", "Fourier Transform", "Mellin Transform"]
-        self.integ_methods_combo.addItems(self.methods)
+        self.read_data()
 
-        #self.set_splitters(self.splitters)
         self.init_bindings()
+        self.init_methods()
+        self.set_splitters(self.splitters)
+
+    def read_data(self):
+        with open(self.main_window.get_resource("data/integ_methods.json"), "r") as f:
+            self.integ_methods = json.loads(f.read())
+
+    def init_methods(self):
+        for item in self.integ_methods:
+            self.integ_methods_combo.addItem(item["name"])
 
     def init_bindings(self):
+        self.integ_methods_combo.currentIndexChanged.connect(
+            lambda i: self.methods_scroll_area.updateFields(self.integ_methods[i])
+        )
         self.integ_prev.clicked.connect(self.preview)
         self.integ_calc.clicked.connect(self.calculate)
 
@@ -199,5 +214,4 @@ class IntegralTab(CaspyTab):
         # clashes: ty.Dict[str, sy.Symbol],
 
     def close_event(self) -> None:
-        pass
-        #self.write_splitters(self.splitters)
+        self.write_splitters(self.splitters)

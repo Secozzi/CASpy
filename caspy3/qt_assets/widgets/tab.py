@@ -59,6 +59,8 @@ class CaspyTab(QWidget):
         self.main_window.settings.beginGroup(self.name)
         for splitter in splitters:
             state = self.main_window.settings.value(splitter.objectName())
+            if not state:
+                state = splitter.saveState().data()
             splitter.restoreState(state)
         self.main_window.settings.endGroup()
 
