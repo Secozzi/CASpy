@@ -36,6 +36,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QShortcut,
     QWidget,
+    QLineEdit
 )
 from PyQt5.uic import loadUi
 
@@ -249,7 +250,7 @@ class MainWindow(QMainWindow):
         self.use_clash2 = state
         self.update_clashes()
 
-    def update_clashes(self):
+    def update_clashes(self) -> None:
         if self.use_clash1 and self.use_clash2:
             self.clashes = {**_clash1, **_clash2}
         elif self.use_clash1 and not self.use_clash2:
@@ -386,7 +387,10 @@ class MainWindow(QMainWindow):
     def init_tabs(self) -> None:
         self.tab_manager.clear()
         for tab in self.tab_list:
-            self.tab_manager.addTab(tab(main_window=self), tab.display_name)
+            _tab = tab(main_window=self)
+            self.tab_manager.addTab(_tab, tab.display_name)
+            if self.use_latex:
+                _tab.out_splitter.insertWidget(1, QLineEdit(self))
 
     def init_shortcuts(self) -> None:
         cshortcut = QShortcut(QKeySequence("Ctrl+Return"), self)

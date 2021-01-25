@@ -17,6 +17,7 @@
 #
 
 # Standard library
+from __future__ import annotations
 import typing as ty
 import traceback
 import json
@@ -28,10 +29,7 @@ import sympy as sy
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import (
     QLabel,
-    QLineEdit,
     QPushButton,
-    QScrollArea,
-    QSpinBox,
     QSplitter,
     QWidget,
 )
@@ -51,7 +49,7 @@ if ty.TYPE_CHECKING:
 
 class IntegralWorker(BaseWorker):
     def __init__(
-        self, command: str, params: list, copy: ty.Union[int, None] = None
+        self, command: str, params: list, copy: int | None = None
     ) -> None:
         super().__init__(command, params, copy)
 
@@ -155,6 +153,7 @@ class IntegralTab(CaspyTab):
 
         self.eout = self.integ_exact
         self.aout = self.integ_approx
+        self.out_splitter = self.integ_splitter_2
 
         self.splitters: ty.List[QSplitter] = [
             self.integ_splitter_0,
@@ -168,15 +167,15 @@ class IntegralTab(CaspyTab):
         self.init_methods()
         self.set_splitters(self.splitters)
 
-    def read_data(self):
+    def read_data(self) -> None:
         with open(self.main_window.get_resource("data/integ_methods.json"), "r") as f:
             self.integ_methods = json.loads(f.read())
 
-    def init_methods(self):
+    def init_methods(self) -> None:
         for item in self.integ_methods:
             self.integ_methods_combo.addItem(item["name"])
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         self.integ_methods_combo.currentIndexChanged.connect(
             lambda i: self.methods_scroll_area.updateFields(self.integ_methods[i])
         )
@@ -187,6 +186,8 @@ class IntegralTab(CaspyTab):
         """Calculate from input, gets called on Ctrl+Return"""
         self.eout.set_cursor(Qt.WaitCursor)
         self.aout.set_cursor(Qt.WaitCursor)
+
+        print(self.methods_scroll_area.get_data())
 
         # input_expression: str,
         # input_variable: str,

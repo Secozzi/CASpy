@@ -36,7 +36,7 @@ class CaspyTab(QWidget):
         self.main_window.qapp.aboutToQuit.connect(self.close_event)
         self.setFont(self.main_window.tabs_font)
 
-    def update_ui(self, input_dict) -> None:
+    def update_ui(self, input_dict: ty.Dict[str, ty.List[str]]) -> None:
         self.eout.set_cursor(Qt.ArrowCursor)
         self.aout.set_cursor(Qt.ArrowCursor)
 

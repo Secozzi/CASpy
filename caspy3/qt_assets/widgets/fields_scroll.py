@@ -1,3 +1,25 @@
+#
+#    CASPy - A program that provides both a GUI and a CLI to SymPy.
+#    Copyright (C) 2021 Folke Ishii
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+
+# Standard library
+import typing as ty
+
+# PyQt5
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
     QGridLayout,
@@ -8,12 +30,12 @@ from PyQt5.QtWidgets import (
 
 
 class FieldsScrollArea(QScrollArea):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super(FieldsScrollArea, self).__init__(parent)
 
         self.scroll_grid = QGridLayout(self)
 
-    def updateFields(self, data):
+    def updateFields(self, data: dict) -> None:
         for i in reversed(range(self.scroll_grid.count())):
             self.scroll_grid.itemAt(i).widget().setParent(None)
 
@@ -26,6 +48,7 @@ class FieldsScrollArea(QScrollArea):
             qline = QLineEdit(self)
             qline.setFixedHeight(30)
             qline.setObjectName(field + "line")
+            qline.setText(data[field]["default"])
             qline.setFont(QFont("Courier New", 8))
 
             label.setToolTip(data[field]["tooltip"])
@@ -36,7 +59,7 @@ class FieldsScrollArea(QScrollArea):
 
         self.scroll_grid.itemAtPosition(0, 1).widget().setFocus()
 
-    def get_data(self):
+    def get_data(self) -> ty.List[str]:
         out = []
         for i in range(self.scroll_grid.rowCount()):
             out.append(self.scroll_grid.itemAtPosition(i, 1).widget().text())

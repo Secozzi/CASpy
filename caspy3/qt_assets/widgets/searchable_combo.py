@@ -16,12 +16,13 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+# PyQt5
 from PyQt5.QtWidgets import QComboBox, QCompleter, QLineEdit
 from PyQt5.QtCore import Qt
 
 
 class FocusLine(QLineEdit):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super(FocusLine, self).__init__(parent)
 
     def mousePressEvent(self, a0) -> None:
@@ -29,8 +30,12 @@ class FocusLine(QLineEdit):
 
 
 class SearchableComboBox(QComboBox):
-    def __init__(self, parent=None):
+    """
+    A QComboBox derived widget that can be searched through.
+    """
+    def __init__(self, parent=None) -> None:
         super(SearchableComboBox, self).__init__(parent)
+
         self.setLineEdit(FocusLine())
         self.setEditable(True)
         self.setMaxVisibleItems(12)

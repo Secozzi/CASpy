@@ -65,7 +65,7 @@ class DerivativeWorker(BaseWorker):
     ) -> ty.Dict[str, ty.List[str]]:
         sy.init_printing(use_unicode=use_unicode, wrap_line=line_wrap)
 
-        approx_ans = 0
+        approx_ans = "..."
         exact_ans = ""
         latex_ans = ""
 
@@ -133,14 +133,12 @@ class DerivativeWorker(BaseWorker):
 
             if input_point:
                 point = sy.parse_expr(input_point, local_dict=clashes)
-                exact_ans = sy.simplify(exact_ans.subs(var, point))
+                exact_ans = exact_ans.subs(var, point)
 
                 approx_ans = str(sy.N(exact_ans, accuracy))
                 if use_scientific:
                     approx_ans = self.to_scientific_notation(approx_ans, use_scientific)
                 latex_ans = str(sy.latex(exact_ans))
-            else:
-                exact_ans = sy.simplify(exact_ans)
 
             if output_type == 1:
                 exact_ans = str(sy.pretty(exact_ans))
@@ -186,6 +184,7 @@ class DerivativeTab(CaspyTab):
 
         self.eout = self.deriv_exact
         self.aout = self.deriv_approx
+        self.out_splitter = self.deriv_splitter_1
 
         self.splitters: ty.List[QSplitter] = [
             self.deriv_splitter_0,
@@ -195,7 +194,7 @@ class DerivativeTab(CaspyTab):
         self.set_splitters(self.splitters)
         self.init_bindings()
 
-    def init_bindings(self):
+    def init_bindings(self) -> None:
         self.deriv_prev.clicked.connect(self.preview)
         self.deriv_calc.clicked.connect(self.calculate)
 

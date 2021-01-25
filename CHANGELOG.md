@@ -13,6 +13,7 @@ All changes will be documented in this file
 ### Changed
 
 - Overall structure changed
+- Tests now use pytest instead of self-made tester
 
 ## [2.2.0] - 2021-01-07
 

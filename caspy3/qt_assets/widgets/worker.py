@@ -94,7 +94,6 @@ class BaseWorker(QRunnable):
 
     @pyqtSlot()
     def to_scientific_notation(self, number: str, accuracy: int = 5) -> str:
-        number = str(number)
         sym_num = sy.sympify(number)
 
         if not sym_num.is_complex:
@@ -109,7 +108,7 @@ class BaseWorker(QRunnable):
             accuracy = 5
 
         if sym_num.is_real:
-            return f"{number:.{accuracy}E}".replace("E", "*10**")
+            return f"{sym_num:.{accuracy}E}".replace("E", "*10**")
         else:
             real = sy.re(sym_num)
             imag = sy.im(sym_num)
