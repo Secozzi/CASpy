@@ -137,8 +137,10 @@
     <property name="title">
      <string>Tab</string>
     </property>
-    <addaction name="actionNext_Tab"/>
-    <addaction name="actionPrevious_Tab"/>
+    <addaction name="action_next_tab"/>
+    <addaction name="action_previous_tab"/>
+    <addaction name="separator"/>
+    <addaction name="action_edit_qsplitter"/>
    </widget>
    <widget class="QMenu" name="menu_settings">
     <property name="tearOffEnabled">
@@ -205,7 +207,7 @@
     <string>Ctrl+E</string>
    </property>
   </action>
-  <action name="actionPrevious_Tab">
+  <action name="action_previous_tab">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -237,7 +239,7 @@
     <string>Ctrl+U</string>
    </property>
   </action>
-  <action name="actionNext_Tab">
+  <action name="action_next_tab">
    <property name="checkable">
     <bool>false</bool>
    </property>
@@ -433,6 +435,11 @@
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_edit_qsplitter">
+   <property name="text">
+    <string>Edit QSplitter</string>
    </property>
   </action>
  </widget>

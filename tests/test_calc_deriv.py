@@ -49,7 +49,7 @@ def test_calc_deriv_invalid_expression(qtbot):
         blocker.connect(app.signals.output)
         app.run()
 
-    assert blocker.args[0]["error"][0].startswith("Error: \nTraceback (most recent call last):")
+    assert is_traceback(blocker)
 
 
 def test_calc_deriv_no_variable(qtbot):
@@ -77,7 +77,6 @@ def test_calc_deriv_invalid_variable(qtbot):
         app.run()
 
     assert is_traceback(blocker)
-    #assert blocker.args[0]["error"][0].startswith("Error: \nTraceback (most recent call last):")
 
 
 def test_calc_deriv(qtbot):

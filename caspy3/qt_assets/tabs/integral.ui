@@ -20,107 +20,110 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QSplitter" name="integ_splitter_0">
+    <widget class="QSplitter" name="integ_main_splitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QSplitter" name="integ_splitter_1">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <widget class="TextEdit" name="integ_input">
-       <property name="toolTip">
-        <string>Expression</string>
-       </property>
-       <property name="tabChangesFocus">
-        <bool>true</bool>
-       </property>
-       <property name="placeholderText">
-        <string>Expression</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QHBoxLayout" name="integ_methods_layout">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMaximumSize</enum>
-        </property>
-        <item>
-         <widget class="QLabel" name="integ_methods_label">
-          <property name="minimumSize">
-           <size>
-            <width>60</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>60</width>
-            <height>16777215</height>
-           </size>
-          </property>
+     <widget class="QWidget" name="verticalLayoutWidget_2">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QSplitter" name="integ_input_splitter">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <widget class="TextEdit" name="integ_input">
           <property name="toolTip">
-           <string/>
+           <string>Expression</string>
           </property>
-          <property name="text">
-           <string>Method</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="SearchableComboBox" name="integ_methods_combo"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="FieldsScrollArea" name="methods_scroll_area">
-       <property name="widgetResizable">
-        <bool>true</bool>
-       </property>
-       <widget class="QWidget" name="methods_scroll_area_contents">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>378</width>
-          <height>69</height>
-         </rect>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="verticalLayoutWidget">
-       <layout class="QVBoxLayout" name="integ_buttons_layout">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMaximumSize</enum>
-        </property>
-        <item>
-         <widget class="QPushButton" name="integ_prev">
-          <property name="toolTip">
-           <string>Preview the integral</string>
-          </property>
-          <property name="text">
-           <string>Preview</string>
-          </property>
-          <property name="autoDefault">
+          <property name="tabChangesFocus">
            <bool>true</bool>
           </property>
+          <property name="placeholderText">
+           <string>Expression</string>
+          </property>
          </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="integ_calc">
-          <property name="toolTip">
-           <string>Calculate the integral - Shift + Enter</string>
-          </property>
-          <property name="text">
-           <string>Calculate</string>
-          </property>
-          <property name="autoDefault">
+         <widget class="QWidget" name="layoutWidget">
+          <layout class="QHBoxLayout" name="integ_methods_layout">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetMaximumSize</enum>
+           </property>
+           <item>
+            <widget class="QLabel" name="integ_methods_label">
+             <property name="minimumSize">
+              <size>
+               <width>60</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string/>
+             </property>
+             <property name="text">
+              <string>Method</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="SearchableComboBox" name="integ_methods_combo"/>
+           </item>
+          </layout>
+         </widget>
+         <widget class="FieldsScrollArea" name="methods_scroll_area">
+          <property name="widgetResizable">
            <bool>true</bool>
           </property>
+          <widget class="QWidget" name="methods_scroll_area_contents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>377</width>
+             <height>69</height>
+            </rect>
+           </property>
+          </widget>
          </widget>
-        </item>
-       </layout>
-      </widget>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QPushButton" name="integ_prev">
+           <property name="toolTip">
+            <string>Preview the integral</string>
+           </property>
+           <property name="text">
+            <string>Preview</string>
+           </property>
+           <property name="autoDefault">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="integ_calc">
+           <property name="toolTip">
+            <string>Calculate the integral - Shift + Enter</string>
+           </property>
+           <property name="text">
+            <string>Calculate</string>
+           </property>
+           <property name="autoDefault">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </widget>
-     <widget class="QSplitter" name="integ_splitter_2">
+     <widget class="QSplitter" name="integ_output_splitter">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>

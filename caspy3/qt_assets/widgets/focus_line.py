@@ -17,24 +17,12 @@
 #
 
 # PyQt5
-from PyQt5.QtWidgets import QComboBox, QCompleter, QLineEdit
-from PyQt5.QtCore import Qt
-
-# Relative
-from caspy3.qt_assets.widgets.focus_line import FocusLine
+from PyQt5.QtWidgets import QLineEdit
 
 
-class SearchableComboBox(QComboBox):
-    """
-    A QComboBox derived widget that can be searched through.
-    """
+class FocusLine(QLineEdit):
     def __init__(self, parent=None) -> None:
-        super(SearchableComboBox, self).__init__(parent)
+        super(FocusLine, self).__init__(parent)
 
-        self.setLineEdit(FocusLine())
-        self.setEditable(True)
-        self.setMaxVisibleItems(12)
-        self.completer().setMaxVisibleItems(12)
-        self.completer().setCompletionMode(QCompleter.PopupCompletion)
-        self.completer().setFilterMode(Qt.MatchContains)
-        self.setInsertPolicy(QComboBox.NoInsert)
+    def mousePressEvent(self, a0) -> None:
+        self.selectAll()

@@ -181,6 +181,9 @@ class DerivativeTab(CaspyTab):
     def __init__(self, main_window: "MainWindow") -> None:
         super().__init__(main_window, self.name)
         loadUi(self.main_window.get_resource("qt_assets/tabs/derivative.ui"), self)
+        self.setStyleSheet(f"font-size: {self.main_window.tabs_font.pointSize()}pt; font-family: {self.main_window.tabs_font.family()};")
+        #self.setFont(self.main_window.tabs_font)
+        #self.deriv_input.setFont(self.main_window.tabs_font)
 
         self.eout = self.deriv_exact
         self.aout = self.deriv_approx

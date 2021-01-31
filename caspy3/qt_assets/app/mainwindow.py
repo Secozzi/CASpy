@@ -43,6 +43,7 @@ from PyQt5.uic import loadUi
 # Relative
 from caspy3.qt_assets.tabs import get_tabs
 from caspy3.qt_assets.dialogs.tab_list import TabList
+from caspy3.qt_assets.dialogs.qsplitter_edit import SplitterEditor
 
 
 class MainWindow(QMainWindow):
@@ -72,7 +73,8 @@ class MainWindow(QMainWindow):
         self.qapp: QApplication = QApplication.instance()
         self.threadpool: QThreadPool = QThreadPool()
         self.tab_list: ty.List[QWidget] = get_tabs()
-        self.tabs_font = QFont("Courier New", 8)  # TODO: maybe change font?
+        self.tabs_font = QFont("Courier New", 8)
+        self.main_font = QFont("Segoe UI", 9)
 
         # Functions
         self.read_settings()
@@ -152,6 +154,10 @@ class MainWindow(QMainWindow):
         """
         Initialize menu and add bindings to actions
         """
+        # Set font
+        self.setStyleSheet(f"QMenuBar {{font - size: {self.main_font.pointSize()}pt; font-family: {self.main_font.family()}}}")
+        self.tab_manager.setFont(self.tabs_font)
+
         # For the QActionGroup Output Type -> Pretty - Latex - Normal
         self.output_type_group = QActionGroup(self.menu_output_type)
         self.output_type_group.addAction(self.action_pretty)
@@ -181,6 +187,7 @@ class MainWindow(QMainWindow):
             "action_copy_approximate_answer": self.copy_approx_ans,
             "action_next_tab": self.goto_next_tab,
             "action_previous_tab": self.goto_previous_tab,
+            "action_edit_qsplitter": self.edit_qsplitter,
             "action_latex_fs": self.change_latex_fs,
             "action_use_latex": self.toggle_use_latex,
         }
@@ -379,6 +386,11 @@ class MainWindow(QMainWindow):
             self.tab_manager.setCurrentIndex(self.tab_manager.count() - 1)
         else:
             self.tab_manager.setCurrentIndex(curr - 1)
+
+    def edit_qsplitter(self) -> None:
+        self.qsedit = SplitterEditor(self.tab_manager.currentWidget())
+        self.qsedit.show()
+        self.qsedit.update_splitter()
 
     def open_tab_list(self) -> None:
         # TODO: Tab list

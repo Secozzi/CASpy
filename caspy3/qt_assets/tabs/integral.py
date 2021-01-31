@@ -17,7 +17,6 @@
 #
 
 # Standard library
-from __future__ import annotations
 import typing as ty
 import traceback
 import json
@@ -49,7 +48,7 @@ if ty.TYPE_CHECKING:
 
 class IntegralWorker(BaseWorker):
     def __init__(
-        self, command: str, params: list, copy: int | None = None
+        self, command: str, params: list, copy: ty.Union[int, None] = None
     ) -> None:
         super().__init__(command, params, copy)
 
@@ -137,9 +136,9 @@ class IntegralTab(CaspyTab):
         self.integ_methods_combo = SearchableComboBox(self)
         self.integ_methods_label = QLabel()
         self.integ_prev = QPushButton()
-        self.integ_splitter_0 = QSplitter()
-        self.integ_splitter_1 = QSplitter()
-        self.integ_splitter_2 = QSplitter()
+        self.integ_main_splitter = QSplitter()
+        self.integ_input_splitter = QSplitter()
+        self.integ_output_splitter = QSplitter()
         self.integral_tab = QWidget()
         self.methods_scroll_area = FieldsScrollArea()
         self.methods_scroll_area_contents = QWidget()
@@ -150,15 +149,16 @@ class IntegralTab(CaspyTab):
     def __init__(self, main_window: "MainWindow") -> None:
         super().__init__(main_window, self.name)
         loadUi(self.main_window.get_resource("qt_assets/tabs/integral.ui"), self)
+        self.setStyleSheet(f"font-size: {self.main_window.tabs_font.pointSize()}pt; font-family: {self.main_window.tabs_font.family()};")
 
         self.eout = self.integ_exact
         self.aout = self.integ_approx
-        self.out_splitter = self.integ_splitter_2
+        self.out_splitter = self.integ_output_splitter
 
         self.splitters: ty.List[QSplitter] = [
-            self.integ_splitter_0,
-            self.integ_splitter_1,
-            self.integ_splitter_2,
+            self.integ_main_splitter,
+            self.integ_input_splitter,
+            self.integ_output_splitter,
         ]
 
         self.read_data()
